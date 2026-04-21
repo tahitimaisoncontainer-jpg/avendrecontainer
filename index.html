@@ -1,0 +1,1209 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Conteneur 20DRY — Tahiti Maison Container</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;700&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root{
+      --bg:#14181e; --bg-soft:#1b2129; --panel:#202833; --panel-2:#273241;
+      --line:#364252; --text:#f3eee5; --muted:#98a4b5;
+      --accent:#e56535; --accent-2:#ff8f62; --ok:#6fcb7d;
+      --shadow:0 20px 50px rgba(0,0,0,.34); --radius:24px; --max:1180px;
+    }
+    html { scroll-behavior: smooth; }
+    body{ font-family:'DM Sans',sans-serif; background: radial-gradient(circle at top right, rgba(229,101,53,.14), transparent 26%), radial-gradient(circle at bottom left, rgba(255,255,255,.03), transparent 18%), linear-gradient(180deg, #13181e 0%, #171d25 100%); color:var(--text); line-height:1.6; }
+    a{ color:inherit; text-decoration:none; }
+    img{ max-width:100%; display:block; }
+    .container{ width:min(var(--max), calc(100% - 2.4rem)); margin:0 auto; }
+    nav{ position:fixed; inset:0 0 auto 0; z-index:1000; backdrop-filter:blur(14px); background:rgba(20,24,30,.74); border-bottom:1px solid rgba(255,255,255,.06); }
+    .nav-inner{ min-height:78px; display:flex; align-items:center; justify-content:space-between; gap:1rem; }
+    .brand{ font-family:'Bebas Neue',sans-serif; letter-spacing:.08em; font-size:1.5rem; }
+    .brand span{ color:var(--accent); }
+    .nav-right{ display:flex; align-items:center; gap:.8rem; }
+    .nav-mini{ font-size:.82rem; color:var(--muted); }
+    .btn{ display:inline-flex; align-items:center; justify-content:center; border:none; cursor:pointer; padding:1rem 1.35rem; border-radius:999px; font-weight:700; transition:.22s ease; font-size:.95rem; }
+    .btn:hover{ transform:translateY(-1px); }
+    .btn-primary{ background:linear-gradient(135deg,var(--accent),var(--accent-2)); color:#fff; box-shadow:0 10px 24px rgba(229,101,53,.24); }
+    .btn-secondary{ background:rgba(255,255,255,.03); color:var(--text); border:1px solid var(--line); }
+    .hero{ padding:112px 0 72px; min-height:100vh; display:flex; align-items:center; }
+    .hero-grid{ display:grid; grid-template-columns:1fr 1.02fr; gap:2rem; align-items:center; }
+    .hero-copy{ display:flex; flex-direction:column; justify-content:center; gap:1.3rem; }
+    .kicker{ display:inline-flex; align-items:center; gap:.7rem; color:var(--accent); text-transform:uppercase; letter-spacing:.18em; font-size:.78rem; font-weight:700; }
+    .kicker::before{ content:""; width:34px; height:2px; border-radius:99px; background:var(--accent); }
+    h1{ font-family:'Bebas Neue',sans-serif; font-size:clamp(3.6rem,9vw,7rem); line-height:.9; letter-spacing:.02em; }
+    h1 .accent{ color:var(--accent); }
+    .hero-lead{ max-width:620px; color:var(--muted); font-size:1.05rem; }
+    .hero-metrics{ display:flex; flex-wrap:wrap; gap:.9rem; margin:.2rem 0 .5rem; }
+    .metric{ padding:.9rem 1rem; background:rgba(255,255,255,.03); border:1px solid rgba(255,255,255,.06); border-radius:16px; min-width:150px; }
+    .metric-label{ font-size:.72rem; letter-spacing:.14em; text-transform:uppercase; color:var(--muted); }
+    .metric-value{ font-family:'Bebas Neue',sans-serif; font-size:1.65rem; line-height:1; margin-top:.25rem; }
+    .hero-price{ display:flex; flex-wrap:wrap; align-items:end; gap:1rem 1.4rem; margin-top:.4rem; padding:1.3rem 1.4rem; border-left:4px solid var(--accent); background:linear-gradient(90deg,rgba(229,101,53,.08),rgba(255,255,255,0)); border-radius:0 18px 18px 0; }
+    .price-main{ font-family:'Bebas Neue',sans-serif; font-size:3.1rem; line-height:.9; letter-spacing:.03em; }
+    .price-sub{ color:var(--muted); font-size:.9rem; }
+    .free-tag{ display:inline-flex; align-items:center; gap:.45rem; color:var(--ok); font-size:.92rem; font-weight:700; }
+    .free-tag::before{ content:"✓"; }
+    .hero-actions{ display:flex; flex-wrap:wrap; gap:.9rem; }
+    .hero-visual-wrap{ position:relative; padding:1.1rem; border-radius:32px; background:linear-gradient(180deg,rgba(255,255,255,.04),rgba(255,255,255,.02)); border:1px solid rgba(255,255,255,.08); box-shadow:var(--shadow); overflow:hidden; }
+    .hero-visual-wrap::before{ content:""; position:absolute; inset:auto -10% -30% auto; width:320px; height:320px; border-radius:50%; background:radial-gradient(circle,rgba(229,101,53,.18),transparent 68%); pointer-events:none; }
+    .hero-gallery{ position:relative; display:block; min-height:640px; }
+    .photo-main{ position:relative; overflow:hidden; border-radius:26px; border:1px solid rgba(255,255,255,.08); min-height:640px; background:radial-gradient(circle at center,rgba(229,101,53,.10),rgba(15,20,26,1) 72%); display:flex; align-items:center; justify-content:center; }
+    .container-photo{ width:92%; max-width:760px; height:auto; object-fit:contain; filter:drop-shadow(0 26px 34px rgba(0,0,0,.38)); position:relative; z-index:1; }
+    .badge{ position:absolute; top:1rem; left:1rem; z-index:2; padding:.68rem .95rem; border-radius:999px; background:rgba(229,101,53,.95); color:#fff; font-size:.76rem; font-weight:700; letter-spacing:.12em; text-transform:uppercase; }
+    .hero-floating{ position:absolute; left:1rem; right:1rem; bottom:1rem; z-index:2; display:grid; grid-template-columns:repeat(3,1fr); gap:.8rem; }
+    .floating-box{ background:rgba(17,23,30,.78); backdrop-filter:blur(10px); border:1px solid rgba(255,255,255,.08); border-radius:18px; padding:1rem; }
+    .floating-box small{ color:#b9c4d2; font-size:.72rem; text-transform:uppercase; letter-spacing:.12em; }
+    .floating-box strong{ display:block; margin-top:.3rem; font-family:'Bebas Neue',sans-serif; font-size:1.5rem; letter-spacing:.04em; }
+    section{ padding:72px 0; }
+    .section-head{ display:flex; align-items:end; justify-content:space-between; gap:1rem; flex-wrap:wrap; margin-bottom:2rem; }
+    .eyebrow{ color:var(--accent); letter-spacing:.16em; text-transform:uppercase; font-size:.78rem; font-weight:700; margin-bottom:.4rem; }
+    h2{ font-family:'Bebas Neue',sans-serif; font-size:clamp(2.4rem,5vw,4rem); line-height:.9; letter-spacing:.02em; }
+    .grid-3{ display:grid; grid-template-columns:repeat(3,1fr); gap:1.1rem; }
+    .grid-4{ display:grid; grid-template-columns:repeat(4,1fr); gap:1.1rem; }
+    .card{ background:linear-gradient(180deg,rgba(255,255,255,.03),rgba(255,255,255,.02)); border:1px solid var(--line); border-radius:var(--radius); padding:1.35rem; box-shadow:var(--shadow); }
+    .spec-label{ color:var(--muted); text-transform:uppercase; letter-spacing:.12em; font-size:.72rem; }
+    .spec-value{ font-family:'Bebas Neue',sans-serif; font-size:1.9rem; line-height:1; margin:.35rem 0; }
+    .spec-note{ color:var(--muted); font-size:.83rem; }
+    .usage-card{ transition:.22s ease; }
+    .usage-card:hover{ transform:translateY(-4px); border-color:rgba(229,101,53,.45); }
+    .usage-title{ font-size:1.02rem; font-weight:700; margin-bottom:.35rem; }
+    .usage-desc{ color:var(--muted); font-size:.9rem; }
+    .quote-box{ background:linear-gradient(180deg,rgba(255,255,255,.03),rgba(255,255,255,.015)); border:1px solid var(--line); border-radius:30px; padding:1.5rem; box-shadow:var(--shadow); }
+    .quote-grid{ display:grid; grid-template-columns:repeat(2,1fr); gap:1rem; margin-top:1.6rem; }
+    .field{ display:flex; flex-direction:column; gap:.45rem; }
+    .field.full{ grid-column:1/-1; }
+    label{ font-size:.74rem; text-transform:uppercase; letter-spacing:.12em; color:var(--muted); font-weight:700; }
+    input,select,textarea{ width:100%; border:none; outline:none; color:var(--text); background:var(--panel); border:1px solid var(--line); border-radius:16px; padding:1rem; font:inherit; transition:.2s ease; appearance:none; }
+    select{ background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%2398a4b5' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E"); background-repeat:no-repeat; background-position:right 1rem center; padding-right:2.6rem; }
+    input:focus,select:focus,textarea:focus{ border-color:var(--accent); background:#26303b; }
+    textarea{ min-height:110px; resize:vertical; }
+    .choice-row{ display:flex; gap:.75rem; flex-wrap:wrap; }
+    .chip{ padding:.88rem 1rem; border-radius:16px; background:var(--panel); border:1px solid var(--line); color:var(--muted); font-weight:700; cursor:pointer; transition:.2s ease; flex:1; text-align:center; min-width:140px; }
+    .chip.active{ border-color:var(--accent); color:var(--text); background:rgba(229,101,53,.12); }
+    .total-bar{ margin-top:1rem; display:flex; align-items:center; justify-content:space-between; gap:1rem; flex-wrap:wrap; padding:1.2rem 1.25rem; border-radius:22px; background:linear-gradient(90deg,rgba(229,101,53,.12),rgba(255,255,255,.02)); border:1px solid var(--line); }
+    .total-bar small{ display:block; color:var(--muted); text-transform:uppercase; letter-spacing:.12em; margin-bottom:.25rem; }
+    .total-value{ font-family:'Bebas Neue',sans-serif; font-size:2.6rem; line-height:.9; }
+    .total-value em{ font-style:normal; color:var(--accent); font-size:1.05rem; }
+    .note{ color:#f2b16f; font-size:.82rem; }
+    .submit-row{ margin-top:1.2rem; display:flex; gap:1rem; align-items:center; flex-wrap:wrap; }
+    .submit-note{ color:var(--muted); font-size:.88rem; }
+    footer{ padding:30px 0 50px; border-top:1px solid rgba(255,255,255,.06); background:rgba(255,255,255,.015); }
+    .footer-inner{ display:flex; align-items:center; justify-content:space-between; gap:1rem; flex-wrap:wrap; }
+    .footer-left strong{ font-family:'Bebas Neue',sans-serif; letter-spacing:.08em; font-size:1.3rem; }
+    .footer-left strong span{ color:var(--accent); }
+    .footer-left p{ color:var(--muted); font-size:.85rem; margin-top:.35rem; }
+    .footer-links{ display:flex; gap:.85rem; flex-wrap:wrap; }
+    .footer-icon{ width:46px; height:46px; display:inline-flex; align-items:center; justify-content:center; border-radius:14px; background:rgba(255,255,255,.03); border:1px solid rgba(255,255,255,.08); transition:.2s ease; }
+    .footer-icon:hover{ border-color:rgba(229,101,53,.45); background:rgba(229,101,53,.08); }
+    .footer-icon svg{ width:20px; height:20px; display:block; fill:currentColor; }
+    .toast{ position:fixed; right:1.2rem; bottom:1.2rem; z-index:9999; background:#222b35; color:var(--text); padding:1rem 1.2rem; border-radius:16px; border-left:4px solid var(--ok); border:1px solid var(--line); box-shadow:var(--shadow); transform:translateY(140%); transition:.35s cubic-bezier(.2,.9,.2,1); max-width:380px; font-size:.92rem; line-height:1.5; }
+    .toast.show{ transform:translateY(0); }
+    .toast-error{ border-left-color:#e55353 !important; }
+    .hidden{ display:none !important; }
+    /* MODAL */
+    .modal-overlay{ position:fixed; inset:0; z-index:2000; background:rgba(10,14,18,.82); backdrop-filter:blur(8px); display:flex; align-items:center; justify-content:center; padding:1.2rem; opacity:0; pointer-events:none; transition:.3s ease; }
+    .modal-overlay.open{ opacity:1; pointer-events:all; }
+    .modal{ background:#1a2130; border:1px solid var(--line); border-radius:28px; width:min(720px,100%); max-height:90vh; overflow-y:auto; box-shadow:0 32px 80px rgba(0,0,0,.5); transform:translateY(28px) scale(.97); transition:.35s cubic-bezier(.2,.9,.2,1); }
+    .modal-overlay.open .modal{ transform:none; }
+    .modal-header{ padding:1.6rem 1.8rem 1rem; border-bottom:1px solid var(--line); display:flex; align-items:start; justify-content:space-between; gap:1rem; }
+    .modal-title-block .eyebrow{ margin-bottom:.2rem; }
+    .modal-title-block h3{ font-family:'Bebas Neue',sans-serif; font-size:2.2rem; line-height:1; letter-spacing:.03em; }
+    .modal-close{ width:40px; height:40px; border:1px solid var(--line); border-radius:12px; background:rgba(255,255,255,.03); color:var(--muted); cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:1.2rem; transition:.2s ease; flex-shrink:0; }
+    .modal-close:hover{ border-color:rgba(229,101,53,.4); background:rgba(229,101,53,.08); color:var(--text); }
+    .modal-body{ padding:1.6rem 1.8rem; }
+    .devis-meta{ display:flex; gap:1rem; flex-wrap:wrap; margin-bottom:1.4rem; }
+    .devis-meta-item{ flex:1; min-width:130px; padding:.8rem 1rem; border:1px solid var(--line); border-radius:14px; background:rgba(255,255,255,.02); }
+    .devis-meta-item small{ color:var(--muted); font-size:.72rem; text-transform:uppercase; letter-spacing:.12em; display:block; margin-bottom:.2rem; }
+    .devis-meta-item span{ font-weight:700; font-size:.9rem; }
+    .devis-table{ width:100%; border-collapse:collapse; margin-bottom:1.2rem; }
+    .devis-table th{ text-align:left; font-size:.72rem; letter-spacing:.14em; text-transform:uppercase; color:var(--muted); padding:.6rem .8rem; border-bottom:1px solid var(--line); }
+    .devis-table td{ padding:.9rem .8rem; border-bottom:1px solid rgba(255,255,255,.04); font-size:.9rem; vertical-align:top; }
+    .devis-table tr:last-child td{ border-bottom:none; }
+    .td-right{ text-align:right; font-weight:700; }
+    .devis-total{ display:flex; align-items:center; justify-content:space-between; padding:1.1rem 1.2rem; background:linear-gradient(90deg,rgba(229,101,53,.12),rgba(255,255,255,.02)); border:1px solid rgba(229,101,53,.25); border-radius:18px; margin-bottom:1.2rem; }
+    .devis-total-label{ font-size:.82rem; color:var(--muted); text-transform:uppercase; letter-spacing:.12em; }
+    .devis-total-value{ font-family:'Bebas Neue',sans-serif; font-size:2.4rem; line-height:.9; }
+    .devis-total-value em{ font-style:normal; color:var(--accent); font-size:1rem; }
+    .devis-notice{ padding:.9rem 1rem; border-radius:14px; background:rgba(255,143,98,.06); border:1px solid rgba(255,143,98,.15); font-size:.83rem; color:#d4a07a; margin-bottom:1rem; line-height:1.55; }
+    .modal-footer{ padding:1rem 1.8rem 1.6rem; display:flex; gap:.8rem; flex-wrap:wrap; align-items:center; }
+    .spinner{ display:inline-block; width:14px; height:14px; border:2px solid rgba(255,255,255,.3); border-top-color:#fff; border-radius:50%; animation:spin .7s linear infinite; margin-right:.5rem; vertical-align:middle; }
+    @keyframes spin{ to{ transform:rotate(360deg); } }
+    @media (max-width:1080px){ .hero-grid{ grid-template-columns:1fr; } .grid-4{ grid-template-columns:repeat(2,1fr); } }
+    @media (max-width:780px){ .hero{ min-height:auto; } .hero-gallery{ min-height:auto; } .photo-main{ min-height:360px; } .hero-floating{ grid-template-columns:1fr; } .quote-grid,.grid-3,.grid-4{ grid-template-columns:1fr; } .nav-mini{ display:none; } .modal-body{ padding:1.2rem; } .modal-header{ padding:1.2rem 1.2rem .8rem; } .modal-footer{ padding:.8rem 1.2rem 1.2rem; } }
+  </style>
+</head>
+<body>
+
+<nav>
+  <div class="container nav-inner">
+    <a class="brand" href="#top"><span>TMC</span> — Tahiti Maison Container</a>
+    <div class="nav-right">
+      <div class="nav-mini">Conteneur 20DRY disponible</div>
+      <a class="btn btn-primary" href="#devis">Demander un devis</a>
+    </div>
+  </div>
+</nav>
+
+<main id="top">
+  <section class="hero">
+    <div class="container hero-grid">
+      <div class="hero-copy">
+        <div class="kicker">Conteneur maritime d'occasion</div>
+        <h1>CONTENEUR <span class="accent">20 DRY</span><br>PRÊT À LIVRER</h1>
+        <p class="hero-lead">Conteneur maritime 20 pieds DRY d'occasion, en bon état général. Idéal pour le stockage sécurisé, atelier, chantier ou tout projet d'aménagement.</p>
+        <div class="hero-metrics">
+          <div class="metric"><div class="metric-label">État</div><div class="metric-value">Bon état</div></div>
+          <div class="metric"><div class="metric-label">Usage</div><div class="metric-value">Stockage / projet</div></div>
+          <div class="metric"><div class="metric-label">Livraison</div><div class="metric-value">Tahiti + îles</div></div>
+        </div>
+        <div class="hero-price">
+          <div><div class="price-main">580 000 XPF</div><div class="price-sub">Prix TTC de base du conteneur</div></div>
+          <div class="free-tag">Livraison gratuite sur Papeete</div>
+        </div>
+        <div class="hero-actions">
+          <a class="btn btn-primary" href="#devis">Recevoir mon devis gratuit</a>
+          <a class="btn btn-secondary" href="tel:+68987226555">Appeler</a>
+          <a class="btn btn-secondary" href="mailto:tahitimaisoncontainer@gmail.com">Email</a>
+        </div>
+      </div>
+      <div class="hero-visual-wrap">
+        <div class="hero-gallery">
+          <div class="photo-main">
+            <img class="container-photo" src="images/conteneur-20dry.png" alt="Conteneur maritime 20 pieds DRY" />
+            <div class="badge">Occasion — bon état</div>
+            <div class="hero-floating">
+              <div class="floating-box"><small>Longueur</small><strong>6,06 m</strong></div>
+              <div class="floating-box"><small>Largeur</small><strong>2,44 m</strong></div>
+              <div class="floating-box"><small>Hauteur</small><strong>2,59 m</strong></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="container">
+      <div class="section-head">
+        <div>
+          <div class="eyebrow">Fiche technique</div>
+          <h2>CARACTÉRISTIQUES</h2>
+          <div style="margin-top:1rem;margin-bottom:1.5rem;color:var(--muted);max-width:700px;">
+            <strong>Avantages :</strong><br>
+            • Étanchéité à l'air et à la lumière<br>
+            • Sécurité contre le vol, la perte et les dommages<br>
+            • Mobilité : déplacement facilité par sa taille
+          </div>
+        </div>
+      </div>
+      <div class="grid-3">
+        <div class="card"><div class="spec-label">Poids</div><div class="spec-value">2.2 t</div><div class="spec-note">Poids à vide du conteneur</div></div>
+        <div class="card"><div class="spec-label">Surface</div><div class="spec-value">13.86 m²</div><div class="spec-note">Surface intérieure exploitable</div></div>
+        <div class="card"><div class="spec-label">Matériaux</div><div class="spec-value">Corten</div><div class="spec-note">Acier haute résistance anticorrosion</div></div>
+        <div class="card"><div class="spec-label">Volume</div><div class="spec-value">33.2 m³</div><div class="spec-note">Capacité intérieure utile</div></div>
+        <div class="card"><div class="spec-label">Charge utile</div><div class="spec-value">28 230 kg</div><div class="spec-note">Charge maximale autorisée</div></div>
+        <div class="card"><div class="spec-label">Type</div><div class="spec-value">20 DRY</div><div class="spec-note">Conteneur maritime standard</div></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="container">
+      <div class="section-head"><div><div class="eyebrow">Applications</div><h2>À QUOI IL PEUT SERVIR</h2></div></div>
+      <div class="grid-4">
+        <div class="card usage-card"><div class="usage-title">Stockage chantier</div><div class="usage-desc">Idéal pour sécuriser matériaux, outils et consommables directement sur site.</div></div>
+        <div class="card usage-card"><div class="usage-title">Atelier aménagé</div><div class="usage-desc">Base robuste pour un atelier avec éclairage, prises et aménagement intérieur.</div></div>
+        <div class="card usage-card"><div class="usage-title">Projet habitable</div><div class="usage-desc">Convient comme base pour studio, bureau, extension ou autre projet sur mesure.</div></div>
+        <div class="card usage-card"><div class="usage-title">Commerce temporaire</div><div class="usage-desc">Snack, boutique, point de vente mobile ou activité événementielle.</div></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="container">
+      <div class="section-head"><div><div class="eyebrow">Pourquoi nous choisir</div><h2>UNE SOLUTION SIMPLE, FIABLE ET RENTABLE</h2></div></div>
+      <div class="grid-4">
+        <div class="card"><div class="usage-title">Éco-responsable</div><div class="usage-desc">Réemploi de conteneurs maritimes pour une solution durable et intelligente.</div></div>
+        <div class="card"><div class="usage-title">Réactivité</div><div class="usage-desc">Réponse rapide sous 24h à 72h pour vos demandes et projets.</div></div>
+        <div class="card"><div class="usage-title">Livraison maîtrisée</div><div class="usage-desc">Livraison sur Tahiti et les îles avec gestion logistique complète.</div></div>
+        <div class="card"><div class="usage-title">Accompagnement</div><div class="usage-desc">Conseils personnalisés + options : électricité, peinture, isolation, ouvertures.</div></div>
+      </div>
+      <div style="margin-top:2rem;max-width:820px;color:var(--muted);">Le conteneur 20 pieds DRY est une solution fiable, économique et durable pour le stockage ou l'aménagement. Polyvalent, sécurisé et facile à transporter, il s'adapte aussi bien aux besoins professionnels que personnels.</div>
+    </div>
+  </section>
+
+  <section id="devis">
+    <div class="container">
+      <div class="section-head"><div><div class="eyebrow">Gratuit & sans engagement</div><h2>DEMANDE DE DEVIS</h2></div></div>
+      <div class="quote-box">
+        <div class="quote-grid" id="devisForm">
+          <div class="field full">
+            <label>Vous êtes</label>
+            <div class="choice-row">
+              <button class="chip active type-btn" onclick="setClientType('particulier',this)">Particulier</button>
+              <button class="chip type-btn" onclick="setClientType('entreprise',this)">Entreprise</button>
+              <button class="chip type-btn" onclick="setClientType('public',this)">Organisme public</button>
+            </div>
+          </div>
+          <div class="field"><label>Nom</label><input type="text" id="nom" placeholder="Votre nom"></div>
+          <div class="field"><label>Prénom</label><input type="text" id="prenom" placeholder="Votre prénom"></div>
+          <div class="field full hidden" id="field-entreprise">
+            <label id="label-entreprise">Nom de l'entreprise</label>
+            <input type="text" id="entreprise" placeholder="Nom de l'entreprise ou organisme">
+          </div>
+          <div class="field"><label>Téléphone</label><input type="tel" id="tel" placeholder="XX XX XX XX"></div>
+          <div class="field"><label>Email</label><input type="email" id="email" placeholder="votre@email.pf"></div>
+          <div class="field full">
+            <label>Quantité de conteneurs 20DRY</label>
+            <select id="quantite" onchange="updateTotal()">
+              <option value="1">1 conteneur</option><option value="2">2 conteneurs</option>
+              <option value="3">3 conteneurs</option><option value="4">4 conteneurs</option>
+              <option value="5+">5 conteneurs et +</option>
+            </select>
+          </div>
+          <div class="field full">
+            <label>Commune de livraison</label>
+            <select id="commune" onchange="updateTotal()">
+              <option value="0">Papeete</option><option value="25137">Pirae</option>
+              <option value="23892">Faa'a</option><option value="23892">Arue</option>
+              <option value="28908">Punaauia</option><option value="28908">Mahina</option>
+              <option value="35192">Paea</option><option value="35192">Tiarei</option>
+              <option value="35192">Papenoo</option><option value="47760">Papara</option>
+              <option value="47760">Hitiaa</option><option value="47760">Mahaena</option>
+              <option value="56559">Mataiea</option><option value="60329">Papeari</option>
+              <option value="69127">Taravao</option><option value="70384">Toahotu</option>
+              <option value="70384">Afaahiti</option><option value="71641">Vairao</option>
+              <option value="71641">Pueu</option><option value="75411">Teahupoo</option>
+              <option value="75411">Tautira</option><option value="50000">Raiatea (quai)</option>
+              <option value="50000">Bora-Bora</option><option value="50000">Tahaa</option>
+              <option value="autres">Autres îles</option>
+            </select>
+          </div>
+          <div class="field full hidden" id="field-autres">
+            <label>Précisez l'île</label>
+            <input type="text" id="ile" placeholder="Nom de l'île (ex : Rimatara, Rangiroa...)">
+            <div class="note">Le tarif affiché comprend uniquement la mise à disposition sur le quai de Papeete. Le fret maritime sera communiqué après étude.</div>
+          </div>
+          <div class="field full">
+            <div class="total-bar">
+              <div><small>Total estimé TTC</small><div class="total-value" id="totalDisplay">580 000 <em>XPF</em></div></div>
+              <div class="note hidden" id="surcharge-note">Par bon de commande payé sous 30 jours (+15%)</div>
+            </div>
+          </div>
+          <div class="field full">
+            <label>Message</label>
+            <textarea id="message" placeholder="Précisez vos besoins, contraintes d'accès, date souhaitée, contexte du projet…"></textarea>
+          </div>
+        </div>
+        <div class="submit-row">
+          <button class="btn btn-primary" onclick="submitForm()">Recevoir mon devis</button>
+          <div class="submit-note">Réponse sous 24 h — sans engagement</div>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="container footer-inner">
+    <div class="footer-left">
+      <strong><span>TMC</span> Tahiti Maison Container</strong>
+      <p>Conteneurs maritimes bruts, livraison et projets d'aménagement.</p>
+    </div>
+    <div class="footer-links">
+      <a class="footer-icon" href="tel:+68987226555" aria-label="Appeler">
+        <svg viewBox="0 0 24 24"><path d="M6.62 10.79a15.05 15.05 0 0 0 6.59 6.59l2.2-2.2a1 1 0 0 1 1.02-.24c1.12.37 2.33.56 3.57.56a1 1 0 0 1 1 1V20a1 1 0 0 1-1 1C10.3 21 3 13.7 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1c0 1.24.19 2.45.56 3.57a1 1 0 0 1-.24 1.02l-2.2 2.2z"/></svg>
+      </a>
+      <a class="footer-icon" href="mailto:tahitimaisoncontainer@gmail.com" aria-label="Email">
+        <svg viewBox="0 0 24 24"><path d="M20 4H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2zm0 3.2-8 5.6-8-5.6V6l8 5.6L20 6v1.2z"/></svg>
+      </a>
+    </div>
+  </div>
+</footer>
+
+<div class="toast" id="toast"></div>
+
+<!-- MODAL DEVIS -->
+<div class="modal-overlay" id="modalOverlay" onclick="closeModalOutside(event)">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title-block">
+        <div class="eyebrow">Tahiti Maison Container</div>
+        <h3>DEVIS ESTIMATIF</h3>
+      </div>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="devis-meta">
+        <div class="devis-meta-item"><small>N° Devis</small><span id="devis-num">—</span></div>
+        <div class="devis-meta-item"><small>Date</small><span id="devis-date">—</span></div>
+        <div class="devis-meta-item"><small>Client</small><span id="devis-client">—</span></div>
+        <div class="devis-meta-item"><small>Validité</small><span>30 jours</span></div>
+      </div>
+      <table class="devis-table">
+        <thead>
+          <tr>
+            <th>Désignation</th><th>Qté</th>
+            <th style="text-align:right">P.U. TTC</th>
+            <th style="text-align:right">Total TTC</th>
+          </tr>
+        </thead>
+        <tbody id="devis-lines"></tbody>
+      </table>
+      <div class="devis-total">
+        <div>
+          <div class="devis-total-label">Total estimé TTC</div>
+          <div style="color:var(--muted);font-size:.78rem;margin-top:.2rem" id="devis-surcharge-note"></div>
+        </div>
+        <div class="devis-total-value" id="devis-total-value">— <em>XPF</em></div>
+      </div>
+      <div class="devis-notice" id="devis-message-wrap" style="display:none">
+        <strong style="display:block;margin-bottom:.3rem;color:var(--text)">Message</strong>
+        <span id="devis-message-text"></span>
+      </div>
+      <div class="devis-notice">Ce devis est établi à titre estimatif et sans engagement. Il sera confirmé après étude de votre dossier.<br>Tahiti Maison Container — Tél : 87 22 65 55 — tahitimaisoncontainer@gmail.com</div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-primary" id="sendBtn" onclick="sendEmail()">
+        <span id="sendBtnLabel">📧 Envoyer le devis</span>
+      </button>
+      <button class="btn btn-secondary" onclick="downloadPDF()">⬇ Télécharger le PDF</button>
+      <button class="btn btn-secondary" onclick="closeModal()">Fermer</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ─── CONFIG ─── */
+const EMAILJS_PUBLIC_KEY  = 'au3T6ceaeV1ANEIkp';
+const EMAILJS_SERVICE_ID  = 'service_i0e49ke';
+const EMAILJS_TEMPLATE_ID = 'template_wmeo81k';
+emailjs.init({ publicKey: EMAILJS_PUBLIC_KEY });
+
+const BASE = 580000;
+let clientType   = 'particulier';
+let currentTotal = BASE;
+let currentData  = {};
+let devisCounter = Math.floor(Date.now() / 1000) % 9000 + 1000;
+
+/* ─── FORM ─── */
+function setClientType(type, btn){
+  clientType = type;
+  document.querySelectorAll('.type-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  const fe = document.getElementById('field-entreprise');
+  const le = document.getElementById('label-entreprise');
+  const ie = document.getElementById('entreprise');
+  const nomField = document.getElementById('nom').parentElement;
+  if(type === 'entreprise'){
+    fe.classList.remove('hidden'); le.textContent="Nom de l'entreprise"; ie.placeholder="Nom de l'entreprise";
+    nomField.parentElement.insertBefore(fe, nomField);
+  } else if(type === 'public'){
+    fe.classList.remove('hidden'); le.textContent="Nom de l'organisme"; ie.placeholder="Nom de l'organisme";
+    nomField.parentElement.insertBefore(fe, nomField);
+  } else { fe.classList.add('hidden'); }
+  document.getElementById('surcharge-note').classList.toggle('hidden', type !== 'public');
+  updateTotal();
+}
+
+let currentBaseTTC = 0; // base avant frais de gestion (pour le calcul correct dans la modal)
+
+function updateTotal(){
+  const communeEl = document.getElementById('commune');
+  const val = communeEl.value;
+  document.getElementById('field-autres').classList.toggle('hidden', val !== 'autres');
+  let qty = document.getElementById('quantite').value;
+  if(qty === '5+') qty = 5; qty = parseInt(qty,10);
+  const delivery = (val === 'autres' || val === '0') ? 0 : parseInt(val||'0',10);
+  const isPapeete = delivery === 0 && val !== 'autres';
+
+  let base;
+  if(isPapeete){
+    // Papeete : 580 000 TTC tout inclus par conteneur
+    base = BASE * qty;
+  } else {
+    // Autres : conteneur HT + livraison*qty HT + coût op HT + TVA calculée sur total HT soumis
+    const cont_ht    = CONTENEUR_HT * qty;
+    const del_ht_u   = Math.round(delivery / (1 + TVA_RATE));   // HT livraison par unité
+    const del_ht_tot = del_ht_u * qty;
+    const op_ht      = COUT_OP_HT * qty;
+    // TVA calculée sur le total HT soumis en une seule opération (évite accumulation d'arrondis)
+    const total_ht_soumis = del_ht_tot + op_ht;
+    const tva_globale = Math.round(total_ht_soumis * TVA_RATE);
+    base = cont_ht + del_ht_tot + op_ht + tva_globale;
+  }
+
+  currentBaseTTC = base; // stocker la base avant frais de gestion
+
+  let total = base;
+  if(clientType === 'public' && !isPapeete){
+    // Frais de gestion = 15% HT sur total HT (cont + livraison + coût op) + TVA 13% sur ce HT
+    const del_ht_uf  = Math.round(delivery / (1 + TVA_RATE));
+    const total_ht   = CONTENEUR_HT * qty + del_ht_uf * qty + COUT_OP_HT * qty;
+    const frais_ht   = Math.round(total_ht * 0.15);
+    const frais_tva_u = Math.round(frais_ht * TVA_RATE);  // TVA frais en une fois
+    const frais_ttc  = frais_ht + frais_tva_u;
+    total = base + frais_ttc;
+  } else if(clientType === 'public' && isPapeete){
+    total = base;
+  }
+
+  currentTotal = (val === 'autres') ? BASE * qty : total;
+  document.getElementById('totalDisplay').innerHTML = currentTotal.toLocaleString('fr-FR') + ' <em>XPF</em>';
+}
+
+/* ─── COLLECTE ─── */
+function collectData(){
+  const communeEl   = document.getElementById('commune');
+  const communeTxt  = communeEl.options[communeEl.selectedIndex].text;
+  const deliveryCost = communeEl.value === 'autres' ? 0 : parseInt(communeEl.value||'0',10);
+  let qty = document.getElementById('quantite').value;
+  const qtyNum = qty==='5+' ? 5 : parseInt(qty,10);
+  const now = new Date();
+  const num = `TMC-${now.getFullYear()}-${String(devisCounter).padStart(4,'0')}`;
+  const dateStr = now.toLocaleDateString('fr-FR',{day:'2-digit',month:'long',year:'numeric'});
+
+  const isPapeete = deliveryCost === 0 && communeEl.value !== 'autres';
+  const isAutres  = communeEl.value === 'autres';
+  const isPublic  = clientType === 'public';
+
+  // ── Calculs pour le tableau email (structure identique au PDF) ──────────────
+  function n(v){ return String(Math.round(v)).replace(/\B(?=(\d{3})+(?!\d))/g,' '); }
+  const B   = 'padding:10px 11px;border-bottom:1px solid #f1f5f9;font-size:11px;color:#1a1e28;font-family:Arial,sans-serif;';
+  const BR  = B + 'text-align:right;font-weight:700;';
+  const BC  = B + 'text-align:center;font-weight:900;color:#e56535;font-size:13px;';
+  const BTV = B + 'text-align:center;font-size:11px;color:#64748b;';
+  const BM  = B + 'color:#94a3b8;font-size:10px;';
+  const BMR = BM + 'text-align:right;';
+
+  let rows_html = '';
+  let total_tva_val = 0, sous_ht_val = 0, total_ttc_val = currentTotal;
+  let detail_html = '', lettres_html = '', msg_row = '';
+
+  const msg = document.getElementById('message').value.trim() || '';
+  const ile_txt = document.getElementById('ile').value.trim() || 'île à préciser';
+
+  function makeLettres(num){
+    const u=['','un','deux','trois','quatre','cinq','six','sept','huit','neuf','dix','onze','douze','treize','quatorze','quinze','seize','dix-sept','dix-huit','dix-neuf'];
+    const d=['','','vingt','trente','quarante','cinquante','soixante','soixante','quatre-vingt','quatre-vingt'];
+    function diz(n){if(n<20)return u[n];const di=Math.floor(n/10),un=n%10;if(di===7||di===9)return d[di]+'-'+u[10+un];if(di===8)return'quatre-vingt'+(un>0?'-'+u[un]:'s');return d[di]+(un===1?'-et-un':un>0?'-'+u[un]:'');}
+    function cent(n){if(n===0)return'';const c=Math.floor(n/100),r=n%100;if(c===0)return diz(r);if(c===1)return'cent'+(r>0?' '+diz(r):'');return u[c]+' cent'+(r>0?' '+diz(r):'s');}
+    num=Math.round(num);if(num===0)return'Zéro franc';
+    const mil=Math.floor(num/1000000),mille=Math.floor((num%1000000)/1000),reste=num%1000;
+    let res='';
+    if(mil>0){res+=(mil===1?'un million':cent(mil)+' millions');if(mille>0||reste>0)res+=' ';}
+    if(mille>0){res+=(mille===1?'mille':cent(mille)+' mille');if(reste>0)res+=' ';}
+    if(reste>0)res+=cent(reste);
+    return res.charAt(0).toUpperCase()+res.slice(1)+' francs';
+  }
+
+  if(isPapeete){
+    const cont_ttc = 580000 * qtyNum;
+    rows_html += `
+    <tr style="background:#fff;">
+      <td style="${B}"><strong>Conteneur 20 pieds DRY</strong><br><span style="font-size:9px;color:#94a3b8;">Occasion · Acier Corten · bon état · Livraison Papeete incluse</span></td>
+      <td style="${BC}">${qtyNum}</td>
+      <td style="${BR}">580 000 XPF</td>
+      <td style="${BTV}">Inclus</td>
+      <td style="${BR}">${n(cont_ttc)} XPF</td>
+    </tr>`;
+    total_ttc_val = cont_ttc;
+    detail_html = `
+    <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top:10px;">
+      <tr><td width="38%"></td><td width="62%">
+        <table width="100%" cellpadding="0" cellspacing="0" border="0" style="border-radius:8px;overflow:hidden;border:1px solid #e2e8f0;">
+          <tr style="background:#1a1e28;"><td style="padding:8px 12px;font-size:8px;color:#fff;text-transform:uppercase;letter-spacing:1px;font-weight:700;font-family:Arial,sans-serif;">Détail TVA</td><td style="padding:8px 12px;font-size:8px;color:#fff;text-transform:uppercase;letter-spacing:1px;font-weight:700;text-align:right;font-family:Arial,sans-serif;">Montant (XPF)</td></tr>
+          <tr style="background:#f8fafc;"><td style="${BM}">TVA (exonérée)</td><td style="${BMR}">—</td></tr>
+          <tr style="background:#e56535;"><td style="padding:12px;font-size:11px;font-weight:700;color:#fff;text-transform:uppercase;letter-spacing:1px;font-family:Arial,sans-serif;">TOTAL TTC</td><td style="padding:12px;text-align:right;font-size:16px;font-weight:900;color:#fff;font-family:Arial,sans-serif;">${n(cont_ttc)} XPF</td></tr>
+        </table>
+      </td></tr>
+    </table>`;
+  } else {
+    const del_ht_u   = Math.round(deliveryCost / (1 + TVA_RATE));
+    const del_ht_tot = del_ht_u * qtyNum;
+    const op_ht_tot  = COUT_OP_HT * qtyNum;
+    const total_ht_s = del_ht_tot + op_ht_tot;
+    const tva_glob   = isAutres ? 0 : Math.round(total_ht_s * TVA_RATE);
+    sous_ht_val      = CONTENEUR_HT * qtyNum + del_ht_tot + op_ht_tot;
+    total_tva_val    = tva_glob;
+
+    // Conteneur
+    rows_html += `
+    <tr style="background:#fff;">
+      <td style="${B}"><strong>Conteneur 20 pieds DRY</strong><br><span style="font-size:9px;color:#94a3b8;">Occasion · Acier Corten · bon état</span></td>
+      <td style="${BC}">${qtyNum}</td>
+      <td style="${BR}">450 000 XPF</td>
+      <td style="${BTV}">/</td>
+      <td style="${BR}">${n(450000*qtyNum)} XPF</td>
+    </tr>`;
+
+    // Livraison
+    if(isAutres){
+      rows_html += `
+      <tr style="background:#f8fafc;">
+        <td style="${B}"><strong>Fret maritime — ${ile_txt}</strong></td>
+        <td style="${BC}">${qtyNum}</td>
+        <td style="${BR}">—</td>
+        <td style="${BTV}">Sur étude</td>
+        <td style="${BR}color:#94a3b8;">Sur étude</td>
+      </tr>`;
+    } else {
+      rows_html += `
+      <tr style="background:#f8fafc;">
+        <td style="${B}"><strong>Livraison — ${communeTxt}</strong></td>
+        <td style="${BC}">${qtyNum}</td>
+        <td style="${BR}">${n(del_ht_u)} XPF</td>
+        <td style="${BTV}">13%</td>
+        <td style="${BR}">${n(del_ht_tot)} XPF</td>
+      </tr>`;
+    }
+
+    // Coût opérationnel
+    rows_html += `
+    <tr style="background:#fff;">
+      <td style="${B}"><strong>Coût opérationnel</strong></td>
+      <td style="${BC}">${qtyNum}</td>
+      <td style="${BR}">${n(COUT_OP_HT)} XPF</td>
+      <td style="${BTV}">13%</td>
+      <td style="${BR}">${n(op_ht_tot)} XPF</td>
+    </tr>`;
+
+    // Frais de gestion (organisme public uniquement)
+    let frais_ht = 0, frais_tva = 0, frais_ttc = 0;
+    if(isPublic){
+      frais_ht  = Math.round(sous_ht_val * 0.15);
+      frais_tva = Math.round(frais_ht * TVA_RATE);
+      frais_ttc = frais_ht + frais_tva;
+      total_tva_val += frais_tva;
+      rows_html += `
+      <tr style="background:#fff7f3;">
+        <td style="${B}color:#c05a20;"><strong>Frais de gestion, financement et mobilisation</strong><br><span style="font-size:9px;color:#d4784a;">Commande publique (paiement différé)</span></td>
+        <td style="padding:10px 11px;border-bottom:1px solid #fde8d8;text-align:center;font-weight:900;color:#e56535;font-size:13px;font-family:Arial,sans-serif;">1</td>
+        <td style="padding:10px 11px;border-bottom:1px solid #fde8d8;text-align:right;font-weight:700;font-size:11px;color:#c05a20;font-family:Arial,sans-serif;">${n(frais_ht)} XPF</td>
+        <td style="padding:10px 11px;border-bottom:1px solid #fde8d8;text-align:center;font-size:11px;color:#c05a20;font-family:Arial,sans-serif;">13%</td>
+        <td style="padding:10px 11px;border-bottom:1px solid #fde8d8;text-align:right;font-weight:700;font-size:11px;color:#c05a20;font-family:Arial,sans-serif;">${n(frais_ht)} XPF HT</td>
+      </tr>`;
+    }
+
+    // Bloc DETAIL TVA (droite, comme dans le PDF)
+    const sous_ht_final = isPublic ? sous_ht_val + frais_ht : sous_ht_val;
+    detail_html = `
+    <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top:10px;">
+      <tr><td width="38%"></td><td width="62%">
+        <table width="100%" cellpadding="0" cellspacing="0" border="0" style="border-radius:8px;overflow:hidden;border:1px solid #e2e8f0;">
+          <tr style="background:#1a1e28;"><td style="padding:8px 12px;font-size:8px;color:#fff;text-transform:uppercase;letter-spacing:1px;font-weight:700;font-family:Arial,sans-serif;">Détail TVA</td><td style="padding:8px 12px;font-size:8px;color:#fff;text-transform:uppercase;letter-spacing:1px;font-weight:700;text-align:right;font-family:Arial,sans-serif;">Montant (XPF)</td></tr>
+          <tr style="background:#f8fafc;"><td style="${BM}">Total TVA 13%</td><td style="${BMR}">${isAutres ? 'Sur étude' : n(total_tva_val)+' XPF'}</td></tr>
+          <tr style="background:#fff;"><td style="${BM}">Sous-total HT</td><td style="${BMR}">${isAutres ? '—' : n(sous_ht_final)+' XPF'}</td></tr>
+          <tr style="background:#e56535;"><td style="padding:12px;font-size:11px;font-weight:700;color:#fff;text-transform:uppercase;letter-spacing:1px;font-family:Arial,sans-serif;">TOTAL TTC</td><td style="padding:12px;text-align:right;font-size:16px;font-weight:900;color:#fff;font-family:Arial,sans-serif;">${n(total_ttc_val)} XPF</td></tr>
+        </table>
+      </td></tr>
+    </table>`;
+  }
+
+  lettres_html = `
+  <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top:12px;background:#1a1e28;border-radius:8px;overflow:hidden;">
+    <tr><td style="padding:13px 16px;">
+      <div style="font-size:8px;color:#e56535;text-transform:uppercase;letter-spacing:1.5px;font-weight:700;margin-bottom:4px;font-family:Arial,sans-serif;">Arrêter le devis à la somme de :</div>
+      <div style="font-size:11px;color:#fff;font-style:italic;font-family:Arial,sans-serif;">${makeLettres(total_ttc_val)} (XPF ${n(total_ttc_val)} TTC)</div>
+    </td></tr>
+  </table>`;
+
+  msg_row = msg ? `
+  <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top:12px;background:#fffbf5;border:1px solid #fde8d8;border-left:4px solid #e56535;border-radius:8px;">
+    <tr><td style="padding:11px 14px;">
+      <div style="font-size:8px;color:#e56535;text-transform:uppercase;letter-spacing:1.5px;font-weight:700;margin-bottom:4px;font-family:Arial,sans-serif;">Message</div>
+      <div style="font-size:11px;color:#1a1e28;font-family:Arial,sans-serif;">${msg}</div>
+    </td></tr>
+  </table>` : '';
+
+
+
+  return {
+    devis_num: num, devis_date: dateStr,
+    client_nom: (document.getElementById('prenom').value.trim()+' '+document.getElementById('nom').value.trim()).trim(),
+    client_type: clientType==='particulier'?'Particulier':clientType==='entreprise'?'Entreprise':'Organisme public',
+    client_entreprise: document.getElementById('entreprise').value.trim()||'—',
+    client_tel: document.getElementById('tel').value.trim()||'—',
+    client_email: document.getElementById('email').value.trim(),
+    email: document.getElementById('email').value.trim(),
+    commune: communeTxt, commune_val: communeEl.value,
+    delivery_cost: deliveryCost,
+    quantite: qty, quantite_num: qtyNum,
+    rows_html: rows_html,
+    detail_html: detail_html,
+    lettres_html: lettres_html,
+    msg_row: msg_row,
+    total: n(total_ttc_val) + ' XPF TTC',
+    surcharge: isPublic ? 'Oui — frais de gestion commande publique' : 'Non',
+    paiement_condition: isPublic
+      ? 'Paiement par virement bancaire sous 30 jours (bon de commande obligatoire).'
+      : 'Paiement à la commande par virement bancaire.',
+    message: msg,
+    ile: document.getElementById('ile').value.trim()||'',
+    prix_unitaire: isPapeete ? '580 000 XPF TTC' : '450 000 XPF HT',
+    livraison: deliveryCost > 0 ? n(deliveryCost)+' XPF TTC/u' : isAutres ? 'Sur étude' : 'Incluse',
+    cout_operationnel: n(COUT_OP_HT)+' XPF HT/u',
+    total_tva: n(total_tva_val)+' XPF',
+    total_ht: isPapeete ? '—' : n(sous_ht_val)+' XPF',
+    frais_gestion: isPublic ? 'Oui (+15% HT + TVA 13%)' : 'Non',
+  };
+}
+
+/* ─── MODAL ─── */
+function buildModal(d){
+  document.getElementById('devis-num').textContent   = d.devis_num;
+  document.getElementById('devis-date').textContent  = d.devis_date;
+  document.getElementById('devis-client').textContent= d.client_nom;
+  const tbody = document.getElementById('devis-lines');
+  tbody.innerHTML = '';
+
+  const isPapeete = d.delivery_cost === 0 && d.commune_val !== 'autres';
+  const qty = d.quantite_num;
+
+  if(isPapeete){
+    // Papeete : 580 000 XPF TTC tout compris par conteneur (livraison incluse)
+    const r1 = tbody.insertRow();
+    r1.innerHTML = `<td>Conteneur maritime 20 pieds DRY — occasion, bon état<br><small style="color:var(--muted)">Acier Corten · 6,06 × 2,44 × 2,59 m · 33,2 m³ · Livraison Papeete incluse</small></td><td>${qty}</td><td class="td-right">${(580000).toLocaleString('fr-FR')} XPF</td><td class="td-right">${(580000*qty).toLocaleString('fr-FR')} XPF</td>`;
+  } else {
+    // Conteneur
+    const r1 = tbody.insertRow();
+    r1.innerHTML = `<td>Conteneur maritime 20 pieds DRY — occasion, bon état<br><small style="color:var(--muted)">Acier Corten · 6,06 × 2,44 × 2,59 m · 33,2 m³</small></td><td>${qty}</td><td class="td-right">${(450000).toLocaleString('fr-FR')} XPF</td><td class="td-right">${(450000*qty).toLocaleString('fr-FR')} XPF</td>`;
+
+    // Livraison
+    const r2 = tbody.insertRow();
+    if(d.commune_val==='autres'){
+      r2.innerHTML=`<td>Fret maritime — ${d.ile||'à préciser'}</td><td>${qty}</td><td class="td-right" style="color:var(--muted)">Sur étude</td><td class="td-right" style="color:var(--muted)">Sur étude</td>`;
+    } else {
+      const livTotalM = d.delivery_cost * qty;
+      r2.innerHTML=`<td>Livraison — ${d.commune}</td><td>${qty}</td><td class="td-right">${d.delivery_cost.toLocaleString('fr-FR')} XPF</td><td class="td-right">${livTotalM.toLocaleString('fr-FR')} XPF</td>`;
+    }
+
+    // Coût opérationnel — affichage TTC (HT + TVA 13%)
+    const r3 = tbody.insertRow();
+    const opHtTotal  = COUT_OP_HT * qty;
+    const opTva      = Math.round(opHtTotal * TVA_RATE);
+    const opTtcTotal = opHtTotal + opTva;
+    const opTtcPu    = Math.round(opTtcTotal / qty);
+    r3.innerHTML = `<td>Coût opérationnel</td><td>${qty}</td><td class="td-right">${opTtcPu.toLocaleString('fr-FR')} XPF</td><td class="td-right">${opTtcTotal.toLocaleString('fr-FR')} XPF</td>`;
+  }
+
+  // Frais de gestion organisme public
+  if(clientType === 'public'){
+    const del_ht_m      = Math.round(d.delivery_cost / (1 + TVA_RATE));
+    const total_ht_m    = 450000 * qty + del_ht_m * qty + COUT_OP_HT * qty;
+    const frais_ht_m    = Math.round(total_ht_m * 0.15);
+    const frais_tva_m   = Math.round(frais_ht_m * TVA_RATE);
+    const frais_ttc_m   = frais_ht_m + frais_tva_m;
+    const r4 = tbody.insertRow();
+    r4.innerHTML = `<td style="color:#e07030;font-weight:700">Frais de gestion, financement et mobilisation<br><small style="color:#c06020;font-weight:600">Commande publique (paiement différé)</small></td><td>1</td><td class="td-right" style="color:#e07030">${frais_ttc_m.toLocaleString('fr-FR')} XPF</td><td class="td-right" style="color:#e07030">${frais_ttc_m.toLocaleString('fr-FR')} XPF</td>`;
+  }
+
+  document.getElementById('devis-surcharge-note').textContent = '';
+  document.getElementById('devis-total-value').innerHTML = currentTotal.toLocaleString('fr-FR')+' <em>XPF</em>';
+  const mw = document.getElementById('devis-message-wrap');
+  if(d.message&&d.message!=='—'){ document.getElementById('devis-message-text').textContent=d.message; mw.style.display='block'; } else { mw.style.display='none'; }
+}
+
+/* ─── CONSTANTES TARIFAIRES ─── */
+const CONTENEUR_HT  = 450000;   // HT exonéré TVA
+const COUT_OP_HT    = 115044;   // HT soumis TVA 13% par conteneur
+const TVA_RATE      = 0.13;
+const COUT_OP_TVA   = Math.round(COUT_OP_HT * TVA_RATE); // 14 956
+
+/* ─── FORMATAGE NOMBRES ─── */
+function xpf(n){
+  return String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g,' ') + ' XPF';
+}
+
+/* ─── NOMBRE EN TOUTES LETTRES (XPF) — support jusqu'à 9 999 999 ─── */
+function montantEnLettres(n){
+  const u=['','un','deux','trois','quatre','cinq','six','sept','huit','neuf','dix',
+           'onze','douze','treize','quatorze','quinze','seize','dix-sept','dix-huit','dix-neuf'];
+  const diz=['','','vingt','trente','quarante','cinquante','soixante','soixante','quatre-vingt','quatre-vingt'];
+  function dizaine(n){
+    if(n<20) return u[n];
+    const di=Math.floor(n/10), un=n%10;
+    if(di===7||di===9){
+      return diz[di]+'-'+(di===7?u[10+un]:u[10+un]);
+    }
+    if(di===8) return 'quatre-vingt'+(un>0?'-'+u[un]:'s');
+    return diz[di]+(un===1?'-et-un':un>0?'-'+u[un]:'');
+  }
+  function centaine(n){
+    if(n===0) return '';
+    const c=Math.floor(n/100), r=n%100;
+    if(c===0) return dizaine(r);
+    if(c===1) return 'cent'+(r>0?' '+dizaine(r):'');
+    return u[c]+' cent'+(r>0?' '+dizaine(r):'s');
+  }
+  n=Math.round(n);
+  if(n===0) return 'Zero franc';
+  let res='';
+  const millions  = Math.floor(n/1000000);
+  const milliers  = Math.floor((n%1000000)/1000);
+  const reste     = n%1000;
+  if(millions>0){
+    res+=(millions===1?'un million':centaine(millions)+' millions');
+    if(milliers>0||reste>0) res+=' ';
+  }
+  if(milliers>0){
+    res+=(milliers===1?'mille':centaine(milliers)+' mille');
+    if(reste>0) res+=' ';
+  }
+  if(reste>0) res+=centaine(reste);
+  res=res.charAt(0).toUpperCase()+res.slice(1);
+  return res+' francs';
+}
+
+/* ─── PDF GENERATION ─── */
+function generatePDF(d){
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ unit:'mm', format:'a4' });
+  const W=210, M=15, IW=180;
+
+  const qty         = d.quantite_num;
+  const isPublic    = clientType === 'public';
+  const isPapeete   = d.delivery_cost === 0 && d.commune_val !== 'autres';
+  const isAutres    = d.commune_val === 'autres';
+
+  // Calculs HT / TVA
+  const cont_ht     = CONTENEUR_HT * qty;                         // exo TVA
+  const del_ttc_u   = d.delivery_cost;                             // TTC livraison par unité
+  const del_ht_u    = isAutres ? 0 : Math.round(del_ttc_u / (1 + TVA_RATE));
+  const del_ht      = del_ht_u * qty;                              // HT total livraison
+  const op_ht       = COUT_OP_HT * qty;
+  // TVA calculée sur le total HT soumis en une seule fois (pas ligne par ligne)
+  const total_ht_soumis = del_ht + op_ht;
+  const total_tva   = isAutres ? 0 : Math.round(total_ht_soumis * TVA_RATE);
+  const base_ttc    = cont_ht + del_ht + op_ht + total_tva;       // avant frais gestion
+  // Frais de gestion = 15% sur total HT global + TVA 13% sur ce HT
+  const total_ht_all = cont_ht + del_ht + op_ht;
+  const frais_ht     = isPublic ? Math.round(total_ht_all * 0.15) : 0;
+  const frais_tva    = isPublic ? Math.round(frais_ht * TVA_RATE) : 0;  // TVA sur frais en une fois
+  const majorAmt     = frais_ht + frais_tva;
+  const total_ttc    = base_ttc + majorAmt;
+
+  /* helpers */
+  function hl(yy,c){ doc.setDrawColor(...(c||[210,218,230])); doc.setLineWidth(0.3); doc.line(M,yy,M+IW,yy); }
+  function vl(x,y1,y2){ doc.setDrawColor(210,218,230); doc.setLineWidth(0.3); doc.line(x,y1,x,y2); }
+  function fillRow(yy,hh,even){ doc.setFillColor(even?255:248,even?255:250,even?255:253); doc.rect(M,yy,IW,hh,'F'); }
+
+  /* ══ HEADER ══ */
+  doc.setFillColor(26,30,40); doc.rect(0,0,W,50,'F');
+  doc.setFont('helvetica','bold'); doc.setFontSize(22); doc.setTextColor(229,101,53);
+  doc.text('TMC', M, 21);
+  doc.setFont('helvetica','bold'); doc.setFontSize(13); doc.setTextColor(255,255,255);
+  doc.text('Tahiti Maison Container', M+20, 21);
+  doc.setFont('helvetica','normal'); doc.setFontSize(8); doc.setTextColor(140,155,175);
+  doc.text('Conteneurs maritimes - livraison - amenagement', M, 29);
+  doc.setFont('helvetica','bold'); doc.setFontSize(30); doc.setTextColor(255,255,255);
+  doc.text('DEVIS', W-M, 24, {align:'right'});
+  doc.setFont('helvetica','normal'); doc.setFontSize(8); doc.setTextColor(170,185,205);
+  doc.text('Ref. ' + d.devis_num, W-M, 32, {align:'right'});
+  doc.text('Date : ' + d.devis_date, W-M, 38, {align:'right'});
+  doc.text('Valide 30 jours apres emission', W-M, 44, {align:'right'});
+  doc.setFillColor(229,101,53); doc.rect(0,49,W,1.5,'F');
+
+  let y = 58;
+
+  /* ══ EMETTEUR / CLIENT ══ */
+  const bw = (IW-6)/2;
+  doc.setDrawColor(210,218,230); doc.setLineWidth(0.4);
+  doc.roundedRect(M, y, bw, 44, 2,2,'S');
+  doc.setFont('helvetica','bold'); doc.setFontSize(6.5); doc.setTextColor(160,175,195);
+  doc.text('EMETTEUR', M+5, y+8);
+  doc.setFont('helvetica','bold'); doc.setFontSize(10); doc.setTextColor(26,30,40);
+  doc.text('Tahiti Maison Container', M+5, y+16);
+  doc.setFont('helvetica','normal'); doc.setFontSize(8); doc.setTextColor(95,110,130);
+  doc.text('Tahiti - Polynesie francaise', M+5, y+22);
+  doc.text('N° Tahiti (NT) : 710194', M+5, y+28);
+  // Icone TEL
+  doc.setFillColor(229,101,53); doc.roundedRect(M+4,y+32,7,4.5,1,1,'F');
+  doc.setFont('helvetica','bold'); doc.setFontSize(4.5); doc.setTextColor(255,255,255);
+  doc.text('TEL', M+7.5, y+35.2, {align:'center'});
+  doc.setFont('helvetica','normal'); doc.setFontSize(8); doc.setTextColor(95,110,130);
+  doc.text('87 22 65 55', M+13, y+35.5);
+  // Icone EMAIL
+  doc.setFillColor(229,101,53); doc.roundedRect(M+4,y+39,7,4.5,1,1,'F');
+  doc.setFont('helvetica','bold'); doc.setFontSize(4); doc.setTextColor(255,255,255);
+  doc.text('EMAIL', M+7.5, y+42, {align:'center'});
+  doc.setFont('helvetica','normal'); doc.setFontSize(7.5); doc.setTextColor(95,110,130);
+  doc.text('tahitimaisoncontainer@gmail.com', M+13, y+42);
+
+  const cx=M+bw+6;
+  doc.setDrawColor(210,218,230); doc.setLineWidth(0.4);
+  doc.roundedRect(cx, y, bw, 50, 2,2,'S');
+  doc.setFont('helvetica','bold'); doc.setFontSize(6.5); doc.setTextColor(160,175,195);
+  doc.text('CLIENT - '+d.client_type.toUpperCase(), cx+5, y+8);
+
+  // Pour organisme public : organisme en gros, nom/prenom dessous
+  // Pour particulier/entreprise : nom/prenom en gros, organisme dessous
+  let cy2 = y+17;
+  if(isPublic && d.client_entreprise && d.client_entreprise!=='-'){
+    // Organisme en gras en premier
+    doc.setFont('helvetica','bold'); doc.setFontSize(11); doc.setTextColor(26,30,40);
+    doc.text(d.client_entreprise, cx+5, cy2); cy2+=9;
+    // Nom/prénom de la personne dessous
+    doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(60,75,95);
+    doc.text(d.client_nom, cx+5, cy2); cy2+=8;
+  } else {
+    // Particulier / Entreprise : nom en gros
+    doc.setFont('helvetica','bold'); doc.setFontSize(11); doc.setTextColor(26,30,40);
+    doc.text(d.client_nom, cx+5, cy2); cy2+=8;
+    if(d.client_entreprise && d.client_entreprise!=='-'){
+      doc.setFont('helvetica','normal'); doc.setFontSize(8.5); doc.setTextColor(70,85,105);
+      doc.text(d.client_entreprise, cx+5, cy2); cy2+=7;
+    }
+  }
+
+  // TEL avec icone
+  if(d.client_tel!=='-'){
+    doc.setFillColor(229,101,53); doc.roundedRect(cx+4,cy2-1,7,4.5,1,1,'F');
+    doc.setFont('helvetica','bold'); doc.setFontSize(4.5); doc.setTextColor(255,255,255);
+    doc.text('TEL', cx+7.5, cy2+2.2, {align:'center'});
+    doc.setFont('helvetica','normal'); doc.setFontSize(8); doc.setTextColor(95,110,130);
+    doc.text(d.client_tel, cx+13, cy2+2.5);
+    cy2+=8;
+  }
+  // EMAIL avec icone
+  doc.setFillColor(229,101,53); doc.roundedRect(cx+4,cy2-1,7,4.5,1,1,'F');
+  doc.setFont('helvetica','bold'); doc.setFontSize(4); doc.setTextColor(255,255,255);
+  doc.text('EMAIL', cx+7.5, cy2+2, {align:'center'});
+  doc.setFont('helvetica','normal'); doc.setFontSize(7.5); doc.setTextColor(95,110,130);
+  doc.text(d.client_email, cx+13, cy2+2.5);
+
+  y+=58;
+
+  /* ══ TABLEAU ══
+     Colonnes : DESCRIPTION | QTE | PRIX U.HT | TVA | PRIX HT (XPF)
+     X:          M           M+62  M+77        M+100 M+130          M+IW */
+  const TC0=M, TC1=M+62, TC2=M+77, TC3=M+100, TC4=M+130, TCE=M+IW;
+  const TH=9; // hauteur header
+
+  // En-tête
+  doc.setFillColor(26,30,40); doc.rect(TC0,y,IW,TH,'F');
+  doc.setFont('helvetica','bold'); doc.setFontSize(7.5); doc.setTextColor(255,255,255);
+  doc.text('DESCRIPTION', TC0+4, y+6.5);
+  doc.text('QUANTITE', TC1+7, y+6.5, {align:'center'});
+  doc.text('PRIX U.HT', TC2+12, y+6.5, {align:'center'});
+  doc.text('TVA', TC3+15, y+6.5, {align:'center'});
+  doc.text('PRIX HT (XPF)', TCE-4, y+6.5, {align:'right'});
+  y+=TH;
+
+  function tableRow(yy,hh,even){ fillRow(yy,hh,even); vl(TC1,yy,yy+hh); vl(TC2,yy,yy+hh); vl(TC3,yy,yy+hh); vl(TC4,yy,yy+hh); hl(yy+hh); }
+
+  // Ligne 1 — Conteneur
+  const RH1=18;
+  tableRow(y,RH1,true);
+  doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor(26,30,40);
+  doc.text('Conteneur 20 pieds DRY', TC0+4, y+8);
+  doc.setFont('helvetica','normal'); doc.setFontSize(7); doc.setTextColor(120,135,155);
+  doc.text('Occasion - Acier Corten - bon etat', TC0+4, y+14);
+  doc.setFont('helvetica','bold'); doc.setFontSize(10); doc.setTextColor(229,101,53);
+  doc.text(String(qty), TC1+7, y+11, {align:'center'});
+  doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(50,65,85);
+  doc.text(xpf(CONTENEUR_HT), TC2+12, y+11, {align:'center'});
+  doc.setFont('helvetica','bold'); doc.setFontSize(10); doc.setTextColor(100,115,135);
+  doc.text('/', TC3+15, y+11, {align:'center'});
+  doc.setFont('helvetica','bold'); doc.setFontSize(10); doc.setTextColor(26,30,40);
+  doc.text(xpf(cont_ht), TCE-4, y+11, {align:'right'});
+  y+=RH1;
+
+  // Ligne 2 — Livraison
+  const RH2=14;
+  tableRow(y,RH2,false);
+  const livLabel = isAutres ? 'Livraison - '+(d.ile||'Ile a preciser') : 'Livraison '+d.commune+(isPapeete?' (Gratuit)':'');
+  doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor(26,30,40);
+  doc.text(livLabel, TC0+4, y+9);
+  doc.setFont('helvetica','bold'); doc.setFontSize(10); doc.setTextColor(229,101,53);
+  doc.text(String(qty), TC1+7, y+9, {align:'center'});
+  doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(50,65,85);
+  doc.text(isPapeete?'0':isAutres?'-':xpf(del_ht_u), TC2+12, y+9, {align:'center'}); // P.U.HT livraison par unité
+  doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor(80,95,115);
+  doc.text(isAutres?'-':'13%', TC3+15, y+9, {align:'center'});
+  doc.setFont('helvetica','bold'); doc.setFontSize(10);
+  if(isPapeete){ doc.setTextColor(40,160,90); doc.text('0', TCE-4, y+9, {align:'right'}); }
+  else if(isAutres){ doc.setTextColor(150,160,175); doc.text('Sur etude', TCE-4, y+9, {align:'right'}); }
+  else { doc.setTextColor(26,30,40); doc.text(xpf(del_ht), TCE-4, y+9, {align:'right'}); } // del_ht = del_ht_u * qty
+  y+=RH2;
+
+  // Ligne 3 — Coût opérationnel
+  const RH3=14;
+  tableRow(y,RH3,true);
+  doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor(26,30,40);
+  doc.text('Cout operationnel', TC0+4, y+9);
+  doc.setFont('helvetica','bold'); doc.setFontSize(10); doc.setTextColor(229,101,53);
+  doc.text(String(qty), TC1+7, y+9, {align:'center'});
+  doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(50,65,85);
+  doc.text(xpf(COUT_OP_HT), TC2+12, y+9, {align:'center'});
+  doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor(80,95,115);
+  doc.text('13%', TC3+15, y+9, {align:'center'});
+  doc.setFont('helvetica','bold'); doc.setFontSize(10); doc.setTextColor(26,30,40);
+  doc.text(xpf(op_ht), TCE-4, y+9, {align:'right'});
+  y+=RH3;
+
+  // Ligne 4 — Majoration organisme public (dans le tableau)
+  let RH4=0;
+  if(isPublic){
+    RH4=16;
+    doc.setFillColor(255,245,237); doc.rect(TC0,y,IW,RH4,'F');
+    vl(TC1,y,y+RH4); vl(TC2,y,y+RH4); vl(TC3,y,y+RH4); vl(TC4,y,y+RH4);
+    doc.setFont('helvetica','bold'); doc.setFontSize(8); doc.setTextColor(180,75,15);
+    const fgLabel = doc.splitTextToSize('Frais de gestion, financement et mobilisation - commande publique (paiement differe)', TC1-TC0-6);
+    doc.text(fgLabel, TC0+4, y+7);
+    doc.setFont('helvetica','bold'); doc.setFontSize(10); doc.setTextColor(229,101,53);
+    doc.text('1', TC1+7, y+10, {align:'center'});
+    // P.U.HT = frais_ht, TVA = 13%, Total = majorAmt (frais_ht + frais_tva)
+    doc.setFont('helvetica','normal'); doc.setFontSize(8.5); doc.setTextColor(180,75,15);
+    doc.text(xpf(frais_ht), TC2+12, y+10, {align:'center'});
+    doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor(80,95,115);
+    doc.text('13%', TC3+15, y+10, {align:'center'});
+    doc.setFont('helvetica','bold'); doc.setFontSize(10); doc.setTextColor(180,75,15);
+    doc.text(xpf(frais_ht), TCE-4, y+10, {align:'right'}); // HT uniquement, TVA dans detail TVA
+    hl(y+RH4);
+    y+=RH4;
+  }
+
+  // Bordure extérieure tableau
+  const totalTableH = RH1+RH2+RH3+RH4+TH;
+  doc.setDrawColor(190,200,215); doc.setLineWidth(0.5);
+  doc.rect(TC0, y-totalTableH, IW, totalTableH, 'S');
+  y+=6;
+
+  /* ══ RECAP BOX ══ */
+  const RW=82, RX=M+IW-RW;
+  const RH_BOX = isAutres ? 34 : 42;
+  doc.setFillColor(248,250,253); doc.setDrawColor(210,218,230); doc.setLineWidth(0.4);
+  doc.roundedRect(RX, y, RW, RH_BOX, 2,2,'FD');
+
+  doc.setFillColor(26,30,40); doc.rect(RX,y,RW,8,'F');
+  doc.setFont('helvetica','bold'); doc.setFontSize(7); doc.setTextColor(255,255,255);
+  doc.text('DETAIL TVA', RX+5, y+5.5);
+  doc.text('MONTANT (XPF)', RX+RW-4, y+5.5, {align:'right'});
+
+  let ry = y+8;
+  // Ligne TVA 13%
+  doc.setFillColor(248,250,253); doc.rect(RX,ry,RW,10,'F');
+  doc.setFont('helvetica','normal'); doc.setFontSize(8.5); doc.setTextColor(90,105,125);
+  doc.text(isAutres?'TVA 13% (sur etude)':'TOTAL TVA 13%', RX+5, ry+7);
+  doc.setFont('helvetica','bold'); doc.setTextColor(40,50,68);
+  // total_tva inclut maintenant la TVA des frais de gestion pour organisme public
+  const total_tva_display = total_tva + frais_tva;
+  doc.text(isAutres?'-':xpf(total_tva_display), RX+RW-4, ry+7, {align:'right'});
+  ry+=10;
+
+  if(!isAutres){
+    // Sous-total HT
+    doc.setFillColor(242,246,252); doc.rect(RX,ry,RW,10,'F');
+    doc.setFont('helvetica','normal'); doc.setFontSize(8.5); doc.setTextColor(90,105,125);
+    doc.text('Sous-total HT', RX+5, ry+7);
+    doc.setFont('helvetica','bold'); doc.setTextColor(40,50,68);
+    // Sous-total HT = cont + liv*qty + op + frais_ht (si public)
+    const sousHT = cont_ht + del_ht + op_ht + frais_ht; // del_ht déjà = del_ht_u * qty
+    doc.text(xpf(sousHT), RX+RW-4, ry+7, {align:'right'});
+    ry+=10;
+  }
+
+  // Séparateur + TOTAL TTC
+  doc.setDrawColor(229,101,53); doc.setLineWidth(0.5); doc.line(RX+4,ry,RX+RW-4,ry);
+  ry+=5;
+  doc.setFillColor(248,250,253); doc.rect(RX,ry,RW,RH_BOX-(ry-y),'F');
+  doc.setFont('helvetica','bold'); doc.setFontSize(9.5); doc.setTextColor(26,30,40);
+  doc.text('TOTAL TTC', RX+5, ry+8);
+  doc.setFont('helvetica','bold'); doc.setFontSize(13); doc.setTextColor(229,101,53);
+  doc.text(xpf(total_ttc), RX+RW-4, ry+8, {align:'right'});
+
+  y += Math.max(RH_BOX, isPublic?30:0) + 8;
+
+  /* ══ MONTANT EN LETTRES ══ */
+  const lettres = montantEnLettres(total_ttc);
+  doc.setFillColor(26,30,40); doc.roundedRect(M,y,IW,18,2,2,'F');
+  doc.setFont('helvetica','bold'); doc.setFontSize(7.5); doc.setTextColor(229,101,53);
+  doc.text('Arreter le devis a la somme de :', M+5, y+7);
+  doc.setFont('helvetica','italic'); doc.setFontSize(8.5); doc.setTextColor(255,255,255);
+  const llines = doc.splitTextToSize(lettres+' (XPF '+xpf(total_ttc).replace(' XPF','')+' TTC)', IW-10);
+  doc.text(llines, M+5, y+13);
+  y+=24;
+
+  /* ══ MESSAGE ══ */
+  if(d.message && d.message!=='-' && d.message.length>1){
+    const ml=doc.splitTextToSize(d.message,IW-14);
+    const mh=Math.max(20,ml.length*5+12);
+    doc.setFillColor(255,252,248); doc.setDrawColor(229,101,53); doc.setLineWidth(0.4);
+    doc.roundedRect(M,y,IW,mh,2,2,'F');
+    doc.setFillColor(229,101,53); doc.rect(M,y,3,mh,'F');
+    doc.setFont('helvetica','bold'); doc.setFontSize(7); doc.setTextColor(229,101,53);
+    doc.text('MESSAGE', M+7, y+8);
+    doc.setFont('helvetica','normal'); doc.setFontSize(8.5); doc.setTextColor(55,68,85);
+    doc.text(ml, M+7, y+14);
+    y+=mh+6;
+  }
+
+  /* ══ CONDITIONS ══ */
+  const payMode = isPublic
+    ? 'Paiement par virement bancaire sous 30 jours (bon de commande obligatoire).'
+    : 'Paiement a la commande par virement bancaire.';
+  const conds=[
+    'Ce devis est valable 30 jours a compter de sa date d emission.',
+    payMode,
+    'Livraison sous reserve d accessibilite du site (largeur voie, absence de cables aeriens bas).',
+    'Options disponibles sur demande : electricite, peinture, isolation, portes et fenetres.',
+  ];
+
+  // Calcul hauteur dynamique
+  const lineH = 9;
+  let condTotalH = 12;
+  const condRendered = conds.map(c => {
+    const lines = doc.splitTextToSize(c, IW-16);
+    condTotalH += lines.length <= 1 ? lineH : lineH + (lines.length-1)*5;
+    return lines;
+  });
+  condTotalH += 6;
+
+  // Hauteur footer estimée
+  const footerH = 52;
+
+  // Saut de page automatique si le contenu restant dépasse la page A4 (297mm)
+  const pageLimit = 282; // laisser la barre footer
+  if(y + condTotalH + footerH > pageLimit){
+    doc.addPage();
+    y = 18;
+  }
+
+  doc.setFillColor(255,252,248); doc.setDrawColor(229,101,53); doc.setLineWidth(0.4);
+  doc.roundedRect(M,y,IW,condTotalH,2,2,'FD');
+  doc.setFont('helvetica','bold'); doc.setFontSize(8); doc.setTextColor(229,101,53);
+  doc.text('CONDITIONS & INFORMATIONS', M+6, y+9);
+
+  let cy = y+16;
+  condRendered.forEach((lines) => {
+    doc.setFillColor(229,101,53);
+    doc.circle(M+7.5, cy, 1.2,'F');
+    doc.setFont('helvetica','normal');
+    doc.setFontSize(7.8);
+    doc.setTextColor(60,75,90);
+    doc.text(lines, M+12, cy+1.5);
+    cy += lines.length <= 1 ? lineH : lineH + (lines.length-1)*5;
+  });
+  y += condTotalH+8;
+
+  /* ══ FOOTER ══ */
+  // Si le footer déborde, saut de page
+  if(y + footerH > pageLimit){
+    doc.addPage();
+    y = 18;
+  }
+  doc.setDrawColor(210,218,230); doc.setLineWidth(0.3); doc.line(M,y,M+IW,y); y+=6;
+  doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor(26,30,40);
+  doc.text('Tahiti Maison Container', M, y+6);
+  doc.setFillColor(229,101,53); doc.circle(M+2,y+13,1.5,'F');
+  doc.setFont('helvetica','normal'); doc.setFontSize(8); doc.setTextColor(90,105,125);
+  doc.text('87 22 65 55', M+6, y+14.5);
+  doc.setFillColor(229,101,53); doc.circle(M+2,y+20,1.5,'F');
+  doc.text('tahitimaisoncontainer@gmail.com', M+6, y+21.5);
+  doc.setFontSize(7); doc.setTextColor(160,172,188);
+  doc.text('Pour accepter ce devis, contactez-nous par telephone ou email.', M, y+29);
+
+  // Tampon
+  const sx=M+IW-15, sy=y+15;
+  doc.setDrawColor(229,101,53); doc.setLineWidth(1.4); doc.circle(sx,sy,14,'S');
+  doc.setLineWidth(0.5); doc.circle(sx,sy,11.5,'S');
+  doc.setFont('helvetica','bold'); doc.setFontSize(8.5); doc.setTextColor(229,101,53);
+  doc.text('DEVIS', sx, sy-5, {align:'center'});
+  doc.setFontSize(6.5);
+  doc.text('SANS', sx, sy, {align:'center'});
+  doc.text('ENGAGEMENT', sx, sy+5, {align:'center'});
+  doc.setFontSize(7); doc.text('TMC 2026', sx, sy+10, {align:'center'});
+
+  /* ══ NUMÉROTATION DES PAGES ══ */
+  const totalPages = doc.getNumberOfPages();
+  for(let p = 1; p <= totalPages; p++){
+    doc.setPage(p);
+    doc.setFont('helvetica','normal');
+    doc.setFontSize(7.5);
+    doc.setTextColor(160,172,188);
+    doc.text('Page ' + p + ' / ' + totalPages, W - M, 290, {align:'right'});
+  }
+
+  return doc;
+}
+
+function downloadPDF(){
+  generatePDF(currentData).save('Devis-'+currentData.devis_num+'.pdf');
+}
+
+/* ─── ENVOI ─── */
+function sendEmail(){
+  const sendBtn = document.getElementById('sendBtn');
+  const label   = document.getElementById('sendBtnLabel');
+  label.innerHTML = '<span class="spinner"></span>Génération PDF…';
+  sendBtn.style.opacity='0.7'; sendBtn.style.pointerEvents='none';
+
+  setTimeout(()=>{
+    try {
+      const pdfBlob = generatePDF(currentData).output('blob');
+      const pdfFile = new File([pdfBlob],'Devis-'+currentData.devis_num+'.pdf',{type:'application/pdf'});
+      label.innerHTML = '<span class="spinner"></span>Envoi en cours…';
+
+      emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
+        ...currentData,
+        attachment: pdfFile,
+      }).then(()=>{
+        label.textContent='✓ Envoyé avec succès !';
+        sendBtn.style.background='linear-gradient(135deg,#3daf5c,#6fcb7d)';
+        showToast('✓ Votre devis a bien été envoyé avec le PDF en pièce jointe. Réponse sous 24 h.');
+        devisCounter++;
+        setTimeout(()=>{
+          closeModal();
+          label.innerHTML='📧 Envoyer le devis';
+          sendBtn.style.background=''; sendBtn.style.opacity=''; sendBtn.style.pointerEvents='';
+        },2500);
+      }).catch(err=>{
+        console.error('EmailJS error:',err);
+        label.innerHTML='📧 Envoyer le devis';
+        sendBtn.style.opacity=''; sendBtn.style.pointerEvents='';
+        const code = err.status||err.text||JSON.stringify(err);
+        showToast('⚠️ Erreur envoi ('+code+'). Vous pouvez télécharger le PDF manuellement.', true);
+      });
+    } catch(e){
+      console.error('PDF error:',e);
+      label.innerHTML='📧 Envoyer le devis';
+      sendBtn.style.opacity=''; sendBtn.style.pointerEvents='';
+      showToast('⚠️ Erreur PDF : '+e.message, true);
+    }
+  },80);
+}
+
+function submitForm(){
+  const nom   = document.getElementById('nom').value.trim();
+  const email = document.getElementById('email').value.trim();
+  if(!nom||!email){ showToast('Merci de renseigner au minimum votre nom et votre email.',true); return; }
+  currentData = collectData();
+  buildModal(currentData);
+  openModal();
+}
+
+function openModal(){ document.getElementById('modalOverlay').classList.add('open'); document.body.style.overflow='hidden'; }
+function closeModal(){ document.getElementById('modalOverlay').classList.remove('open'); document.body.style.overflow=''; }
+function closeModalOutside(e){ if(e.target===document.getElementById('modalOverlay')) closeModal(); }
+document.addEventListener('keydown', e=>{ if(e.key==='Escape') closeModal(); });
+
+function showToast(msg, isError=false){
+  const t=document.getElementById('toast');
+  t.textContent=msg;
+  t.classList.toggle('toast-error',isError);
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),5500);
+}
+
+updateTotal();
+</script>
+</body>
+</html>
