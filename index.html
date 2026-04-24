@@ -650,17 +650,34 @@ function isFacebookBrowser(){
   return ua.indexOf('FBAN') > -1 || ua.indexOf('FBAV') > -1 || ua.indexOf('FB_IAB') > -1 || ua.indexOf('Instagram') > -1;
 }
 
+function isMobile(){
+  return /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+}
+
 function downloadPDF(){
   if(isFacebookBrowser()){
-    // Facebook bloque les téléchargements — demander d'ouvrir dans Chrome/Safari
     showFbBrowserAlert();
     return;
   }
-  generatePDF(currentData).save('Devis-'+currentData.devis_num+'.pdf');
+  const doc = generatePDF(currentData);
+  const filename = 'Devis-'+currentData.devis_num+'.pdf';
+  if(isMobile()){
+    // Sur mobile : ouvrir dans un nouvel onglet
+    const blob = doc.output('blob');
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    a.href     = url;
+    a.target   = '_blank';
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(()=>{ document.body.removeChild(a); URL.revokeObjectURL(url); }, 3000);
+  } else {
+    doc.save(filename);
+  }
 }
 
 function showFbBrowserAlert(){
-  // Créer une alerte stylisée
   const overlay = document.createElement('div');
   overlay.id = 'fb-alert';
   overlay.style.cssText = 'position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.85);display:flex;align-items:center;justify-content:center;padding:1.5rem;';
