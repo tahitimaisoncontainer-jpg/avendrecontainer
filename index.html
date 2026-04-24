@@ -564,6 +564,15 @@ function switchProduct(p){
   clientType='particulier';
   document.getElementById('field-entreprise').classList.add('hidden');
   document.getElementById('surcharge-note').classList.add('hidden');
+  // Mise à jour validité modal selon produit
+  const vEl = document.getElementById('devis-validite');
+  if(vEl){
+    if(p==='40' && window._PROMO){
+      vEl.textContent = "Jusqu'au 30 avr. 2026";
+    } else {
+      vEl.textContent = '30 jours';
+    }
+  }
   updateTotal();
 }
 
@@ -647,13 +656,18 @@ function buildModal20(d){
   const qty = d.quantite_num;
 
   if(isPapeete){
-    // Papeete : 580 000 XPF TTC tout compris par conteneur (livraison incluse)
+    // Papeete 20DRY : 450 000 HT + livraison gratuite + coût op + TVA = 580 000 TTC
     const r1 = tbody.insertRow();
-    r1.innerHTML = `<td>Conteneur maritime 20 pieds DRY — occasion, bon état<br><small style="color:var(--muted)">Acier Corten · 6,06 × 2,44 × 2,59 m · 33,2 m³ · Livraison Papeete incluse</small></td><td>${qty}</td><td class="td-right">${(580000).toLocaleString('fr-FR')} XPF</td><td class="td-right">${(580000*qty).toLocaleString('fr-FR')} XPF</td>`;
+    r1.innerHTML = `<td>Conteneur maritime 20 pieds DRY — occasion, bon état<br><small style="color:var(--muted)">Acier Corten · 6,06 × 2,44 × 2,59 m · 33,2 m³</small></td><td>${qty}</td><td class="td-right">${(C20.CONTENEUR_HT).toLocaleString('fr-FR')} XPF</td><td class="td-right">${(C20.CONTENEUR_HT*qty).toLocaleString('fr-FR')} XPF</td>`;
+    const r2 = tbody.insertRow();
+    r2.innerHTML = `<td>Livraison — Papeete</td><td>${qty}</td><td class="td-right" style="color:var(--ok)">GRATUITE</td><td class="td-right" style="color:var(--ok)">GRATUITE</td>`;
+    const r3 = tbody.insertRow();
+    const opTtcPu = Math.round(COUT_OP_HT * (1 + TVA_RATE));
+    r3.innerHTML = `<td>Coût opérationnel</td><td>${qty}</td><td class="td-right">${opTtcPu.toLocaleString('fr-FR')} XPF</td><td class="td-right">${(opTtcPu*qty).toLocaleString('fr-FR')} XPF</td>`;
   } else {
     // Conteneur
     const r1 = tbody.insertRow();
-    r1.innerHTML = `<td>Conteneur maritime 20 pieds DRY — occasion, bon état<br><small style="color:var(--muted)">Acier Corten · 6,06 × 2,44 × 2,59 m · 33,2 m³</small></td><td>${qty}</td><td class="td-right">${(450000).toLocaleString('fr-FR')} XPF</td><td class="td-right">${(450000*qty).toLocaleString('fr-FR')} XPF</td>`;
+    r1.innerHTML = `<td>Conteneur maritime 20 pieds DRY — occasion, bon état<br><small style="color:var(--muted)">Acier Corten · 6,06 × 2,44 × 2,59 m · 33,2 m³</small></td><td>${qty}</td><td class="td-right">${(C20.CONTENEUR_HT).toLocaleString('fr-FR')} XPF</td><td class="td-right">${(C20.CONTENEUR_HT*qty).toLocaleString('fr-FR')} XPF</td>`;
 
     // Livraison
     const r2 = tbody.insertRow();
@@ -676,7 +690,7 @@ function buildModal20(d){
   // Frais de gestion organisme public
   if(clientType === 'public'){
     const del_ht_m      = Math.round(d.delivery_cost / (1 + TVA_RATE));
-    const total_ht_m    = 450000 * qty + del_ht_m * qty + COUT_OP_HT * qty;
+    const total_ht_m    = C20.CONTENEUR_HT * qty + del_ht_m * qty + C20.COUT_OP_HT * qty;
     const frais_ht_m    = Math.round(total_ht_m * 0.15);
     const frais_tva_m   = Math.round(frais_ht_m * TVA_RATE);
     const frais_ttc_m   = frais_ht_m + frais_tva_m;
@@ -691,10 +705,7 @@ function buildModal20(d){
 }
 
 /* ─── CONSTANTES TARIFAIRES ─── */
-const CONTENEUR_HT  = 450000;   // HT exonéré TVA
-const COUT_OP_HT    = 115044;   // HT soumis TVA 13% par conteneur
-const TVA_RATE      = 0.13;
-const COUT_OP_TVA   = Math.round(COUT_OP_HT * TVA_RATE); // 14 956
+/* constantes 20DRY définies dans C20 */
 
 /* ─── FORMATAGE NOMBRES ─── */
 function xpf20(n){
@@ -787,23 +798,47 @@ function collectData20(){
   }
 
   if(isPapeete){
-    const cont_ttc = 580000 * qtyNum;
+    // 20DRY Papeete : 450 000 HT + livraison gratuite + coût op 115 044 + TVA 14 956 = 580 000
+    const cont_ht_p  = CONTENEUR_HT * qtyNum;
+    const op_ht_p    = COUT_OP_HT * qtyNum;
+    const op_tva_p   = Math.round(op_ht_p * TVA_RATE);
+    total_ttc_val    = BASE * qtyNum;
+    total_tva_val    = op_tva_p;
+    sous_ht_val      = cont_ht_p + op_ht_p;
+
     rows_html += `
     <tr style="background:#fff;">
-      <td style="${B}"><strong>Conteneur 20 pieds DRY</strong><br><span style="font-size:9px;color:#94a3b8;">Occasion · Acier Corten · bon état · Livraison Papeete incluse</span></td>
+      <td style="${B}"><strong>Conteneur 20 pieds DRY</strong><br><span style="font-size:9px;color:#94a3b8;">Occasion · Acier Corten · bon état</span></td>
       <td style="${BC}">${qtyNum}</td>
-      <td style="${BR}">580 000 XPF</td>
-      <td style="${BTV}">Inclus</td>
-      <td style="${BR}">${n(cont_ttc)} XPF</td>
+      <td style="${BR}">${n(C20.CONTENEUR_HT)} XPF</td>
+      <td style="${BTV}">/</td>
+      <td style="${BR}">${n(cont_ht_p)} XPF</td>
     </tr>`;
-    total_ttc_val = cont_ttc;
+    rows_html += `
+    <tr style="background:#f8fafc;">
+      <td style="${B}"><strong>Livraison — Papeete</strong></td>
+      <td style="${BC}">${qtyNum}</td>
+      <td style="${BR}">0</td>
+      <td style="${BTV}">—</td>
+      <td style="${BR}color:#6fcb7d;">GRATUITE</td>
+    </tr>`;
+    rows_html += `
+    <tr style="background:#fff;">
+      <td style="${B}"><strong>Coût opérationnel</strong></td>
+      <td style="${BC}">${qtyNum}</td>
+      <td style="${BR}">${n(C20.COUT_OP_HT)} XPF</td>
+      <td style="${BTV}">13%</td>
+      <td style="${BR}">${n(op_ht_p)} XPF</td>
+    </tr>`;
+
     detail_html = `
     <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top:10px;">
       <tr><td width="38%"></td><td width="62%">
         <table width="100%" cellpadding="0" cellspacing="0" border="0" style="border-radius:8px;overflow:hidden;border:1px solid #e2e8f0;">
           <tr style="background:#1a1e28;"><td style="padding:8px 12px;font-size:8px;color:#fff;text-transform:uppercase;letter-spacing:1px;font-weight:700;font-family:Arial,sans-serif;">Détail TVA</td><td style="padding:8px 12px;font-size:8px;color:#fff;text-transform:uppercase;letter-spacing:1px;font-weight:700;text-align:right;font-family:Arial,sans-serif;">Montant (XPF)</td></tr>
-          <tr style="background:#f8fafc;"><td style="${BM}">TVA (exonérée)</td><td style="${BMR}">—</td></tr>
-          <tr style="background:#e56535;"><td style="padding:12px;font-size:11px;font-weight:700;color:#fff;text-transform:uppercase;letter-spacing:1px;font-family:Arial,sans-serif;">TOTAL TTC</td><td style="padding:12px;text-align:right;font-size:16px;font-weight:900;color:#fff;font-family:Arial,sans-serif;">${n(cont_ttc)} XPF</td></tr>
+          <tr style="background:#f8fafc;"><td style="${BM}">Total TVA 13%</td><td style="${BMR}">${n(op_tva_p)} XPF</td></tr>
+          <tr style="background:#fff;"><td style="${BM}">Sous-total HT</td><td style="${BMR}">${n(cont_ht_p+op_ht_p)} XPF</td></tr>
+          <tr style="background:#e56535;"><td style="padding:12px;font-size:11px;font-weight:700;color:#fff;text-transform:uppercase;letter-spacing:1px;font-family:Arial,sans-serif;">TOTAL TTC</td><td style="padding:12px;text-align:right;font-size:16px;font-weight:900;color:#fff;font-family:Arial,sans-serif;">${n(total_ttc_val)} XPF</td></tr>
         </table>
       </td></tr>
     </table>`;
@@ -823,7 +858,7 @@ function collectData20(){
       <td style="${BC}">${qtyNum}</td>
       <td style="${BR}">450 000 XPF</td>
       <td style="${BTV}">/</td>
-      <td style="${BR}">${n(450000*qtyNum)} XPF</td>
+      <td style="${BR}">${n(C20.CONTENEUR_HT*qtyNum)} XPF</td>
     </tr>`;
 
     // Livraison
@@ -927,6 +962,8 @@ function collectData20(){
     paiement_condition: isPublic
       ? 'Paiement par virement bancaire sous 30 jours (bon de commande obligatoire).'
       : 'Paiement à la commande par virement bancaire.',
+    validite: '30 jours',
+    cond_validite: "Ce devis est valable 30 jours à compter de sa date d'émission.",
     message: msg,
     ile: document.getElementById('ile').value.trim()||'',
     prix_unitaire: isPapeete ? '580 000 XPF TTC' : '450 000 XPF HT',
@@ -1381,7 +1418,7 @@ function buildModal40(d){
     const r3=tbody.insertRow(); r3.innerHTML=`<td>Coût opérationnel</td><td>${qty}</td><td class="td-right">${opTtcPu.toLocaleString('fr-FR')} XPF</td><td class="td-right">${opTtcTot.toLocaleString('fr-FR')} XPF</td>`;
     if(clientType==='public'){
       const del_ht_m=Math.round(d.delivery_cost/(1+TVA_RATE));
-      const tot_ht_m=680000*qty+del_ht_m*qty+COUT_OP_HT*qty;
+      const tot_ht_m=C40.CONTENEUR_HT*qty+del_ht_m*qty+C40.COUT_OP_HT*qty;
       const fht=Math.round(tot_ht_m*0.15), ftva=Math.round(fht*TVA_RATE), fttc=fht+ftva;
       const r4=tbody.insertRow(); r4.innerHTML=`<td style="color:#e07030;font-weight:700">Frais de gestion, financement et mobilisation<br><small style="color:#c06020;font-weight:600">Commande publique (paiement différé)</small></td><td>1</td><td class="td-right" style="color:#e07030">${fttc.toLocaleString('fr-FR')} XPF</td><td class="td-right" style="color:#e07030">${fttc.toLocaleString('fr-FR')} XPF</td>`;
     }
