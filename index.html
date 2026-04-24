@@ -1417,6 +1417,14 @@ function buildModal40(d){
     const r2=tbody.insertRow(); r2.innerHTML=`<td>Livraison — Papeete</td><td>${qty}</td><td class="td-right" style="color:var(--ok)">GRATUITE</td><td class="td-right" style="color:var(--ok)">GRATUITE</td>`;
     const opTtcPu=Math.round(COUT_OP_HT*(1+TVA_RATE)), opTtcTot=opTtcPu*qty;
     const r3=tbody.insertRow(); r3.innerHTML=`<td>Coût opérationnel</td><td>${qty}</td><td class="td-right">${opTtcPu.toLocaleString('fr-FR')} XPF</td><td class="td-right">${opTtcTot.toLocaleString('fr-FR')} XPF</td>`;
+    if(clientType==='public'){
+      const sht_pap   = CONTENEUR_HT*qty + COUT_OP_HT*qty;
+      const fht_pap   = Math.round(sht_pap*0.15);
+      const ftva_pap  = Math.round(fht_pap*TVA_RATE);
+      const fttc_pap  = fht_pap + ftva_pap;
+      const r4=tbody.insertRow();
+      r4.innerHTML=`<td style="color:#e07030;font-weight:700">Frais de gestion, financement et mobilisation<br><small style="color:#c06020;font-weight:600">Commande publique (paiement différé)</small></td><td>1</td><td class="td-right" style="color:#e07030">${fttc_pap.toLocaleString('fr-FR')} XPF</td><td class="td-right" style="color:#e07030">${fttc_pap.toLocaleString('fr-FR')} XPF</td>`;
+    }
   } else {
     const r1=tbody.insertRow(); r1.innerHTML=`<td>Conteneur 40 pieds HC — occasion, bon état<br><small style="color:var(--muted)">Acier Corten · 12,19 × 2,44 × 2,90 m · 76,4 m³</small></td><td>${qty}</td><td class="td-right">${(CONTENEUR_HT).toLocaleString('fr-FR')} XPF</td><td class="td-right">${(CONTENEUR_HT*qty).toLocaleString('fr-FR')} XPF</td>`;
     const r2=tbody.insertRow();
