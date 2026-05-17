@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Brocante — Faites votre prix</title>
+  <meta name="description" content="Articles d'occasion : prix affiché ou faites votre offre. Paiement sécurisé en ligne." />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="site-header">
+    <div class="container header-inner">
+      <a href="/brocante/" class="brand">
+        <span class="brand-mark">◆</span>
+        <span class="brand-name">Brocante</span>
+      </a>
+      <nav class="nav">
+        <a href="#articles">Articles</a>
+        <a href="#comment">Comment ça marche</a>
+        <a href="#contact">Contact</a>
+      </nav>
+    </div>
+  </header>
+
+  <section class="hero">
+    <div class="container">
+      <h1>Faites votre prix.</h1>
+      <p class="lead">Chaque article a un prix affiché. Si vous voulez négocier, proposez votre offre — nous répondons sous 24 h.</p>
+      <a href="#articles" class="btn btn-primary">Voir les articles</a>
+    </div>
+  </section>
+
+  <section id="articles" class="section">
+    <div class="container">
+      <h2>Articles disponibles</h2>
+      <p class="muted">Cliquez sur un article pour voir le détail ou faire une offre.</p>
+
+      <div class="grid" id="grid"></div>
+    </div>
+  </section>
+
+  <section id="comment" class="section section-alt">
+    <div class="container">
+      <h2>Comment ça marche</h2>
+      <ol class="steps">
+        <li><strong>Choisissez un article.</strong> Le prix affiché est ferme, mais vous pouvez proposer un autre montant.</li>
+        <li><strong>Faites votre offre.</strong> Renseignez votre prix, votre nom et vos coordonnées.</li>
+        <li><strong>Validation.</strong> Nous acceptons ou contre-proposons par email sous 24 h.</li>
+        <li><strong>Paiement sécurisé.</strong> Une fois l'offre acceptée, vous recevez un lien de paiement Stripe.</li>
+        <li><strong>Livraison ou retrait.</strong> Expédition sous 48 h ou retrait sur place.</li>
+      </ol>
+    </div>
+  </section>
+
+  <footer id="contact" class="site-footer">
+    <div class="container footer-inner">
+      <div>
+        <strong>Brocante</strong>
+        <p class="muted">Articles d'occasion — pièces uniques.</p>
+      </div>
+      <div>
+        <p>Une question ? <a href="mailto:contact@example.com">contact@example.com</a></p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Offer modal -->
+  <div class="modal" id="modal" hidden>
+    <div class="modal-backdrop" data-close></div>
+    <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+      <button class="modal-close" data-close aria-label="Fermer">×</button>
+
+      <div class="modal-body">
+        <div class="modal-media">
+          <img id="m-image" alt="" />
+        </div>
+        <div class="modal-info">
+          <h3 id="modal-title"></h3>
+          <p class="price">
+            Prix affiché : <strong id="m-price"></strong>
+          </p>
+          <p id="m-desc" class="muted"></p>
+
+          <form id="offer-form" class="offer-form" novalidate>
+            <input type="hidden" name="article" id="f-article" />
+            <input type="hidden" name="prix_affiche" id="f-listed" />
+
+            <label>
+              Votre offre (XPF)
+              <input type="number" name="offre" id="f-offer" min="1" step="1" required />
+            </label>
+
+            <div class="row">
+              <label>
+                Nom
+                <input type="text" name="nom" required autocomplete="name" />
+              </label>
+              <label>
+                Téléphone
+                <input type="tel" name="telephone" required autocomplete="tel" />
+              </label>
+            </div>
+
+            <label>
+              Email
+              <input type="email" name="email" required autocomplete="email" />
+            </label>
+
+            <label>
+              Message (optionnel)
+              <textarea name="message" rows="3" placeholder="Précisions, conditions de retrait…"></textarea>
+            </label>
+
+            <button type="submit" class="btn btn-primary btn-block">Envoyer mon offre</button>
+            <p class="form-status" id="form-status" aria-live="polite"></p>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
