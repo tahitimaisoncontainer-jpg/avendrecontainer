@@ -169,7 +169,7 @@
     .brand span{ color:var(--accent); }
     .nav-right{ display:flex; align-items:center; gap:.8rem; }
     .nav-mini{ font-size:.82rem; color:var(--muted); }
-    .btn{ display:inline-flex; align-items:center; justify-content:center; border:none; cursor:pointer; padding:1rem 1.35rem; border-radius:999px; font-weight:700; transition:.22s ease; font-size:.95rem; }
+    .btn{ display:inline-flex; align-items:center; justify-content:center; border:none; cursor:pointer; padding:1rem 1.35rem; border-radius:999px; font-weight:700; transition:.22s ease; font-size:.95rem; white-space:nowrap; }
     .btn:hover{ transform:translateY(-1px); }
     .btn-primary{ background:linear-gradient(135deg,var(--accent),var(--accent-2)); color:#fff; box-shadow:0 10px 24px rgba(229,101,53,.24); }
     .btn-secondary{ background:rgba(255,255,255,.03); color:var(--text); border:1px solid var(--line); }
@@ -294,6 +294,8 @@
       .floating-box strong{ font-size:1.1rem; }
       .quote-grid,.grid-3,.grid-4{ grid-template-columns:1fr; }
       .nav-mini{ display:none; }
+      .nav-right{ gap:.4rem; }
+      .nav-right .btn{ padding:.55rem .75rem; font-size:.78rem; }
       .modal-body{ padding:1.2rem; }
       .modal-header{ padding:1.2rem 1.2rem .8rem; }
       .modal-footer{ padding:.8rem 1.2rem 1.2rem; }
@@ -385,7 +387,7 @@
   <div class="container nav-inner">
     <a class="brand" href="#top"><span>TMC</span> — Tahiti Maison Container</a>
     <div class="nav-right">
-      <div class="nav-mini">Conteneurs disponibles</div>
+      <a class="btn btn-secondary" href="#qui-sommes-nous">Qui sommes-nous</a>
       <a class="btn btn-primary" href="#devis">Demander un devis</a>
     </div>
   </div>
@@ -649,6 +651,26 @@
 </div>
 
 
+
+<!-- ═══ QUI SOMMES-NOUS ═══ -->
+<section id="qui-sommes-nous"><div class="container">
+  <div class="section-head"><div><div class="eyebrow">Tahiti Maison Container — depuis 2015</div><h2>QUI SOMMES-NOUS ?</h2></div></div>
+  <p class="hero-lead" style="max-width:900px;margin-bottom:1.5rem;">
+    Depuis <strong>2015</strong>, <strong>Tahiti Maison Container</strong> est une entreprise locale spécialisée dans la <strong>fourniture</strong>, la <strong>livraison</strong>, la <strong>transformation</strong> et l'<strong>aménagement</strong> de conteneurs maritimes en Polynésie française.
+  </p>
+  <p class="hero-lead" style="max-width:900px;margin-bottom:1.5rem;">
+    Nous proposons des solutions <strong>solides, rapides et adaptées</strong> à tous types de projets : stockage, bureaux, logements, boutiques ou espaces techniques.
+  </p>
+  <p class="hero-lead" style="max-width:900px;margin-bottom:2rem;">
+    Notre objectif : fournir des conteneurs <strong>fiables, bien installés et aménagés</strong> selon vos besoins, avec un suivi complet du début à la fin.
+  </p>
+  <div class="grid-4">
+    <div class="card"><div class="usage-title">Fourniture</div><div class="usage-desc">Vente de conteneurs maritimes 20 et 40 pieds. Dernier voyage, prêts à l'utilisation.</div></div>
+    <div class="card"><div class="usage-title">Livraison</div><div class="usage-desc">Transport et mise en place sur site. Livraison adaptée à tous types de terrains, Tahiti et îles.</div></div>
+    <div class="card"><div class="usage-title">Transformation</div><div class="usage-desc">Découpe, installation de portes, grilles, ventilation. Travaux sur mesure selon vos besoins.</div></div>
+    <div class="card"><div class="usage-title">Aménagement</div><div class="usage-desc">Création de bureaux, logements, boutiques et espaces fonctionnels. Solutions clés en main.</div></div>
+  </div>
+</div></section>
 
 <!-- ═══ SECTION COMMUNE ═══ -->
 <section><div class="container">
