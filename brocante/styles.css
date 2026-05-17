@@ -46,8 +46,13 @@ a { color: var(--ink); }
 }
 .brand-mark { color: var(--accent); font-size: 18px; }
 .nav { display: flex; gap: 22px; }
-.nav a { text-decoration: none; color: var(--muted); font-size: 14px; }
+.nav a { text-decoration: none; color: var(--muted); font-size: 14px; white-space: nowrap; }
 .nav a:hover { color: var(--ink); }
+@media (max-width: 520px) {
+  .nav { gap: 14px; }
+  .nav a { font-size: 13px; }
+  .nav a[href="#comment"] { display: none; }
+}
 
 /* Hero */
 .hero {
@@ -156,8 +161,18 @@ a { color: var(--ink); }
 @media (max-width: 720px) {
   .modal-body { grid-template-columns: 1fr; }
 }
-.modal-media { background: #ece7dc; min-height: 260px; }
-.modal-media img { width: 100%; height: 100%; object-fit: cover; display: block; aspect-ratio: 4 / 3; }
+.modal-media {
+  background: #ece7dc;
+  aspect-ratio: 4 / 3;
+  align-self: start;
+  width: 100%;
+  min-width: 0;
+  overflow: hidden;
+}
+.modal-media img { width: 100%; height: 100%; object-fit: cover; display: block; }
+@media (max-width: 720px) {
+  .modal-media { aspect-ratio: 16 / 10; }
+}
 .modal-info { padding: 28px; }
 .modal-info h3 { margin: 0 0 8px; font-size: 22px; }
 .price { font-size: 16px; margin: 0 0 8px; }
