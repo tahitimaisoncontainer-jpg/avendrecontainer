@@ -165,6 +165,7 @@
     .container{ width:min(var(--max), calc(100% - 2.4rem)); margin:0 auto; }
     nav{ position:fixed; inset:0 0 auto 0; z-index:1000; backdrop-filter:blur(14px); background:rgba(20,24,30,.74); border-bottom:1px solid rgba(255,255,255,.06); }
     .nav-inner{ min-height:78px; display:flex; align-items:center; justify-content:space-between; gap:1rem; }
+    .nav-spacer{ padding-top:78px; }
     .brand{ font-family:'Bebas Neue',sans-serif; letter-spacing:.08em; font-size:1.5rem; white-space:nowrap; }
     .brand span{ color:var(--accent); }
     .brand .brand-full{ color:inherit; }
@@ -295,11 +296,11 @@
       .floating-box strong{ font-size:1.1rem; }
       .quote-grid,.grid-3,.grid-4{ grid-template-columns:1fr; }
       .nav-mini{ display:none; }
-      .brand{ font-size:1.2rem; }
-      .brand-full{ display:none; }
-      .nav-inner{ gap:.5rem; min-height:64px; }
-      .nav-right{ gap:.4rem; }
-      .nav-right .btn{ padding:.55rem .8rem; font-size:.78rem; }
+      .nav-inner{ flex-direction:column; align-items:center; gap:.55rem; padding:.7rem 0; min-height:auto; }
+      .brand{ font-size:1.1rem; }
+      .nav-right{ gap:.5rem; }
+      .nav-right .btn{ padding:.6rem 1rem; font-size:.85rem; }
+      .nav-spacer{ padding-top:120px; }
       .modal-body{ padding:1.2rem; }
       .modal-header{ padding:1.2rem 1.2rem .8rem; }
       .modal-footer{ padding:.8rem 1.2rem 1.2rem; }
@@ -397,7 +398,7 @@
   </div>
 </nav>
 
-<div style="padding-top:78px;"></div>
+<div class="nav-spacer"></div>
 <div class="ptabs-wrap">
   <div class="ptabs">
     <button class="ptab active" id="tab-20" onclick="switchProduct('20')">
