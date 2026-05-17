@@ -181,8 +181,8 @@
     .hero-copy{ display:flex; flex-direction:column; justify-content:center; gap:1.3rem; }
     .kicker{ display:inline-flex; align-items:center; gap:.7rem; color:var(--accent); text-transform:uppercase; letter-spacing:.18em; font-size:.78rem; font-weight:700; }
     .kicker::before{ content:""; width:34px; height:2px; border-radius:99px; background:var(--accent); }
-    h1{ font-family:'Bebas Neue',sans-serif; font-size:clamp(3.6rem,9vw,7rem); line-height:.9; letter-spacing:.02em; }
-    h1 .accent{ color:var(--accent); }
+    h1, .hero-title{ font-family:'Bebas Neue',sans-serif; font-size:clamp(3.6rem,9vw,7rem); line-height:.9; letter-spacing:.02em; }
+    h1 .accent, .hero-title .accent{ color:var(--accent); }
     .hero-lead{ max-width:620px; color:var(--muted); font-size:1.05rem; }
     .hero-metrics{ display:flex; flex-wrap:wrap; gap:.9rem; margin:.2rem 0 .5rem; }
     .metric{ padding:.9rem 1rem; background:rgba(255,255,255,.03); border:1px solid rgba(255,255,255,.06); border-radius:16px; min-width:150px; }
@@ -548,7 +548,7 @@
           </div>
         </div>
         <div class="kicker">Conteneur maritime d'occasion</div>
-        <h1>CONTENEUR <span class="accent">40 HC</span><br>PRÊT À LIVRER</h1>
+        <h2 class="hero-title">CONTENEUR <span class="accent">40 HC</span><br>PRÊT À LIVRER</h2>
         <p class="hero-lead">Conteneur maritime 40 pieds High Cube d'occasion, en bon état général. Grande capacité idéale pour stockage volumineux, atelier, chantier ou projet d'aménagement.</p>
         <div class="hero-metrics">
           <div class="metric"><div class="metric-label">État</div><div class="metric-value">Bon état</div></div>
