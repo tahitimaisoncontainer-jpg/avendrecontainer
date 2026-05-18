@@ -385,6 +385,24 @@
 .video-caption{position:absolute;left:1.4rem;bottom:1.2rem;z-index:2;color:#fff;font-family:'Bebas Neue',sans-serif;font-size:1.6rem;letter-spacing:.04em;text-shadow:0 4px 18px rgba(0,0,0,.6);}
 .video-tag{display:inline-block;background:var(--accent);color:#fff;padding:.25rem .65rem;border-radius:6px;font-size:.7rem;letter-spacing:.14em;margin-bottom:.5rem;font-family:'DM Sans',sans-serif;font-weight:700;}
 @media (max-width:780px){.video-play-btn{width:64px;height:64px;}.video-play-btn svg{width:24px;height:24px;}.video-caption{font-size:1.1rem;left:1rem;bottom:.8rem;}}
+
+/* ═══ EFFETS PRO COMBINÉS ═══ */
+/* 1. Apparition au scroll (sections montent en fade) */
+.reveal{ opacity:0; }
+.reveal.in-view{ animation: revealAnim .75s cubic-bezier(.2,.7,.3,1) forwards; }
+@keyframes revealAnim{
+  from{ opacity:0; transform: translateY(28px); }
+  to{ opacity:1; transform: translateY(0); }
+}
+
+/* 2. Zoom doux sur image conteneur au survol (desktop uniquement) */
+.photo-main .container-photo{ transition: transform .55s cubic-bezier(.2,.7,.3,1); }
+@media (hover:hover) and (pointer:fine){
+  .photo-main:hover .container-photo{ transform: scale(1.05); }
+}
+
+/* 3. Compteurs animés — tabular-nums pour éviter le tremblement visuel */
+.trust-num{ font-variant-numeric: tabular-nums; }
 </style>
 </head>
 <body>
@@ -2450,6 +2468,80 @@ function generatePDF40(d){
       document.getElementById('cd-secondes').textContent=pad(Math.floor((diff%60000)/1000));
     }
     tick(); setInterval(tick,1000);
+  }
+})();
+
+/* ═══ EFFETS PRO COMBINÉS — apparition au scroll + compteurs animés ═══ */
+(function(){
+  // ─── 1. Apparition au scroll ───
+  const REVEAL_SELECTORS = [
+    'section .section-head',
+    'section .card',
+    'section .testi-card',
+    'section .trust-item',
+    'section .faq-item'
+  ];
+  REVEAL_SELECTORS.forEach(sel => {
+    document.querySelectorAll(sel).forEach(el => el.classList.add('reveal'));
+  });
+
+  // Stagger (décalage) dans les groupes
+  ['.grid-4','.grid-3','.testi-grid','.trust-grid','.faq-list'].forEach(parentSel => {
+    document.querySelectorAll(parentSel).forEach(parent => {
+      Array.from(parent.children).forEach((child, i) => {
+        if(child.classList.contains('reveal')){
+          child.style.animationDelay = (i * 0.08) + 's';
+        }
+      });
+    });
+  });
+
+  if('IntersectionObserver' in window){
+    const revealObs = new IntersectionObserver(entries => {
+      entries.forEach(e => {
+        if(e.isIntersecting){
+          e.target.classList.add('in-view');
+          revealObs.unobserve(e.target);
+        }
+      });
+    }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+    document.querySelectorAll('.reveal').forEach(el => revealObs.observe(el));
+  } else {
+    // Fallback : on rend tout visible si pas d'IntersectionObserver
+    document.querySelectorAll('.reveal').forEach(el => el.classList.add('in-view'));
+  }
+
+  // ─── 2. Compteurs animés (.trust-num) ───
+  function animateCounter(el){
+    const text = el.textContent.trim();
+    // Skip les plages comme "24-72 h"
+    if(/^\d+\s*-\s*\d+/.test(text)) return;
+    const m = text.match(/^([+\-]?)(\d+)(.*)$/);
+    if(!m) return;
+    const prefix = m[1];
+    const target = parseInt(m[2]);
+    const suffix = m[3];
+    const duration = 1400;
+    const start = performance.now();
+    function step(now){
+      const t = Math.min((now - start) / duration, 1);
+      const eased = 1 - Math.pow(1 - t, 3); // easeOutCubic
+      const val = Math.round(target * eased);
+      el.textContent = prefix + val + suffix;
+      if(t < 1) requestAnimationFrame(step);
+    }
+    requestAnimationFrame(step);
+  }
+  if('IntersectionObserver' in window){
+    const countObs = new IntersectionObserver(entries => {
+      entries.forEach(e => {
+        if(e.isIntersecting){
+          animateCounter(e.target);
+          countObs.unobserve(e.target);
+        }
+      });
+    }, { threshold: 0.6 });
+    document.querySelectorAll('.trust-num').forEach(el => countObs.observe(el));
   }
 })();
 </script>
