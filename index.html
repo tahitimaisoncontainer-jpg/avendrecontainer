@@ -8,7 +8,7 @@
 
 <!-- ═══ SEO PRINCIPAL ═══ -->
 <title>Tahiti Maison Container — Vente conteneurs maritimes 20 DRY & 40 HC en Polynésie</title>
-<meta name="description" content="Vente et livraison de conteneurs maritimes d'occasion en Polynésie française. Conteneur 20 DRY à 580 000 XPF, 40 HC à 819 200 XPF. Livraison Tahiti et îles, aménagement sur mesure. Devis gratuit."/>
+<meta name="description" content="Vente et livraison de conteneurs maritimes d'occasion en Polynésie française. Conteneur 20 DRY à 583 451 XPF, 40 HC à 832 451 XPF. Livraison Tahiti et îles, aménagement sur mesure. Devis gratuit."/>
 <meta name="keywords" content="conteneur Tahiti, container maritime Polynésie, 20 DRY, 40 HC, vente conteneur Papeete, livraison conteneur îles, aménagement conteneur, stockage Tahiti, TMC"/>
 <meta name="author" content="Tahiti Maison Container"/>
 <meta name="robots" content="index, follow"/>
@@ -50,7 +50,7 @@
   "telephone": "+68987226555",
   "email": "tahitimaisoncontainer@gmail.com",
   "image": "https://tahitimaisoncontainer-jpg.github.io/avendrecontainer/images/conteneur-20dry.png",
-  "priceRange": "580 000 - 819 200 XPF",
+  "priceRange": "583 451 - 832 451 XPF",
   "address": {
     "@type": "PostalAddress",
     "addressLocality": "Papeete",
@@ -95,7 +95,7 @@
       "category": "Conteneur maritime",
       "offers": {
         "@type": "Offer",
-        "price": "580000",
+        "price": "583451",
         "priceCurrency": "XPF",
         "availability": "https://schema.org/InStock",
         "seller": {"@type":"Organization","name":"Tahiti Maison Container"}
@@ -110,7 +110,7 @@
       "category": "Conteneur maritime",
       "offers": {
         "@type": "Offer",
-        "price": "819200",
+        "price": "832451",
         "priceCurrency": "XPF",
         "availability": "https://schema.org/InStock",
         "seller": {"@type":"Organization","name":"Tahiti Maison Container"}
@@ -419,10 +419,10 @@
 <div class="ptabs-wrap">
   <div class="ptabs">
     <button class="ptab active" id="tab-20" onclick="switchProduct('20')">
-      <span>Conteneur 20 DRY</span><span class="ptab-badge">580 000 XPF</span>
+      <span>Conteneur 20 DRY</span><span class="ptab-badge">583 451 XPF</span>
     </button>
     <button class="ptab" id="tab-40" onclick="switchProduct('40')">
-      <span>Conteneur 40 HC</span><span class="ptab-badge" id="badge40">819 200 XPF</span>
+      <span>Conteneur 40 HC</span><span class="ptab-badge" id="badge40">832 451 XPF</span>
     </button>
   </div>
 </div>
@@ -443,7 +443,7 @@
           <div class="metric"><div class="metric-label">Livraison</div><div class="metric-value">Tahiti + îles</div></div>
         </div>
         <div class="hero-price">
-          <div><div class="price-main">580 000 XPF</div><div class="price-sub">Prix TTC de base du conteneur</div></div>
+          <div><div class="price-main">583 451 XPF</div><div class="price-sub">Prix TTC de base du conteneur</div></div>
           <div class="free-tag">Livraison gratuite sur Papeete</div>
         </div>
         <div class="hero-actions">
@@ -870,13 +870,13 @@ let activeProduct='20';
 /* ─── 40HC : tarif normal (plus de promo) ─── */
 (function(){
   window._PROMO=false;
-  window._P40HT=680000;
-  window._B40=680000+120000+Math.round(120000*0.16); // = 819 200
+  window._P40HT=699000;
+  window._B40=699000+115044+Math.round(115044*0.16); // = 832 451
 })();
 
 /* ─── Constantes 20 DRY ─── */
 const C20={
-  BASE:580000, CONTENEUR_HT:446549, COUT_OP_HT:115044,
+  BASE:583451, CONTENEUR_HT:450000, COUT_OP_HT:115044,
   TVA_RATE:0.13, COUT_OP_TVA_RATE:0.16, COUT_OP_TVA:Math.round(115044*0.16),
   label:'20 DRY', prefix:'TMC',
   communes:[
@@ -894,8 +894,8 @@ const C20={
 const C40={
   get BASE(){return window._B40;},
   get CONTENEUR_HT(){return window._P40HT;},
-  COUT_OP_HT:120000, TVA_RATE:0.13, COUT_OP_TVA_RATE:0.16,
-  get COUT_OP_TVA(){return Math.round(120000*0.16);},
+  COUT_OP_HT:115044, TVA_RATE:0.13, COUT_OP_TVA_RATE:0.16,
+  get COUT_OP_TVA(){return Math.round(115044*0.16);},
   label:'40 HC', prefix:'TMC40',
   communes:[
     {v:'0',t:'Papeete (livraison incluse)'},{v:'35192',t:'Pirae'},{v:'28908',t:"Faa'a"},{v:'28908',t:'Arue'},
@@ -1103,7 +1103,7 @@ function buildModal20(d){
   const qty = d.quantite_num;
 
   if(isPapeete){
-    // Papeete 20DRY : 450 000 HT + livraison gratuite + coût op + TVA = 580 000 TTC
+    // Papeete 20DRY : 450 000 HT + livraison gratuite + coût op 115 044 + TVA 16% = 583 451 TTC
     const r1 = tbody.insertRow();
     r1.innerHTML = `<td>Conteneur maritime 20 pieds DRY — occasion, bon état<br><small style="color:var(--muted)">Acier Corten · 6,06 × 2,44 × 2,59 m · 33,2 m³</small></td><td>${qty}</td><td class="td-right">${(C20.CONTENEUR_HT).toLocaleString('fr-FR')} XPF</td><td class="td-right">${(C20.CONTENEUR_HT*qty).toLocaleString('fr-FR')} XPF</td>`;
     const r2 = tbody.insertRow();
@@ -1253,7 +1253,7 @@ function collectData20(){
   }
 
   if(isPapeete){
-    // 20DRY Papeete : 446 549 HT + livraison gratuite + coût op 115 044 + TVA 16% = 580 000
+    // 20DRY Papeete : 450 000 HT + livraison gratuite + coût op 115 044 + TVA 16% = 583 451
     const cont_ht_p  = CONTENEUR_HT * qtyNum;
     const op_ht_p    = COUT_OP_HT * qtyNum;
     const op_tva_p   = Math.round(op_ht_p * C20.COUT_OP_TVA_RATE);
@@ -1440,7 +1440,7 @@ function collectData20(){
     cond_validite: "Ce devis est valable 30 jours à compter de sa date d'émission.",
     message: msg,
     ile: document.getElementById('ile').value.trim()||'',
-    prix_unitaire: isPapeete ? '580 000 XPF TTC' : '450 000 XPF HT',
+    prix_unitaire: isPapeete ? '583 451 XPF TTC' : '450 000 XPF HT',
     livraison: deliveryCost > 0 ? n(deliveryCost)+' XPF TTC/u' : isAutres ? 'Sur étude' : 'Incluse',
     cout_operationnel: n(COUT_OP_HT)+' XPF HT/u',
     total_tva: n(total_tva_val)+' XPF',
@@ -2097,7 +2097,7 @@ function collectData40(){
       : "Ce devis est valable 30 jours à compter de sa date d'émission.",
     surcharge:isPublic?'Oui — frais de gestion commande publique':'Non',
     message:msg, ile:document.getElementById('ile').value.trim()||'',
-    prix_unitaire:isPapeete?'819 200 XPF TTC':'680 000 XPF HT',
+    prix_unitaire:isPapeete?'832 451 XPF TTC':'699 000 XPF HT',
     livraison:deliveryCost>0?n(deliveryCost)+' XPF TTC/u':communeEl.value==='autres'?'Sur étude':'Incluse',
     cout_operationnel:n(COUT_OP_HT)+' XPF HT/u', total_tva:n(total_tva_val)+' XPF', total_ht:isPapeete?'—':n(sous_ht_val)+' XPF',
     frais_gestion:isPublic?'Oui (+15% HT + TVA 13%)':'Non',
