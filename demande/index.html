@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Votre demande — Tahiti Maison Container</title>
+<meta name="description" content="Décrivez votre projet en une minute et obtenez le prix réel livré dans votre commune. Tahiti Maison Container, conteneurs 20 DRY et 40 HC en Polynésie.">
+<meta name="robots" content="index,follow">
+<meta property="og:title" content="Votre demande — Tahiti Maison Container">
+<meta property="og:description" content="Une minute pour décrire votre projet et connaître le prix livré chez vous.">
+<meta name="theme-color" content="#1f3864">
+<style>
+:root{--navy:#1f3864;--navy2:#2c4d86;--or:#e36c0a;--vert:#1e7b34;--rouge:#c0392b;--gris:#5b6470;--bg:#eef1f6;--card:#fff;--bord:#d9e0ea;--ombre:0 2px 10px rgba(31,56,100,.08)}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;background:var(--bg);color:#18202e;line-height:1.5;font-size:16px}
+.app{max-width:560px;margin:0 auto;min-height:100vh;display:flex;flex-direction:column;background:var(--bg)}
+header{background:var(--navy);color:#fff;padding:14px 18px;display:flex;align-items:center;gap:12px}
+header .logo{width:34px;height:34px;border-radius:8px;background:var(--or);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;flex:0 0 auto}
+header h1{margin:0;font-size:15px;font-weight:700;line-height:1.2}
+header p{margin:1px 0 0;font-size:11.5px;opacity:.75}
+.bar{height:4px;background:#dde3ec}
+.bar i{display:block;height:100%;background:var(--or);width:0;transition:width .3s ease}
+main{flex:1;padding:22px 18px 130px}
+.step{display:none;animation:in .25s ease}
+.step.on{display:block}
+@keyframes in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.kicker{font-size:11px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--or);margin-bottom:6px}
+h2{margin:0 0 6px;font-size:22px;line-height:1.25;color:var(--navy);font-weight:750}
+.sub{margin:0 0 18px;font-size:14px;color:var(--gris)}
+.opts{display:flex;flex-direction:column;gap:9px}
+button.opt{display:flex;align-items:center;gap:12px;width:100%;text-align:left;background:var(--card);border:1.5px solid var(--bord);border-radius:12px;padding:15px 16px;font:inherit;font-size:15.5px;color:#18202e;cursor:pointer;box-shadow:var(--ombre);transition:.12s}
+button.opt:hover{border-color:var(--navy2)}
+button.opt.sel{border-color:var(--navy);background:#eff3fb;box-shadow:inset 0 0 0 1px var(--navy)}
+button.opt .ic{flex:0 0 auto;width:26px;height:26px;border-radius:50%;border:2px solid var(--bord);display:flex;align-items:center;justify-content:center;font-size:13px;color:#fff}
+button.opt.sel .ic{background:var(--navy);border-color:var(--navy)}
+button.opt .tx{flex:1}
+button.opt .tx small{display:block;color:var(--gris);font-size:12.5px;margin-top:2px;line-height:1.35}
+label.f{display:block;margin-bottom:13px}
+label.f span{display:block;font-size:13px;font-weight:600;margin-bottom:5px;color:#2b3646}
+input,select,textarea{width:100%;font:inherit;font-size:16px;padding:13px 14px;border:1.5px solid var(--bord);border-radius:11px;background:var(--card);color:#18202e}
+input:focus,select:focus,textarea:focus{outline:0;border-color:var(--navy)}
+textarea{min-height:88px;resize:vertical}
+.err{color:var(--rouge);font-size:13px;margin-top:8px;font-weight:600}
+.nav{position:fixed;left:0;right:0;bottom:0;background:rgba(238,241,246,.97);backdrop-filter:blur(8px);border-top:1px solid var(--bord);padding:11px 18px calc(11px + env(safe-area-inset-bottom))}
+.nav .in{max-width:560px;margin:0 auto;display:flex;gap:10px;align-items:center}
+.btn{font:inherit;font-size:15.5px;font-weight:700;border:0;border-radius:11px;padding:14px 20px;cursor:pointer}
+.btn.p{background:var(--navy);color:#fff;flex:1}
+.btn.p:disabled{background:#a9b3c4;cursor:not-allowed}
+.btn.s{background:transparent;color:var(--gris);padding:14px 12px;font-weight:600}
+.btn.w{background:#25d366;color:#0b3d1e;width:100%;display:block;text-align:center;text-decoration:none;margin-top:10px}
+.prix{background:linear-gradient(135deg,var(--navy),var(--navy2));color:#fff;border-radius:14px;padding:16px 18px;margin:16px 0 4px;box-shadow:var(--ombre)}
+.prix .lb{font-size:11.5px;text-transform:uppercase;letter-spacing:.7px;opacity:.8}
+.prix .val{font-size:29px;font-weight:800;line-height:1.15;margin:3px 0}
+.prix .det{font-size:12.5px;opacity:.85}
+.note{background:#fdf3e7;border-left:3px solid var(--or);padding:11px 13px;font-size:13.5px;border-radius:0 9px 9px 0;margin:14px 0}
+.note b{color:#a04c05}
+.recap{background:var(--card);border:1px solid var(--bord);border-radius:13px;padding:4px 16px;box-shadow:var(--ombre)}
+.recap .r{display:flex;justify-content:space-between;gap:14px;padding:11px 0;border-bottom:1px solid #f0f3f7;font-size:14px}
+.recap .r:last-child{border:0}
+.recap .r b{color:var(--gris);font-weight:600;flex:0 0 42%}
+.recap .r span{text-align:right;flex:1}
+.fin{text-align:center;padding:16px 0}
+.fin .ok{width:66px;height:66px;border-radius:50%;background:var(--vert);color:#fff;font-size:33px;display:flex;align-items:center;justify-content:center;margin:0 auto 14px}
+footer{padding:16px 18px 26px;text-align:center;color:var(--gris);font-size:12px;line-height:1.6}
+footer a{color:var(--navy);text-decoration:none;font-weight:600}
+</style>
+</head>
+<body>
+<div class="app">
+<header>
+  <div class="logo">TMC</div>
+  <div><h1>Tahiti Maison Container</h1><p>Votre demande en une minute</p></div>
+</header>
+<div class="bar"><i id="bar"></i></div>
+<main id="main"></main>
+<div class="nav"><div class="in">
+  <button class="btn s" id="back" onclick="prec()">Retour</button>
+  <button class="btn p" id="next" onclick="suiv()">Continuer</button>
+</div></div>
+<footer>
+  Tahiti Maison Container — N° Tahiti 710194<br>
+  <a href="tel:+68987226555">87 22 65 55</a> · <a href="mailto:tahitimaisoncontainer@gmail.com">tahitimaisoncontainer@gmail.com</a>
+</footer>
+</div>
+<script>
+/* ============ PARAMETRES A AJUSTER ============ */
+var ENDPOINT = "";            /* URL de l'application web Apps Script (voir TMC_Endpoint_WebApp.gs) */
+var WHATSAPP = "68987226555"; /* numero au format international, sans + */
+
+/* ============ TARIFS (identiques a la page de vente) ============ */
+var BASE20 = 623451, BASE40 = 832451;
+var COM = [
+ ["Papeete",0,0],["Pirae",23892,28908],["Faa'a",23892,28908],["Arue",23892,28908],
+ ["Punaauia",28908,47760],["Mahina",28908,47760],["Paea",35192,72897],["Tiarei",35192,72897],
+ ["Papenoo",35192,72897],["Papara",47760,91750],["Hitiaa",47760,91750],["Mahaena",47760,91750],
+ ["Mataiea",56559,106832],["Papeari",60329,109346],["Faaone",66000,111860],["Taravao",69127,113117],
+ ["Toahotu",70384,115630],["Afaahiti",70384,115630],["Vairao",71641,116888],["Pueu",71641,116888],
+ ["Teahupoo",75411,123171],["Tautira",75411,123171],["Moorea",90000,160000],
+ ["Raiatea (au quai)",50000,95000],["Bora-Bora (au quai)",50000,95000],["Tahaa (au quai)",50000,95000],
+ ["Autre île",-1,-1]
+];
+var ETUDE = [
+ [60,"25 245 XPF"],[120,"45 499 XPF"],[180,"70 698 XPF"],[240,"90 783 XPF"],[9999,"120 042 XPF"]
+];
+
+/* ============ ETAT ============ */
+var S = {}, idx = 0, ordre = [];
+
+function fmt(n){ return String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g," "); }
+function comInfo(nom){ for(var i=0;i<COM.length;i++) if(COM[i][0]===nom) return COM[i]; return null; }
+
+function prixUnitaire(){
+  var c = comInfo(S.commune); if(!c) return null;
+  if(c[1] === -1) return "devis";
+  if(S.format === "20 DRY") return BASE20 + c[1];
+  if(S.format === "40 HC")  return BASE40 + c[2];
+  return null;
+}
+function prixTotal(){
+  var u = prixUnitaire(); if(u === null || u === "devis") return u;
+  var q = parseInt(S.quantite,10); if(!q || q < 1) q = 1;
+  return u * q;
+}
+function tarifEtude(){
+  var m = parseFloat(String(S.surface||"").replace(",","."));
+  if(!m || m <= 0) return null;
+  for(var i=0;i<ETUDE.length;i++) if(m <= ETUDE[i][0]) return ETUDE[i][1];
+  return null;
+}
+
+/* ============ ECRANS ============ */
+var E = {};
+
+E.profil = {k:"Pour commencer", q:"Vous êtes…", ch:"profil", o:[
+  ["Un particulier"],["Une entreprise"],["Une administration ou une commune"],["Une association"]]};
+
+E.besoin = {k:"Votre besoin", q:"Que puis-je faire pour vous ?", ch:"besoin", o:[
+  ["Acheter un conteneur brut","Stockage, atelier, garage. Livré tel quel."],
+  ["Aménager un conteneur","Bureau, logement, local technique, clé en main."],
+  ["Prendre rendez-vous","Pour en parler de vive voix, sur place ou chez vous."]]};
+
+/* ---- branche ACHAT ---- */
+E.format = {k:"Achat de conteneur", q:"Quel format ?", ch:"format", o:[
+  ["20 DRY","6,06 m de long · 13,86 m² · le plus courant"],
+  ["40 HC","12,19 m de long · 28,52 m² · grande hauteur"],
+  ["Je ne sais pas encore","Je vous conseillerai"]]};
+
+E.commune = {k:"Livraison", q:"Où faut-il le livrer ?", sel:"commune",
+  sub:"Le prix affiché comprend le conteneur, le transport et la pose."};
+
+E.quantite = {k:"Livraison", q:"Combien de conteneurs ?", ch:"quantite", o:[
+  ["1"],["2"],["3"],["4 ou plus"]]};
+
+E.acces = {k:"Livraison", q:"Un camion-grue peut-il accéder à l'emplacement ?", ch:"acces",
+  sub:"C'est le point qui fait échouer le plus de livraisons.", o:[
+  ["Oui, l'accès est dégagé"],["Non, l'accès est difficile"],["Je ne sais pas"]]};
+
+E.delai = {k:"Calendrier", q:"Pour quand ?", ch:"delai", o:[
+  ["Dans le mois"],["Dans 1 à 3 mois"],["Dans 3 à 6 mois"],["Dans plus de 6 mois"],
+  ["Pas de date, je me renseigne"]]};
+
+E.budget = {k:"Budget", q:"Ce prix correspond-il à votre budget ?", ch:"budget", o:[
+  ["Oui, c'est dans mon budget"],
+  ["Un peu au-dessus, mais je peux ajuster"],
+  ["Non, c'est trop élevé pour moi"],
+  ["Je ne sais pas encore, j'ai besoin d'un conseil"]]};
+
+/* ---- branche AMENAGEMENT ---- */
+E.usage = {k:"Aménagement", q:"Quel usage prévoyez-vous ?", ch:"usage", o:[
+  ["Logement","Studio, chambre, maison"],
+  ["Bureau ou local commercial","Bureau, boutique, kiosque"],
+  ["Atelier ou stockage aménagé","Isolé, électrifié"],
+  ["Local technique","Sanitaires, chambre froide, laboratoire"],
+  ["Autre usage"]]};
+
+E.surface = {k:"Aménagement", q:"Quelle surface envisagez-vous ?", num:"surface",
+  sub:"Une valeur approximative suffit. Repères : un 20 pieds fait 13 m², un 40 pieds 26 m²."};
+
+E.terrain = {k:"Le terrain", q:"Où en êtes-vous avec le terrain ?", ch:"terrain", o:[
+  ["Il m'appartient ou je le loue"],
+  ["Achat ou bail en cours de signature"],
+  ["Je l'ai repéré, il n'est pas encore à moi"],
+  ["Je n'ai pas encore de terrain"]]};
+
+E.indivision = {k:"Le terrain", q:"Le terrain est-il en indivision ?", ch:"indivision",
+  sub:"C'est le premier motif d'enlisement des projets en Polynésie. Autant le savoir tout de suite.", o:[
+  ["Non, je suis seul propriétaire ou titulaire du bail"],
+  ["Oui, et l'indivision est réglée","J'ai l'accord écrit des indivisaires"],
+  ["Oui, et elle n'est pas réglée"],
+  ["Je ne sais pas"]]};
+
+E.parcelle = {k:"Le terrain", q:"Commune et numéro de parcelle", txt:"parcelle",
+  sub:"Le numéro se trouve en quelques secondes sur otia.gov.pf. Facultatif, mais il me fait gagner un aller-retour.", opt:1};
+
+E.plan = {k:"Votre projet", q:"Avez-vous un plan ou un croquis ?", ch:"plan", o:[
+  ["Oui, un plan coté"],["Un croquis à main levée"],["Non, rien pour l'instant"]]};
+
+E.enveloppe = {k:"Budget", q:"Dans quelle enveloppe souhaitez-vous rester ?", ch:"enveloppe",
+  sub:"Pour vous orienter vers la bonne solution plutôt que vers un devis hors de portée.", o:[
+  ["Moins de 3 millions XPF"],["De 3 à 6 millions"],["De 6 à 12 millions"],
+  ["Plus de 12 millions"],["Je préfère en discuter"]]};
+
+E.financement = {k:"Budget", q:"Comment envisagez-vous de financer ce projet ?", ch:"financement",
+  sub:"Cette question me sert à adapter le calendrier de facturation à votre situation.", o:[
+  ["Fonds propres disponibles"],["Prêt bancaire déjà accordé"],["Aide ou subvention notifiée"],
+  ["Prêt en cours d'instruction"],["Le financement reste à monter"],["Je ne sais pas encore"]]};
+
+/* ---- branche RDV ---- */
+E.rdvlieu = {k:"Rendez-vous", q:"Où souhaitez-vous qu'on se voie ?", ch:"rdvlieu", o:[
+  ["Chez vous, à Tahiti Maison Container","Domaine Vaitarua, Afaahiti"],
+  ["Sur mon terrain ou à mon bureau","Déplacement facturé 5 000 XPF sur Tahiti"],
+  ["Par téléphone ou en visio"]]};
+
+E.rdvquand = {k:"Rendez-vous", q:"Quel moment vous arrange ?", ch:"rdvquand", o:[
+  ["En semaine, le matin"],["En semaine, l'après-midi"],["Le samedi"],["Peu importe, appelez-moi"]]};
+
+/* ---- commun fin ---- */
+E.decision = {k:"Presque fini", q:"Qui décide avec vous ?", ch:"decision", o:[
+  ["Je décide seul"],
+  ["Avec mon conjoint ou ma famille, nous sommes d'accord sur le principe"],
+  ["Avec mon conjoint ou ma famille, nous n'en avons pas encore parlé"],
+  ["Avec un associé, un conseil ou ma hiérarchie"],
+  ["Je me renseigne pour quelqu'un d'autre"]]};
+
+E.etape = {k:"Presque fini", q:"Si ma proposition vous convient, quelle serait votre prochaine étape ?", ch:"etape", o:[
+  ["Je commande"],
+  ["J'en parle autour de moi, puis je reviens vers vous"],
+  ["Je compare avec d'autres devis"],
+  ["Je garde la proposition pour plus tard"]]};
+
+E.contact = {k:"Vos coordonnées", q:"Comment je vous recontacte ?", contact:1,
+  sub:"Je réponds sous 48 heures, et sous 24 heures si votre projet est urgent."};
+
+E.recap = {k:"C'est prêt", q:"Vérifiez avant d'envoyer", recap:1};
+E.fini = {k:"", q:"", fini:1};
+
+/* ============ PARCOURS ============ */
+function parcours(){
+  var p = ["profil","besoin"];
+  if(S.besoin === "Acheter un conteneur brut"){
+    p = p.concat(["format","commune","quantite","acces","delai"]);
+    if(S.format === "20 DRY" || S.format === "40 HC") p.push("budget");
+    p = p.concat(["decision","etape","contact","recap"]);
+  } else if(S.besoin === "Aménager un conteneur"){
+    p = p.concat(["usage","surface","commune","terrain"]);
+    if(S.terrain === "Il m'appartient ou je le loue" || S.terrain === "Achat ou bail en cours de signature") p.push("indivision");
+    p = p.concat(["parcelle","acces","plan","delai","enveloppe","financement","decision","etape","contact","recap"]);
+  } else if(S.besoin === "Prendre rendez-vous"){
+    p = p.concat(["rdvlieu","rdvquand","usage","delai","contact","recap"]);
+  }
+  p.push("fini");
+  return p;
+}
+
+/* ============ NOTATION ============ */
+function noter(){
+  var A=0,B=0,C=0,D=0,Ee=0,F=8, dr=[];
+  if(S.besoin === "Acheter un conteneur brut"){
+    A = (S.format === "Je ne sais pas encore") ? 6 : 16;
+    if(S.quantite) A += 2;
+  } else if(S.besoin === "Aménager un conteneur"){
+    A = 6;
+    if(S.usage && S.usage !== "Autre usage") A += 5;
+    if(S.surface) A += 3;
+    if(S.plan === "Oui, un plan coté") A += 6;
+    else if(S.plan === "Un croquis à main levée") A += 3;
+  } else A = 6;
+  A = Math.min(20, A);
+
+  var c = comInfo(S.commune);
+  if(S.besoin === "Prendre rendez-vous") B = 8;
+  else if(!c) B = 0;
+  else if(c[1] === -1) B = 6;
+  else B = 10;
+  if(S.terrain === "Il m'appartient ou je le loue") B = 12;
+  else if(S.terrain === "Achat ou bail en cours de signature") B = 9;
+  else if(S.terrain === "Je l'ai repéré, il n'est pas encore à moi") B = 4;
+  else if(S.terrain === "Je n'ai pas encore de terrain") B = 0;
+  if(S.acces === "Oui, l'accès est dégagé") B += 3;
+  if(S.acces === "Non, l'accès est difficile") B = Math.min(B, 7);
+  if(S.parcelle && S.parcelle.length > 2) B += 2;
+  B = Math.max(0, Math.min(15, B));
+
+  if(S.budget === "Oui, c'est dans mon budget") C = 22;
+  else if(S.budget === "Un peu au-dessus, mais je peux ajuster") C = 12;
+  else if(S.budget === "Non, c'est trop élevé pour moi") { C = 3; dr.push("budget refusé"); }
+  else if(S.budget) C = 7;
+  if(S.enveloppe && S.enveloppe !== "Je préfère en discuter") C = 15;
+  if(S.financement === "Fonds propres disponibles" || S.financement === "Prêt bancaire déjà accordé"
+     || S.financement === "Aide ou subvention notifiée") C = Math.max(C, 25);
+  else if(S.financement === "Prêt en cours d'instruction") C = Math.max(C, 18);
+  else if(S.financement === "Le financement reste à monter") C = Math.max(C, 14);
+  if(S.besoin === "Prendre rendez-vous" && !S.budget && !S.enveloppe) C = 10;
+  C = Math.min(25, C);
+
+  if(S.delai === "Dans le mois") D = 15;
+  else if(S.delai === "Dans 1 à 3 mois") D = 13;
+  else if(S.delai === "Dans 3 à 6 mois") D = 9;
+  else if(S.delai === "Dans plus de 6 mois") D = 4;
+  else D = 0;
+
+  if(S.decision === "Je décide seul") Ee = 10;
+  else if(S.decision && S.decision.indexOf("d'accord sur le principe") > -1) Ee = 8;
+  else if(S.decision && S.decision.indexOf("pas encore parlé") > -1) Ee = 4;
+  else if(S.decision && S.decision.indexOf("associé") > -1) Ee = 4;
+  else if(S.decision && S.decision.indexOf("quelqu'un d'autre") > -1) Ee = 0;
+  else Ee = 6;
+
+  if(S.etape === "Je commande") F = 15;
+  else if(S.etape && S.etape.indexOf("j'en parle") > -1) F = 12;
+  else if(S.etape && S.etape.indexOf("compare") > -1) F = 10;
+  else if(S.etape && S.etape.indexOf("plus tard") > -1) F = 5;
+  if(S.besoin === "Prendre rendez-vous") F = Math.max(F, 13);
+  if(S.plan === "Oui, un plan coté") F = Math.min(15, F + 2);
+  F = Math.min(15, F);
+
+  if(S.indivision === "Oui, et elle n'est pas réglée") dr.push("indivision non réglée");
+  if(S.acces === "Non, l'accès est difficile") dr.push("accès camion-grue difficile");
+
+  var sc = Math.max(0, Math.min(100, A+B+C+D+Ee+F));
+  var n = sc >= 85 ? 5 : sc >= 70 ? 4 : sc >= 45 ? 3 : sc >= 25 ? 2 : 1;
+  if(S.budget === "Non, c'est trop élevé pour moi" && n > 2) n = 2;
+  if(S.indivision === "Oui, et elle n'est pas réglée" && n > 4) n = 4;
+  if(S.terrain === "Je n'ai pas encore de terrain" && n > 3) n = 3;
+  if(S.terrain === "Je l'ai repéré, il n'est pas encore à moi" && n > 3) n = 3;
+  var noms = ["","Froid","À qualifier","Sérieux","Chaud","Prioritaire"];
+  return {score:sc, niveau:n, nom:noms[n], detail:"A"+A+" B"+B+" C"+C+" D"+D+" E"+Ee+" F"+F,
+          drapeaux:dr.join(", ")};
+}
+
+/* ============ RENDU ============ */
+function esc(t){ return String(t==null?"":t).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+
+function blocPrix(){
+  if(S.besoin !== "Acheter un conteneur brut" || !S.commune) return "";
+  var c = comInfo(S.commune);
+  if(c && c[1] === -1)
+    return '<div class="prix"><div class="lb">Transport maritime</div><div class="val">Sur devis</div>'
+         + '<div class="det">Je consulte la compagnie et je vous donne le montant exact sous 48 h.</div></div>';
+  var u = prixUnitaire();
+  if(u === null)
+    return '<div class="prix"><div class="lb">Prix livré à ' + esc(S.commune) + '</div>'
+         + '<div class="val">' + fmt(BASE20 + c[1]) + ' à ' + fmt(BASE40 + c[2]) + ' XPF</div>'
+         + '<div class="det">Selon le format, du 20 DRY au 40 HC. Livraison et pose comprises.</div></div>';
+  var t = prixTotal(), q = parseInt(S.quantite,10) || 1;
+  var quai = S.commune.indexOf("au quai") > -1;
+  return '<div class="prix"><div class="lb">' + esc(S.format) + ' livré à ' + esc(S.commune) + '</div>'
+       + '<div class="val">' + fmt(t) + ' XPF</div>'
+       + '<div class="det">' + (q > 1 ? fmt(u) + ' XPF l\'unité × ' + q + ' · ' : '')
+       + (quai ? 'mise à disposition au quai, livraison sur terrain sur devis'
+               : 'transport et pose compris') + ' · TTC</div></div>';
+}
+
+function rendre(){
+  var k = ordre[idx], e = E[k], h = "";
+  document.getElementById("bar").style.width = Math.round(idx / (ordre.length - 1) * 100) + "%";
+
+  if(e.fini){
+    var r = noter();
+    h = '<div class="step on"><div class="fin"><div class="ok">✓</div>'
+      + '<h2>C\'est envoyé, merci.</h2>'
+      + '<p class="sub">Je vous réponds sous 48 heures'
+      + (r.niveau >= 4 ? ', et je vous appelle dans les 24 heures : votre projet est prêt.' : '.') + '</p></div>';
+    var t = encodeURIComponent(messageRecap(r));
+    h += '<a class="btn w" href="https://wa.me/' + WHATSAPP + '?text=' + t + '">Envoyer aussi sur WhatsApp</a>';
+    h += '<div class="note">Si votre projet est urgent, appelez-moi directement au <b>87 22 65 55</b>.</div>';
+    if(S.besoin === "Aménager un conteneur" && tarifEtude())
+      h += '<div class="note">Pour aller jusqu\'au plan coté et au chiffrage poste par poste, l\'étude de votre projet est facturée <b>' + tarifEtude() + '</b>, déduite de votre commande. Je ne vous la propose qu\'après notre premier échange.</div>';
+    h += '</div>';
+    document.getElementById("main").innerHTML = h;
+    document.getElementById("back").style.display = "none";
+    document.getElementById("next").style.display = "none";
+    window.scrollTo(0,0);
+    return;
+  }
+
+  h = '<div class="step on">';
+  if(e.k) h += '<div class="kicker">' + esc(e.k) + '</div>';
+  h += '<h2>' + esc(e.q) + '</h2>';
+  if(e.sub) h += '<p class="sub">' + esc(e.sub) + '</p>';
+
+  if(e.o){
+    h += '<div class="opts">';
+    for(var i=0;i<e.o.length;i++){
+      var v = e.o[i][0], d = e.o[i][1];
+      h += '<button class="opt' + (S[e.ch] === v ? ' sel' : '') + '" onclick="choix(\'' + e.ch + '\',' + i + ')">'
+         + '<span class="ic">✓</span><span class="tx">' + esc(v)
+         + (d ? '<small>' + esc(d) + '</small>' : '') + '</span></button>';
+    }
+    h += '</div>';
+  }
+  if(e.sel){
+    h += '<label class="f"><span>Commune ou île de livraison</span><select id="i_' + e.sel + '" onchange="maj(\'' + e.sel + '\',this.value)">'
+       + '<option value="">— choisissez —</option>';
+    for(var j=0;j<COM.length;j++)
+      h += '<option' + (S[e.sel] === COM[j][0] ? ' selected' : '') + '>' + esc(COM[j][0]) + '</option>';
+    h += '</select></label>';
+  }
+  if(e.num) h += '<label class="f"><span>Surface approximative en m²</span><input id="i_' + e.num + '" type="number" inputmode="decimal" min="1" placeholder="par exemple 26" value="' + esc(S[e.num]||"") + '" oninput="maj(\'' + e.num + '\',this.value)"></label>';
+  if(e.txt) h += '<label class="f"><span>Commune et parcelle</span><input id="i_' + e.txt + '" type="text" placeholder="par exemple Taravao, parcelle AL29" value="' + esc(S[e.txt]||"") + '" oninput="maj(\'' + e.txt + '\',this.value)"></label>';
+
+  if(e.contact){
+    h += '<label class="f"><span>Nom et prénom</span><input id="i_nom" type="text" autocomplete="name" value="' + esc(S.nom||"") + '" oninput="maj(\'nom\',this.value)"></label>'
+       + '<label class="f"><span>Téléphone</span><input id="i_tel" type="tel" inputmode="tel" autocomplete="tel" placeholder="87 12 34 56" value="' + esc(S.tel||"") + '" oninput="maj(\'tel\',this.value)"></label>'
+       + '<label class="f"><span>Email</span><input id="i_mail" type="email" inputmode="email" autocomplete="email" placeholder="vous@exemple.pf" value="' + esc(S.mail||"") + '" oninput="maj(\'mail\',this.value)"></label>'
+       + '<label class="f"><span>Un mot sur votre projet <small style="font-weight:400;color:#5b6470">(facultatif)</small></span><textarea id="i_msg" oninput="maj(\'msg\',this.value)">' + esc(S.msg||"") + '</textarea></label>';
+    if(S.profil === "Une entreprise" || S.profil === "Une administration ou une commune" || S.profil === "Une association")
+      h += '<label class="f"><span>Nom de la structure</span><input id="i_structure" type="text" value="' + esc(S.structure||"") + '" oninput="maj(\'structure\',this.value)"></label>';
+  }
+
+  if(e.recap){
+    h += '<div class="recap">' + lignesRecap().map(function(l){
+      return '<div class="r"><b>' + esc(l[0]) + '</b><span>' + esc(l[1]) + '</span></div>';
+    }).join("") + '</div>';
+    h += blocPrix();
+    h += '<div class="note">En envoyant, vous acceptez que ces informations servent uniquement à traiter votre demande. Elles ne sont ni revendues ni transmises.</div>';
+  } else {
+    h += blocPrix();
+  }
+
+  h += '<div id="err"></div></div>';
+  document.getElementById("main").innerHTML = h;
+  document.getElementById("back").style.display = idx === 0 ? "none" : "block";
+  document.getElementById("next").style.display = "block";
+  document.getElementById("next").textContent = e.recap ? "Envoyer ma demande" : "Continuer";
+  window.scrollTo(0,0);
+}
+
+/* ============ INTERACTIONS ============ */
+function choix(champ, i){
+  var e = E[ordre[idx]];
+  S[champ] = e.o[i][0];
+  ordre = parcours();
+  rendre();
+  setTimeout(suiv, 180);
+}
+function maj(champ, val){ S[champ] = val; ordre = parcours(); majPrixLive(); }
+
+function majPrixLive(){
+  var e = E[ordre[idx]];
+  if(!e || (!e.sel && !e.num)) return;
+  var m = document.getElementById("main"), p = m.querySelector(".prix");
+  var neuf = blocPrix();
+  if(p) p.outerHTML = neuf;
+  else if(neuf){ var d = document.createElement("div"); d.innerHTML = neuf;
+    m.querySelector(".step").insertBefore(d.firstChild, document.getElementById("err")); }
+}
+
+function valide(){
+  var e = E[ordre[idx]];
+  if(e.o && !S[e.ch]) return "Choisissez une réponse pour continuer.";
+  if(e.sel && !S[e.sel]) return "Indiquez la commune de livraison.";
+  if(e.num && !S[e.num]) return "Indiquez une surface approximative.";
+  if(e.txt && !e.opt && !S[e.txt]) return "Ce champ est nécessaire.";
+  if(e.contact){
+    if(!S.nom || S.nom.trim().length < 2) return "Merci d'indiquer votre nom.";
+    var t = String(S.tel||"").replace(/[^0-9+]/g,"");
+    if(t.length < 6) return "Merci d'indiquer un numéro de téléphone valide.";
+    if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(String(S.mail||""))) return "Merci d'indiquer un email valide.";
+  }
+  return null;
+}
+function suiv(){
+  var m = valide();
+  if(m){ var d = document.getElementById("err"); if(d) d.innerHTML = '<div class="err">' + m + '</div>'; return; }
+  if(E[ordre[idx]].recap){ envoyer(); return; }
+  ordre = parcours();
+  if(idx < ordre.length - 1){ idx++; rendre(); }
+}
+function prec(){ if(idx > 0){ idx--; rendre(); } }
+
+/* ============ RECAPITULATIF ============ */
+var LIB = {profil:"Vous êtes", besoin:"Besoin", format:"Format", commune:"Commune", quantite:"Quantité",
+  acces:"Accès camion-grue", delai:"Échéance", budget:"Budget", usage:"Usage", surface:"Surface (m²)",
+  terrain:"Terrain", indivision:"Indivision", parcelle:"Parcelle", plan:"Plan", enveloppe:"Enveloppe",
+  financement:"Financement", decision:"Décision", etape:"Prochaine étape", rdvlieu:"Lieu du rendez-vous",
+  rdvquand:"Moment souhaité", nom:"Nom", structure:"Structure", tel:"Téléphone", mail:"Email", msg:"Message"};
+var ORDRE_R = ["profil","structure","besoin","format","usage","surface","commune","quantite","acces","terrain",
+  "indivision","parcelle","plan","delai","budget","enveloppe","financement","decision","etape","rdvlieu",
+  "rdvquand","nom","tel","mail","msg"];
+
+function lignesRecap(){
+  var out = [];
+  for(var i=0;i<ORDRE_R.length;i++){ var k = ORDRE_R[i];
+    if(S[k]) out.push([LIB[k] || k, S[k]]); }
+  var t = prixTotal();
+  if(t && t !== "devis") out.push(["Prix livré", fmt(t) + " XPF TTC"]);
+  return out;
+}
+function messageRecap(r){
+  var l = ["Demande TMC — " + (S.nom || "")], a = lignesRecap();
+  for(var i=0;i<a.length;i++) l.push(a[i][0] + " : " + a[i][1]);
+  return l.join("\n");
+}
+
+/* ============ ENVOI ============ */
+function envoyer(){
+  var b = document.getElementById("next");
+  b.disabled = true; b.textContent = "Envoi…";
+  var r = noter();
+  var p = {}; for(var k in S) if(S.hasOwnProperty(k)) p[k] = S[k];
+  p.score = r.score; p.niveau = r.niveau; p.niveauNom = r.nom;
+  p.detail = r.detail; p.drapeaux = r.drapeaux;
+  var t = prixTotal(); p.prix = (t && t !== "devis") ? t : "";
+  p.source = document.referrer || "direct";
+  p.horodateur = new Date().toString();
+
+  function fin(){ idx = ordre.length - 1; b.disabled = false; rendre(); }
+  if(!ENDPOINT){ fin(); return; }
+  try{
+    fetch(ENDPOINT, {method:"POST", mode:"no-cors",
+      headers:{"Content-Type":"text/plain;charset=utf-8"}, body:JSON.stringify(p)})
+      .then(fin).catch(fin);
+    setTimeout(function(){ if(b.disabled) fin(); }, 4000);
+  }catch(e){ fin(); }
+}
+
+/* ============ DEMARRAGE ============ */
+ordre = parcours();
+rendre();
+</script>
+</body>
+</html>
