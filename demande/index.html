@@ -180,11 +180,13 @@ E.indivision = {k:"Le terrain", q:"Le terrain est-il en indivision ?", ch:"indiv
 E.parcelle = {k:"Le terrain", q:"Le numéro de votre parcelle", txt:"parcelle",
   sub:"Il se trouve en quelques secondes sur otia.gov.pf. Facultatif, mais il me fait gagner un aller-retour.", opt:1};
 
-E.plan = {k:"Votre projet", q:"Avez-vous un plan ou un croquis ?", ch:"plan", o:[
+E.plan = {k:"Votre projet", q:"Avez-vous un plan ou un croquis ?", ch:"plan",
+  reperes:"Si vous n'avez rien, je peux m'en charger : dessin 2D complet <b>180 000 XPF</b>, devis détaillé avec expertise de conception <b>70 000 XPF</b>. Ces prestations sont déduites de votre commande si vous donnez suite.", o:[
   ["Oui, un plan coté"],["Un croquis à main levée"],["Non, rien pour l'instant"]]};
 
 E.enveloppe = {k:"Budget", q:"Dans quelle enveloppe souhaitez-vous rester ?", ch:"enveloppe", etudeNote:1,
-  sub:"Vous avez remarqué qu'aucun tarif ne s'affiche : c'est volontaire. Le prix d'un aménagement dépend du type de projet, de la surface, du lieu, de la difficulté de pose, des matériaux, du temps de réalisation et de la période de démarrage. Je préfère vous donner un chiffre juste plutôt qu'une moyenne qui ne vous servirait à rien. Dites-moi simplement l'enveloppe que vous avez prévue.", o:[
+  sub:"Aucun tarif ne s'affiche automatiquement ici, et c'est volontaire : le prix dépend du type de projet, de la surface, du lieu, de la difficulté de pose, des matériaux et du calendrier.",
+  reperes:"À titre indicatif, sur mes réalisations récentes : un aménagement simple démarre à <b>2 millions XPF</b>. Un studio clé en main avec salle de bain se situe autour de <b>5 millions</b>. Un local professionnel aux normes — restauration, hygiène — dépasse <b>9 millions</b>. Une maison familiale se compte en <b>dizaines de millions</b>.", o:[
   ["Moins de 3 millions XPF"],["De 3 à 6 millions"],["De 6 à 12 millions"],
   ["Plus de 12 millions"],["Je préfère en discuter"]]};
 
@@ -382,6 +384,7 @@ function rendre(){
   if(e.k) h += '<div class="kicker">' + esc(e.k) + '</div>';
   h += '<h2>' + esc(e.q) + '</h2>';
   if(e.sub) h += '<p class="sub">' + esc(e.sub) + '</p>';
+  if(e.reperes) h += '<div class="note">' + e.reperes + '</div>';
 
   if(e.o){
     h += '<div class="opts">';
