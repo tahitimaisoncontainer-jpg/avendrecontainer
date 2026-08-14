@@ -289,11 +289,13 @@ function noter(){
   else if(S.budget === "Un peu au-dessus, mais je peux ajuster") C = 12;
   else if(S.budget === "Non, c'est trop élevé pour moi") { C = 3; dr.push("budget refusé"); }
   else if(S.budget) C = 7;
-  if(S.enveloppe && S.enveloppe !== "Je préfère en discuter") C = 15;
-  if(S.financement === "Fonds propres disponibles" || S.financement === "Prêt bancaire déjà accordé"
-     || S.financement === "Aide ou subvention notifiée") C = Math.max(C, 25);
-  else if(S.financement === "Prêt en cours d'instruction") C = Math.max(C, 18);
-  else if(S.financement === "Le financement reste à monter") C = Math.max(C, 14);
+  var envOK = S.enveloppe && S.enveloppe !== "Je préfère en discuter";
+  if(envOK) C = Math.max(C, 15);
+  var fin_ = S.financement;
+  if(fin_ === "Fonds propres disponibles" || fin_ === "Prêt bancaire déjà accordé"
+     || fin_ === "Aide ou subvention notifiée") C = Math.max(C, envOK ? 25 : 10);
+  else if(fin_ === "Prêt en cours d'instruction") C = Math.max(C, envOK ? 18 : 8);
+  else if(fin_ === "Le financement reste à monter") C = Math.max(C, envOK ? 14 : 5);
   if(S.besoin === "Prendre rendez-vous" && !S.budget && !S.enveloppe) C = 10;
   C = Math.min(25, C);
 
@@ -364,7 +366,8 @@ function rendre(){
     h = '<div class="step on"><div class="fin"><div class="ok">✓</div>'
       + '<h2>C\'est envoyé, merci.</h2>'
       + '<p class="sub">Je vous réponds sous 48 heures'
-      + (r.niveau >= 4 ? ', et je vous appelle dans les 24 heures : votre projet est prêt.' : '.') + '</p></div>';
+      + (r.niveau >= 4 ? ', et je vous appelle dans les 24 heures : votre projet est prêt.' : '.')
+      + '<br>Un accusé de réception vient de partir sur ' + esc(S.mail || "votre adresse") + '.</p></div>';
     var t = encodeURIComponent(messageRecap(r));
     h += '<a class="btn w" href="https://wa.me/' + WHATSAPP + '?text=' + t + '">Envoyer aussi sur WhatsApp</a>';
     h += '<div class="note">Si votre projet est urgent, appelez-moi directement au <b>87 22 65 55</b>.</div>';
@@ -605,6 +608,36 @@ function topo(r){
   return L.join("\n");
 }
 
+function accuse(r){
+  var p = String(S.nom||"").trim().split(" ")[0] || "";
+  var L = ["Bonjour " + p + ",", "", "J'ai bien reçu votre demande, merci d'avoir pris le temps de la détailler."];
+  var terrainOK = (S.terrain === "Il m'appartient ou je le loue" || S.terrain === "Achat ou bail en cours de signature"
+                   || S.besoin !== "Aménager un conteneur");
+  var budgetOK = (S.enveloppe && S.enveloppe !== "Je préfère en discuter")
+                 || (S.budget && S.budget.indexOf("Oui") === 0)
+                 || (S.budget && S.budget.indexOf("ajuster") > -1);
+  if(r.niveau >= 4 && terrainOK && budgetOK)
+    L.push("Votre projet est complet : je vous appelle dans les 24 heures, et vous recevrez une proposition chiffrée dans la foulée.");
+  else if(r.niveau >= 3 && terrainOK && budgetOK)
+    L.push("Je vous prépare une estimation chiffrée que vous recevrez sous 48 heures, puis je vous appelle pour caler les derniers points.");
+  else
+    L.push("Je reviens vers vous sous 48 heures. Pour vous répondre avec un chiffre juste plutôt qu'une moyenne, il me manquera sans doute quelques précisions : je vous dirai lesquelles.");
+  L.push(""); L.push("Voici ce que vous m'avez transmis :");
+  var a = lignesRecap();
+  for(var i=0;i<a.length;i++) L.push("   " + a[i][0] + " : " + a[i][1]);
+  var et = tarifEtude();
+  if(et){ L.push("");
+    L.push("Pour votre information : pour aller jusqu'au plan coté et au chiffrage poste par poste, l'étude de votre projet est facturée " + et + ", intégralement déduite de votre commande si vous donnez suite. Je ne vous la proposerai qu'après notre premier échange, jamais avant.");
+  }
+  L.push(""); L.push("Si votre projet est urgent, appelez-moi directement au 87 22 65 55.");
+  L.push(""); L.push("Bien cordialement,");
+  L.push("Jean-Baptiste HAUATA");
+  L.push("Tahiti Maison Container — N° Tahiti 710194");
+  L.push("87 22 65 55 — tahitimaisoncontainer@gmail.com");
+  L.push("Domaine Vaitarua, Afaahiti, Taiarapu-Est");
+  return L.join("\n");
+}
+
 function objet(r){
   var N=NIV[r.niveau], res=(S.usage||S.format||S.besoin||"");
   if(S.surface) res+=" "+S.surface+" m2";
@@ -622,6 +655,8 @@ function envoyer(){
     _subject : objet(r),
     _template: "box",
     _captcha : "false",
+    _replyto : S.mail || "",
+    _autoresponse : accuse(r),
     "Topo"   : topo(r),
     "Nom"    : S.nom || "",
     "Telephone": S.tel || "",
