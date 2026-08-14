@@ -57,6 +57,17 @@ textarea{min-height:88px;resize:vertical}
 .grille{margin:9px 0 3px;display:grid;grid-template-columns:1fr auto;gap:6px 14px;font-size:12.8px;align-items:baseline}
 .grille i{font-style:normal;color:#6b5744;line-height:1.3}
 .grille b{color:#a04c05;white-space:nowrap;text-align:right;font-weight:700}
+.pj{margin:16px 0 2px}
+.pjb{display:flex;align-items:center;justify-content:center;gap:9px;width:100%;background:var(--card);border:1.5px dashed #b9c3d2;border-radius:12px;padding:15px 16px;font-size:14.5px;font-weight:600;color:var(--navy);cursor:pointer;transition:.12s}
+.pjb:hover{border-color:var(--navy);background:#f6f9ff}
+.pjb input{display:none}
+.pja{margin:8px 2px 0;font-size:12.5px;color:var(--gris);line-height:1.45}
+.pjf{display:flex;align-items:center;gap:10px;background:var(--card);border:1.5px solid var(--bord);border-radius:11px;padding:10px 12px;margin-top:8px;font-size:13.5px}
+.pjf .nm{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#18202e}
+.pjf .sz{color:var(--gris);font-size:12px;white-space:nowrap}
+.pjf .rm{border:0;background:transparent;font:inherit;font-size:18px;line-height:1;color:#98a2b3;cursor:pointer;padding:0 2px}
+.pjf .rm:hover{color:var(--rouge)}
+.pjerr{color:var(--rouge);font-size:12.8px;font-weight:600;margin-top:8px}
 .recap{background:var(--card);border:1px solid var(--bord);border-radius:13px;padding:4px 16px;box-shadow:var(--ombre)}
 .recap .r{display:flex;justify-content:space-between;gap:14px;padding:11px 0;border-bottom:1px solid #f0f3f7;font-size:14px}
 .recap .r:last-child{border:0}
@@ -88,7 +99,8 @@ footer a{color:var(--navy);text-decoration:none;font-weight:600}
 <script>
 /* ============ PARAMETRES A AJUSTER ============ */
 var SITE_ACHAT = "https://tahitimaisoncontainer-jpg.github.io/avendrecontainer/";
-var RELAIS = "https://formsubmit.co/ajax/f86aed3fe4300aa72852f47498da914a"; /* identifiant chiffre : votre adresse mail n'apparait pas dans la page */
+var RELAIS = "https://formsubmit.co/ajax/f86aed3fe4300aa72852f47498da914a";
+var RELAIS_PJ = "https://formsubmit.co/f86aed3fe4300aa72852f47498da914a"; /* les pieces jointes ne passent que par ce point d entree */ /* identifiant chiffre : votre adresse mail n'apparait pas dans la page */
 
 /* ============ TARIFS (identiques a la page de vente) ============ */
 var BASE20 = 623451, BASE40 = 832451;
@@ -183,7 +195,7 @@ E.indivision = {k:"Le terrain", q:"Le terrain est-il en indivision ?", ch:"indiv
 E.parcelle = {k:"Le terrain", q:"Le numéro de votre parcelle", txt:"parcelle",
   sub:"Il se trouve en quelques secondes sur otia.gov.pf. Facultatif, mais il me fait gagner un aller-retour.", opt:1};
 
-E.plan = {k:"Votre projet", q:"Avez-vous un plan ou un croquis ?", ch:"plan",
+E.plan = {k:"Votre projet", q:"Avez-vous un plan ou un croquis ?", ch:"plan", pj:1,
   reperes:"Si vous n'avez rien, je peux m'en charger : dessin 2D complet <b>180 000 XPF</b>, devis détaillé avec expertise de conception <b>70 000 XPF</b>. Ces prestations sont déduites de votre commande si vous donnez suite.", o:[
   ["Oui, un plan coté"],["Un croquis à main levée"],["Non, rien pour l'instant"]]};
 
@@ -418,6 +430,14 @@ function rendre(){
       h += '<label class="f"><span>Nom de la structure</span><input id="i_structure" type="text" value="' + esc(S.structure||"") + '" oninput="maj(\'structure\',this.value)"></label>';
   }
 
+  if(e.pj){
+    h += '<div class="pj"><label class="pjb"><input type="file" multiple accept="image/*,.pdf,application/pdf" onchange="ajoutPJ(this)">'
+       + '<span>+  Joindre un plan, un croquis ou des photos</span></label>'
+       + '<p class="pja">Facultatif. Un plan PDF, un croquis photographié, des vues du terrain. '
+       + 'Les photos sont automatiquement allégées dans votre téléphone avant l\'envoi, vous n\'avez rien à faire.</p>'
+       + '<div id="pjliste">' + listePJ() + '</div></div>';
+  }
+
   if(e.recap){
     h += '<div class="recap">' + lignesRecap().map(function(l){
       return '<div class="r"><b>' + esc(l[0]) + '</b><span>' + esc(l[1]) + '</span></div>';
@@ -437,6 +457,82 @@ function rendre(){
   document.getElementById("next").style.display = "block";
   document.getElementById("next").textContent = e.recap ? "Envoyer ma demande" : "Continuer";
   window.scrollTo(0,0);
+}
+
+/* ============ PIECES JOINTES ============ */
+var PJ = [], PJMAX = 6, PJUN = 4 * 1024 * 1024, PJTOT = 9 * 1024 * 1024;
+
+function poids(o){ return o < 1048576 ? Math.max(1, Math.round(o/1024)) + " Ko" : (o/1048576).toFixed(1).replace(".",",") + " Mo"; }
+function totalPJ(){ var t=0; for(var i=0;i<PJ.length;i++) t += PJ[i].blob.size; return t; }
+
+function listePJ(){
+  var h = "";
+  for(var i=0;i<PJ.length;i++)
+    h += '<div class="pjf"><span class="nm">' + esc(PJ[i].nom) + '</span>'
+       + '<span class="sz">' + poids(PJ[i].blob.size) + '</span>'
+       + '<button class="rm" type="button" title="Retirer" onclick="retirePJ(' + i + ')">×</button></div>';
+  if(PJ.length) h += '<p class="pja">' + PJ.length + (PJ.length>1?" fichiers joints, ":" fichier joint, ")
+       + poids(totalPJ()) + ' au total.</p>';
+  if(window.PJMSG) h += '<div class="pjerr">' + esc(PJMSG) + '</div>';
+  return h;
+}
+function rafraichirPJ(){ var z=document.getElementById("pjliste"); if(z) z.innerHTML = listePJ(); }
+function retirePJ(i){ PJ.splice(i,1); PJMSG=""; rafraichirPJ(); }
+
+function compresse(f){
+  return new Promise(function(res){
+    if(String(f.type).indexOf("image/") !== 0 || f.type === "image/gif"){ res({nom:f.name, blob:f}); return; }
+    var img = new Image(), url = URL.createObjectURL(f);
+    img.onload = function(){
+      try{
+        var M = 1600, r = Math.min(1, M / Math.max(img.width, img.height));
+        var c = document.createElement("canvas");
+        c.width = Math.max(1, Math.round(img.width * r)); c.height = Math.max(1, Math.round(img.height * r));
+        c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
+        c.toBlob(function(b){
+          URL.revokeObjectURL(url);
+          if(b && b.size < f.size) res({nom:String(f.name).replace(/\.[^.]+$/,"") + ".jpg", blob:b});
+          else res({nom:f.name, blob:f});
+        }, "image/jpeg", 0.72);
+      }catch(err){ URL.revokeObjectURL(url); res({nom:f.name, blob:f}); }
+    };
+    img.onerror = function(){ URL.revokeObjectURL(url); res({nom:f.name, blob:f}); };
+    img.src = url;
+  });
+}
+
+function ajoutPJ(input){
+  var fs = Array.prototype.slice.call(input.files || []);
+  input.value = "";
+  if(!fs.length) return;
+  PJMSG = "";
+  var z = document.getElementById("pjliste");
+  if(z) z.innerHTML = '<p class="pja">Préparation des fichiers…</p>';
+  Promise.all(fs.map(compresse)).then(function(prets){
+    for(var i=0;i<prets.length;i++){
+      var f = prets[i];
+      if(PJ.length >= PJMAX){ PJMSG = "6 fichiers au maximum. Les suivants n'ont pas été ajoutés."; break; }
+      if(f.blob.size > PJUN){ PJMSG = f.nom + " dépasse 4 Mo et n'a pas pu être joint. Envoyez-le-moi par mail après votre demande."; continue; }
+      if(totalPJ() + f.blob.size > PJTOT){ PJMSG = "Limite de 9 Mo atteinte. " + f.nom + " n'a pas été ajouté."; continue; }
+      PJ.push(f);
+    }
+    rafraichirPJ();
+  }).catch(function(){ PJMSG = "Un fichier n'a pas pu être lu."; rafraichirPJ(); });
+}
+
+function envoiPJ(sujet){
+  if(!PJ.length) return;
+  try{
+    var fd = new FormData();
+    fd.append("_subject", "Pièces jointes — " + sujet);
+    fd.append("_template", "box");
+    fd.append("_captcha", "false");
+    fd.append("Rappel", "Ces fichiers accompagnent la demande de " + (S.nom||"sans nom")
+      + (S.tel ? " — " + S.tel : "") + (S.mail ? " — " + S.mail : "") + ".");
+    fd.append("Nombre", PJ.length + (PJ.length>1 ? " fichiers" : " fichier"));
+    for(var i=0;i<PJ.length;i++) fd.append("attachment", PJ[i].blob, PJ[i].nom);
+    fetch(RELAIS_PJ, {method:"POST", mode:"no-cors", body:fd});
+  }catch(e){}
 }
 
 /* ============ INTERACTIONS ============ */
@@ -572,7 +668,9 @@ function topo(r){
     lg("Format",S.format?S.format+(S.quantite?"  ×"+S.quantite:""):""),lg("Lieu",S.commune)];
   var t=prixTotal(); if(t&&t!=="devis") pr.push(lg("Prix livré",fmt(t)+" XPF TTC"));
   pr=pr.concat([lg("Terrain",S.terrain),lg("Indivision",S.indivision),lg("Parcelle",S.parcelle),
-    lg("Accès grue",S.acces),lg("Plan",S.plan),lg("Échéance",S.delai),
+    lg("Accès grue",S.acces),lg("Plan",S.plan),
+    lg("Fichiers joints",PJ.length?(PJ.length+(PJ.length>1?" fichiers envoyés dans un second mail":" fichier envoyé dans un second mail")):""),
+    lg("Échéance",S.delai),
     lg("Lieu du RDV",S.rdvlieu),lg("Moment",S.rdvquand)]);
   bloc("LE PROJET",pr);
 
@@ -652,6 +750,7 @@ function envoyer(){
     "Prix"   : (t && t !== "devis") ? fmt(t) + " XPF" : ""
   };
   function fin(){ idx = ordre.length - 1; b.disabled = false; rendre(); }
+  envoiPJ(objet(r));
   try{
     fetch(RELAIS, {method:"POST",
       headers:{"Content-Type":"application/json","Accept":"application/json"},
