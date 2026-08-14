@@ -70,7 +70,7 @@ footer a{color:var(--navy);text-decoration:none;font-weight:600}
 <div class="app">
 <header>
   <div class="logo">TMC</div>
-  <div><h1>Tahiti Maison Container</h1><p>Votre demande en une minute</p></div>
+  <div><h1>Tahiti Maison Container</h1><p>Votre projet d'aménagement en une minute</p></div>
 </header>
 <div class="bar"><i id="bar"></i></div>
 <main id="main"></main>
@@ -87,6 +87,7 @@ footer a{color:var(--navy);text-decoration:none;font-weight:600}
 /* ============ PARAMETRES A AJUSTER ============ */
 var ENDPOINT = "";            /* URL de l'application web Apps Script (voir TMC_Endpoint_WebApp.gs) */
 var WHATSAPP = "68987226555"; /* numero au format international, sans + */
+var SITE_ACHAT = "https://tahitimaisoncontainer-jpg.github.io/avendrecontainer/";
 
 /* ============ TARIFS (identiques a la page de vente) ============ */
 var BASE20 = 623451, BASE40 = 832451;
@@ -136,9 +137,12 @@ E.profil = {k:"Pour commencer", q:"Vous êtes…", ch:"profil", o:[
   ["Un particulier"],["Une entreprise"],["Une administration ou une commune"],["Une association"]]};
 
 E.besoin = {k:"Votre besoin", q:"Que puis-je faire pour vous ?", ch:"besoin", o:[
-  ["Acheter un conteneur brut","Stockage, atelier, garage. Livré tel quel."],
-  ["Aménager un conteneur","Bureau, logement, local technique, clé en main."],
-  ["Prendre rendez-vous","Pour en parler de vive voix, sur place ou chez vous."]]};
+  ["Aménager un conteneur","Logement, bureau, local technique. C'est l'objet de cette page."],
+  ["Prendre rendez-vous","Pour en parler de vive voix, sur place ou chez vous."],
+  ["Acheter un conteneur brut","Livré tel quel, sans aménagement. Prix et commande en ligne."]]};
+
+E.redirection = {k:"Conteneur brut", q:"Tout est déjà en ligne", redirect:1,
+  sub:"Pour un conteneur livré tel quel, le prix de votre commune s'affiche directement sur notre page conteneurs, et vous commandez depuis cette page. Inutile de remplir un questionnaire."};
 
 /* ---- branche ACHAT ---- */
 E.format = {k:"Achat de conteneur", q:"Quel format ?", ch:"format", o:[
@@ -196,7 +200,7 @@ E.parcelle = {k:"Le terrain", q:"Commune et numéro de parcelle", txt:"parcelle"
 E.plan = {k:"Votre projet", q:"Avez-vous un plan ou un croquis ?", ch:"plan", o:[
   ["Oui, un plan coté"],["Un croquis à main levée"],["Non, rien pour l'instant"]]};
 
-E.enveloppe = {k:"Budget", q:"Dans quelle enveloppe souhaitez-vous rester ?", ch:"enveloppe",
+E.enveloppe = {k:"Budget", q:"Dans quelle enveloppe souhaitez-vous rester ?", ch:"enveloppe", etudeNote:1,
   sub:"Pour vous orienter vers la bonne solution plutôt que vers un devis hors de portée.", o:[
   ["Moins de 3 millions XPF"],["De 3 à 6 millions"],["De 6 à 12 millions"],
   ["Plus de 12 millions"],["Je préfère en discuter"]]};
@@ -239,9 +243,7 @@ E.fini = {k:"", q:"", fini:1};
 function parcours(){
   var p = ["profil","besoin"];
   if(S.besoin === "Acheter un conteneur brut"){
-    p = p.concat(["format","commune","quantite","acces","delai"]);
-    if(S.format === "20 DRY" || S.format === "40 HC") p.push("budget");
-    p = p.concat(["decision","etape","contact","recap"]);
+    return ["profil","besoin","redirection"];
   } else if(S.besoin === "Aménager un conteneur"){
     p = p.concat(["usage","surface","commune","terrain"]);
     if(S.terrain === "Il m'appartient ou je le loue" || S.terrain === "Achat ou bail en cours de signature") p.push("indivision");
@@ -375,6 +377,19 @@ function rendre(){
     return;
   }
 
+  if(e.redirect){
+    h = '<div class="step on"><div class="kicker">' + esc(e.k) + '</div><h2>' + esc(e.q) + '</h2>'
+      + '<p class="sub">' + esc(e.sub) + '</p>'
+      + '<a class="btn p" style="display:block;text-align:center;text-decoration:none;box-sizing:border-box" href="'
+      + SITE_ACHAT + '">Voir les prix et commander</a>'
+      + '<div class="note">Vous y choisissez le format et votre commune, le prix exact s\'affiche, et vous envoyez votre demande depuis la même page.</div></div>';
+    document.getElementById("main").innerHTML = h;
+    document.getElementById("back").style.display = "block";
+    document.getElementById("next").style.display = "none";
+    window.scrollTo(0,0);
+    return;
+  }
+
   h = '<div class="step on">';
   if(e.k) h += '<div class="kicker">' + esc(e.k) + '</div>';
   h += '<h2>' + esc(e.q) + '</h2>';
@@ -419,6 +434,9 @@ function rendre(){
     h += blocPrix();
   }
 
+  if(e.etudeNote && tarifEtude())
+    h += '<div class="note">Pour une surface de ' + esc(S.surface) + ' m², l\'étude détaillée — plan coté, chiffrage poste par poste et planning — est facturée <b>'
+       + tarifEtude() + '</b>, intégralement déduite de votre commande. Je ne vous la propose qu\'après notre premier échange.</div>';
   h += '<div id="err"></div></div>';
   document.getElementById("main").innerHTML = h;
   document.getElementById("back").style.display = idx === 0 ? "none" : "block";
