@@ -48,7 +48,6 @@ textarea{min-height:88px;resize:vertical}
 .btn.p{background:var(--navy);color:#fff;flex:1}
 .btn.p:disabled{background:#a9b3c4;cursor:not-allowed}
 .btn.s{background:transparent;color:var(--gris);padding:14px 12px;font-weight:600}
-.btn.w{background:#25d366;color:#0b3d1e;width:100%;display:block;text-align:center;text-decoration:none;margin-top:10px}
 .prix{background:linear-gradient(135deg,var(--navy),var(--navy2));color:#fff;border-radius:14px;padding:16px 18px;margin:16px 0 4px;box-shadow:var(--ombre)}
 .prix .lb{font-size:11.5px;text-transform:uppercase;letter-spacing:.7px;opacity:.8}
 .prix .val{font-size:29px;font-weight:800;line-height:1.15;margin:3px 0}
@@ -85,8 +84,6 @@ footer a{color:var(--navy);text-decoration:none;font-weight:600}
 </div>
 <script>
 /* ============ PARAMETRES A AJUSTER ============ */
-var ENDPOINT = "";            /* URL de l'application web Apps Script (voir TMC_Endpoint_WebApp.gs) */
-var WHATSAPP = "68987226555"; /* numero au format international, sans + */
 var SITE_ACHAT = "https://tahitimaisoncontainer-jpg.github.io/avendrecontainer/";
 var RELAIS = "https://formsubmit.co/ajax/f86aed3fe4300aa72852f47498da914a"; /* identifiant chiffre : votre adresse mail n'apparait pas dans la page */
 
@@ -145,17 +142,8 @@ E.besoin = {k:"Votre besoin", q:"Que puis-je faire pour vous ?", ch:"besoin", o:
 E.redirection = {k:"Conteneur brut", q:"Tout est déjà en ligne", redirect:1,
   sub:"Pour un conteneur livré tel quel, le prix de votre commune s'affiche directement sur notre page conteneurs, et vous commandez depuis cette page. Inutile de remplir un questionnaire."};
 
-/* ---- branche ACHAT ---- */
-E.format = {k:"Achat de conteneur", q:"Quel format ?", ch:"format", o:[
-  ["20 DRY","6,06 m de long · 13,86 m² · le plus courant"],
-  ["40 HC","12,19 m de long · 28,52 m² · grande hauteur"],
-  ["Je ne sais pas encore","Je vous conseillerai"]]};
-
-E.commune = {k:"Livraison", q:"Où faut-il le livrer ?", sel:"commune",
-  sub:"Le prix affiché comprend le conteneur, le transport et la pose."};
-
-E.quantite = {k:"Livraison", q:"Combien de conteneurs ?", ch:"quantite", o:[
-  ["1"],["2"],["3"],["4 ou plus"]]};
+E.commune = {k:"Le lieu", q:"Où le projet sera-t-il installé ?", sel:"commune",
+  sub:"L'île et la commune déterminent le transport et les conditions d'accès."};
 
 E.acces = {k:"Livraison", q:"Un camion-grue peut-il accéder à l'emplacement ?", ch:"acces",
   sub:"C'est le point qui fait échouer le plus de livraisons.", o:[
@@ -165,21 +153,15 @@ E.delai = {k:"Calendrier", q:"Pour quand ?", ch:"delai", o:[
   ["Dans le mois"],["Dans 1 à 3 mois"],["Dans 3 à 6 mois"],["Dans plus de 6 mois"],
   ["Pas de date, je me renseigne"]]};
 
-E.budget = {k:"Budget", q:"Ce prix correspond-il à votre budget ?", ch:"budget", o:[
-  ["Oui, c'est dans mon budget"],
-  ["Un peu au-dessus, mais je peux ajuster"],
-  ["Non, c'est trop élevé pour moi"],
-  ["Je ne sais pas encore, j'ai besoin d'un conseil"]]};
-
 /* ---- branche AMENAGEMENT ---- */
-E.usage = {k:"Aménagement", q:"Quel usage prévoyez-vous ?", ch:"usage", o:[
+E.usage = {k:"Votre projet", q:"Quel usage prévoyez-vous ?", ch:"usage", o:[
   ["Logement","Studio, chambre, maison"],
   ["Bureau ou local commercial","Bureau, boutique, kiosque"],
   ["Atelier ou stockage aménagé","Isolé, électrifié"],
   ["Local technique","Sanitaires, chambre froide, laboratoire"],
   ["Autre usage"]]};
 
-E.surface = {k:"Aménagement", q:"Quelle surface envisagez-vous ?", num:"surface",
+E.surface = {k:"Votre projet", q:"Quelle surface envisagez-vous ?", num:"surface",
   sub:"Une valeur approximative suffit. Repères : un 20 pieds fait 13 m², un 40 pieds 26 m²."};
 
 E.terrain = {k:"Le terrain", q:"Où en êtes-vous avec le terrain ?", ch:"terrain", o:[
@@ -195,8 +177,8 @@ E.indivision = {k:"Le terrain", q:"Le terrain est-il en indivision ?", ch:"indiv
   ["Oui, et elle n'est pas réglée"],
   ["Je ne sais pas"]]};
 
-E.parcelle = {k:"Le terrain", q:"Commune et numéro de parcelle", txt:"parcelle",
-  sub:"Le numéro se trouve en quelques secondes sur otia.gov.pf. Facultatif, mais il me fait gagner un aller-retour.", opt:1};
+E.parcelle = {k:"Le terrain", q:"Le numéro de votre parcelle", txt:"parcelle",
+  sub:"Il se trouve en quelques secondes sur otia.gov.pf. Facultatif, mais il me fait gagner un aller-retour.", opt:1};
 
 E.plan = {k:"Votre projet", q:"Avez-vous un plan ou un croquis ?", ch:"plan", o:[
   ["Oui, un plan coté"],["Un croquis à main levée"],["Non, rien pour l'instant"]]};
@@ -268,7 +250,11 @@ function noter(){
     if(S.surface) A += 3;
     if(S.plan === "Oui, un plan coté") A += 6;
     else if(S.plan === "Un croquis à main levée") A += 3;
-  } else A = 6;
+  } else {
+    A = 6;
+    if(S.usage && S.usage !== "Autre usage") A += 4;
+    if(S.rdvlieu) A += 2;
+  }
   A = Math.min(20, A);
 
   var c = comInfo(S.commune);
@@ -368,8 +354,6 @@ function rendre(){
       + '<p class="sub">Je vous réponds sous 48 heures'
       + (r.niveau >= 4 ? ', et je vous appelle dans les 24 heures : votre projet est prêt.' : '.')
       + '<br>Un accusé de réception vient de partir sur ' + esc(S.mail || "votre adresse") + '.</p></div>';
-    var t = encodeURIComponent(messageRecap(r));
-    h += '<a class="btn w" href="https://wa.me/' + WHATSAPP + '?text=' + t + '">Envoyer aussi sur WhatsApp</a>';
     h += '<div class="note">Si votre projet est urgent, appelez-moi directement au <b>87 22 65 55</b>.</div>';
     if(S.besoin === "Aménager un conteneur" && tarifEtude())
       h += '<div class="note">Pour aller jusqu\'au plan coté et au chiffrage poste par poste, l\'étude de votre projet est facturée <b>' + tarifEtude() + '</b>, déduite de votre commande. Je ne vous la propose qu\'après notre premier échange.</div>';
@@ -410,14 +394,14 @@ function rendre(){
     h += '</div>';
   }
   if(e.sel){
-    h += '<label class="f"><span>Commune ou île de livraison</span><select id="i_' + e.sel + '" onchange="maj(\'' + e.sel + '\',this.value)">'
+    h += '<label class="f"><span>Île et commune</span><select id="i_' + e.sel + '" onchange="maj(\'' + e.sel + '\',this.value)">'
        + '<option value="">— choisissez —</option>';
     for(var j=0;j<COM.length;j++)
       h += '<option' + (S[e.sel] === COM[j][0] ? ' selected' : '') + '>' + esc(COM[j][0]) + '</option>';
     h += '</select></label>';
   }
   if(e.num) h += '<label class="f"><span>Surface approximative en m²</span><input id="i_' + e.num + '" type="number" inputmode="decimal" min="1" placeholder="par exemple 26" value="' + esc(S[e.num]||"") + '" oninput="maj(\'' + e.num + '\',this.value)"></label>';
-  if(e.txt) h += '<label class="f"><span>Commune et parcelle</span><input id="i_' + e.txt + '" type="text" placeholder="par exemple Taravao, parcelle AL29" value="' + esc(S[e.txt]||"") + '" oninput="maj(\'' + e.txt + '\',this.value)"></label>';
+  if(e.txt) h += '<label class="f"><span>Numéro de parcelle</span><input id="i_' + e.txt + '" type="text" placeholder="par exemple AL29" value="' + esc(S[e.txt]||"") + '" oninput="maj(\'' + e.txt + '\',this.value)"></label>';
 
   if(e.contact){
     h += '<label class="f"><span>Nom et prénom</span><input id="i_nom" type="text" autocomplete="name" value="' + esc(S.nom||"") + '" oninput="maj(\'nom\',this.value)"></label>'
@@ -510,12 +494,6 @@ function lignesRecap(){
   if(t && t !== "devis") out.push(["Prix livré", fmt(t) + " XPF TTC"]);
   return out;
 }
-function messageRecap(r){
-  var l = ["Demande TMC — " + (S.nom || "")], a = lignesRecap();
-  for(var i=0;i<a.length;i++) l.push(a[i][0] + " : " + a[i][1]);
-  return l.join("\n");
-}
-
 /* ============ TOPO ET ENVOI PAR MAIL ============ */
 var NIV = {
  5:{e:"★★★",t:"PRIORITAIRE",n:"NIVEAU 5 — OPPORTUNITÉ PRIORITAIRE",a:[
