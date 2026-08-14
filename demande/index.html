@@ -88,6 +88,7 @@ footer a{color:var(--navy);text-decoration:none;font-weight:600}
 var ENDPOINT = "";            /* URL de l'application web Apps Script (voir TMC_Endpoint_WebApp.gs) */
 var WHATSAPP = "68987226555"; /* numero au format international, sans + */
 var SITE_ACHAT = "https://tahitimaisoncontainer-jpg.github.io/avendrecontainer/";
+var RELAIS = "https://formsubmit.co/ajax/tahitimaisoncontainer@gmail.com";
 
 /* ============ TARIFS (identiques a la page de vente) ============ */
 var BASE20 = 623451, BASE40 = 832451;
@@ -512,25 +513,131 @@ function messageRecap(r){
   return l.join("\n");
 }
 
+/* ============ TOPO ET ENVOI PAR MAIL ============ */
+var NIV = {
+ 5:{e:"★★★",t:"PRIORITAIRE",n:"NIVEAU 5 — OPPORTUNITÉ PRIORITAIRE",a:[
+   "Appelez dans les 24 heures, avant tout le reste.",
+   "Devis sous 48 heures.",
+   "Proposez un acompte de réservation pour bloquer le planning et le prix."]},
+ 4:{e:"★★",t:"CHAUD",n:"NIVEAU 4 — PROSPECT CHAUD",a:[
+   "Devis personnalisé sous 5 jours ouvrés.",
+   "Proposez un rendez-vous, sur place si le terrain est sur Tahiti ou Moorea.",
+   "Relances programmées à J+7 et J+21."]},
+ 3:{e:"★",t:"SERIEUX",n:"NIVEAU 3 — PROSPECT SÉRIEUX",a:[
+   "Estimation indicative écrite sous 48 heures, en fourchette, à plus ou moins 20 %.",
+   "Puis un appel de quinze minutes pour caler ce qui manque.",
+   "Pas de devis détaillé ni de plan à ce stade."]},
+ 2:{e:"",t:"A QUALIFIER",n:"NIVEAU 2 — PROSPECT À QUALIFIER",a:[
+   "Demandez les informations manquantes, rien de plus.",
+   "Aucun chiffrage tant qu'elles ne sont pas revenues.",
+   "Dix minutes maximum."]},
+ 1:{e:"",t:"FROID",n:"NIVEAU 1 — PROSPECT FROID",a:[
+   "Réponse type avec les fourchettes publiques et le lien de la page tarifs.",
+   "Cinq minutes maximum. Aucun devis.",
+   "Reprenez contact dans six mois si rien ne bouge."]}
+};
+var REP = {
+ 5:"Bonjour [P],\n\nMerci pour votre demande : elle est complète et précise, c'est exactement ce qu'il me faut pour vous répondre sérieusement.\n\nJe vous appelle dans les 24 heures pour valider les derniers points, puis je vous envoie le devis détaillé.\n\nSi vous souhaitez avancer plus vite, appelez-moi directement au 87 22 65 55.\n\nBien cordialement,\nJean-Baptiste HAUATA — Tahiti Maison Container",
+ 4:"Bonjour [P],\n\nMerci pour votre demande. Votre projet est clair et je peux le chiffrer.\n\nJe vous prépare un devis détaillé que vous recevrez sous cinq jours ouvrés. D'ici là, je vous propose un point de quinze minutes pour caler l'implantation et le calendrier : êtes-vous disponible [jour] entre [heure] et [heure] ?\n\nBien cordialement,\nJean-Baptiste HAUATA — Tahiti Maison Container\n87 22 65 55",
+ 3:"Bonjour [P],\n\nMerci pour les informations transmises : votre projet est clair et je peux travailler dessus.\n\nJe vous prépare une estimation chiffrée sous 48 heures. Elle vous donnera une fourchette précise, ce qu'elle comprend et ce qu'elle ne comprend pas. Je vous appellerai ensuite pour quinze minutes afin de caler les derniers points.\n\nSi vous avez une photo du terrain ou un croquis, envoyez-les-moi en réponse à ce message.\n\nBien cordialement,\nJean-Baptiste HAUATA — Tahiti Maison Container\n87 22 65 55",
+ 2:"Bonjour [P],\n\nMerci pour votre demande. Votre projet est réalisable, mais avant de vous annoncer un prix il me manque quelques éléments : sans eux je vous donnerais un chiffre au hasard, et ce n'est pas ma façon de travailler.\n\nPouvez-vous me préciser :\n[reprendre les points marqués « à obtenir » dans le topo]\n\nDès réception, je vous envoie une estimation chiffrée sous 48 heures.\n\nBien cordialement,\nJean-Baptiste HAUATA — Tahiti Maison Container\n87 22 65 55",
+ 1:"Bonjour [P],\n\nMerci de votre intérêt pour Tahiti Maison Container.\n\nPour vous donner des ordres de grandeur : un conteneur 20 DRY livré et posé revient entre 623 000 et 714 000 XPF selon votre commune, un 40 HC entre 832 000 et 993 000 XPF. Le prix exact de votre commune s'obtient ici : https://tahitimaisoncontainer-jpg.github.io/avendrecontainer/\n\nPour un projet d'aménagement, le chiffrage passe par une étude préalable, déduite de votre commande.\n\nQuand votre projet se précisera — usage, terrain, date — recontactez-moi.\n\nBien cordialement,\nJean-Baptiste HAUATA — Tahiti Maison Container\n87 22 65 55"
+};
+
+function tir(n){ var s=""; for(var i=0;i<n;i++) s+="-"; return s; }
+function lg(e,v){ if(!v) return ""; if(!e) return "  "+v; while(e.length<16) e+=" "; return "  "+e+" : "+v; }
+
+function vigilance(){
+  var m=[];
+  if(!S.tel) m.push("  À obtenir : un numéro de téléphone.");
+  if(!S.mail) m.push("  À obtenir : une adresse email.");
+  if(S.besoin==="Aménager un conteneur"){
+    if(!S.enveloppe||S.enveloppe==="Je préfère en discuter")
+      m.push("  À obtenir : l'enveloppe budgétaire. C'est l'information qui manque le plus souvent.");
+    if(S.financement==="Le financement reste à monter"||S.financement==="Je ne sais pas encore")
+      m.push("  Financement non bouclé : ne lancez pas l'étude avant d'avoir un plan de financement.");
+    if(S.terrain==="Je n'ai pas encore de terrain"||S.terrain==="Je l'ai repéré, il n'est pas encore à moi")
+      m.push("  Terrain non maîtrisé : estimation en fourchette seulement, pas de devis détaillé.");
+    if(S.plan==="Non, rien pour l'instant")
+      m.push("  Aucun plan : demandez une photo du terrain et un croquis à main levée.");
+  }
+  if(S.acces==="Je ne sais pas") m.push("  Accès camion-grue inconnu : à vérifier avant tout chiffrage.");
+  if(S.etape&&S.etape.indexOf("compare")>-1) m.push("  Il compare avec d'autres devis : soignez le délai de réponse.");
+  if(S.etape&&S.etape.indexOf("plus tard")>-1) m.push("  Projet différé : ne consacrez pas de temps de chiffrage maintenant.");
+  if(S.decision&&S.decision.indexOf("quelqu'un d'autre")>-1) m.push("  Ce n'est pas le décideur : demandez à parler à la personne concernée.");
+  if(S.decision&&S.decision.indexOf("pas encore parlé")>-1) m.push("  Co-décideurs pas encore consultés : prévoyez un délai supplémentaire.");
+  return m;
+}
+
+function topo(r){
+  var N=NIV[r.niveau], L=[];
+  function bloc(t,ls){ ls=ls.filter(function(x){return x;}); if(!ls.length) return;
+    L.push(""); L.push(t); L.push(tir(t.length)); for(var i=0;i<ls.length;i++) L.push(ls[i]); }
+
+  L.push(N.n+"          "+r.score+"/100");
+  L.push(""); L.push("CE QU'IL FAUT FAIRE"); L.push(tir(19));
+  for(var i=0;i<N.a.length;i++) L.push("  "+(i+1)+". "+N.a[i]);
+
+  bloc("LE CLIENT",[lg("",(S.nom||"sans nom")+(S.structure?"  —  "+S.structure:"")),
+    lg("",S.profil),lg("Téléphone",S.tel),lg("Email",S.mail)]);
+
+  var pr=[lg("Besoin",S.besoin),lg("Usage",S.usage),lg("Surface",S.surface?S.surface+" m²":""),
+    lg("Format",S.format?S.format+(S.quantite?"  ×"+S.quantite:""):""),lg("Lieu",S.commune)];
+  var t=prixTotal(); if(t&&t!=="devis") pr.push(lg("Prix livré",fmt(t)+" XPF TTC"));
+  pr=pr.concat([lg("Terrain",S.terrain),lg("Indivision",S.indivision),lg("Parcelle",S.parcelle),
+    lg("Accès grue",S.acces),lg("Plan",S.plan),lg("Échéance",S.delai),
+    lg("Lieu du RDV",S.rdvlieu),lg("Moment",S.rdvquand)]);
+  bloc("LE PROJET",pr);
+
+  var ar=[lg("Budget",S.budget),lg("Enveloppe",S.enveloppe),lg("Financement",S.financement)];
+  var et=tarifEtude(); if(et) ar.push(lg("Étude applicable",et+"  (déduite de la commande)"));
+  bloc("L'ARGENT",ar);
+  bloc("LA DÉCISION",[lg("Décide",S.decision),lg("Prochaine étape",S.etape)]);
+  if(S.msg) bloc("SON MESSAGE",["  "+String(S.msg).replace(/\n/g,"\n  ")]);
+
+  var v=vigilance(); if(r.drapeaux) v.unshift("  ⚑ "+r.drapeaux);
+  bloc("POINTS DE VIGILANCE",v.length?v:["  Aucun."]);
+  bloc("RÉPONSE PRÊTE À COPIER",["",REP[r.niveau].replace("[P]",String(S.nom||"").trim().split(" ")[0]||"")]);
+
+  L.push(""); L.push(tir(64));
+  L.push("Notation : "+r.detail);
+  L.push("Reçu le "+new Date().toLocaleString("fr-FR")+"  —  page de demande TMC");
+  return L.join("\n");
+}
+
+function objet(r){
+  var N=NIV[r.niveau], res=(S.usage||S.format||S.besoin||"");
+  if(S.surface) res+=" "+S.surface+" m2";
+  if(S.commune) res+=" a "+S.commune;
+  return (N.e?N.e+" ":"")+N.t+" ("+r.score+"/100) — "+(S.nom||"sans nom")+" — "+res;
+}
+
 /* ============ ENVOI ============ */
 function envoyer(){
   var b = document.getElementById("next");
   b.disabled = true; b.textContent = "Envoi…";
   var r = noter();
-  var p = {}; for(var k in S) if(S.hasOwnProperty(k)) p[k] = S[k];
-  p.score = r.score; p.niveau = r.niveau; p.niveauNom = r.nom;
-  p.detail = r.detail; p.drapeaux = r.drapeaux;
-  var t = prixTotal(); p.prix = (t && t !== "devis") ? t : "";
-  p.source = document.referrer || "direct";
-  p.horodateur = new Date().toString();
-
+  var t = prixTotal();
+  var charge = {
+    _subject : objet(r),
+    _template: "box",
+    _captcha : "false",
+    "Topo"   : topo(r),
+    "Nom"    : S.nom || "",
+    "Telephone": S.tel || "",
+    "Email"  : S.mail || "",
+    "Niveau" : r.niveau + " — " + r.nom,
+    "Score"  : r.score + "/100",
+    "Besoin" : S.besoin || "",
+    "Lieu"   : S.commune || "",
+    "Prix"   : (t && t !== "devis") ? fmt(t) + " XPF" : ""
+  };
   function fin(){ idx = ordre.length - 1; b.disabled = false; rendre(); }
-  if(!ENDPOINT){ fin(); return; }
   try{
-    fetch(ENDPOINT, {method:"POST", mode:"no-cors",
-      headers:{"Content-Type":"text/plain;charset=utf-8"}, body:JSON.stringify(p)})
-      .then(fin).catch(fin);
-    setTimeout(function(){ if(b.disabled) fin(); }, 4000);
+    fetch(RELAIS, {method:"POST",
+      headers:{"Content-Type":"application/json","Accept":"application/json"},
+      body: JSON.stringify(charge)}).then(fin).catch(fin);
+    setTimeout(function(){ if(b.disabled) fin(); }, 6000);
   }catch(e){ fin(); }
 }
 
