@@ -196,7 +196,7 @@ E.parcelle = {k:"Le terrain", q:"Le numéro de votre parcelle", txt:"parcelle",
   sub:"Il se trouve en quelques secondes sur otia.gov.pf. Facultatif, mais il me fait gagner un aller-retour.", opt:1};
 
 E.plan = {k:"Votre projet", q:"Avez-vous un plan ou un croquis ?", ch:"plan", pj:1,
-  reperes:"Si vous n'avez rien, je peux m'en charger : dessin 2D complet <b>180 000 XPF</b>, devis détaillé avec expertise de conception <b>70 000 XPF</b>. Ces prestations sont déduites de votre commande si vous donnez suite.", o:[
+  reperes:"Un croquis à main levée photographié me suffit pour démarrer : joignez-le ci-dessous.<br>Si vous n'avez rien, je fais établir le plan. Le tarif dépend du nombre et de la taille des conteneurs, en XPF :<div class='grille'><i>Plan 2D coté — 1 conteneur 20 pieds</i><b>180 000</b><i>Plan 2D coté — 1 conteneur 40 pieds</i><b>270 000</b><i>Chaque 20 pieds supplémentaire</i><b>+ 55 000</b><i>Chaque 40 pieds supplémentaire</i><b>+ 90 000</b><i>Visuel 3D en option — 1 conteneur 20 pieds</i><b>145 000</b><i>Visuel 3D en option — 1 conteneur 40 pieds</i><b>195 000</b><i>Chaque 20 / 40 pieds supplémentaire</i><b>+ 70 000 / 105 000</b></div>Le plan 2D me sert à chiffrer votre projet au poste près. Le visuel 3D vous montre le rendu final avant que je commence. Ces montants sont déduits de votre commande si vous donnez suite.", o:[
   ["Oui, un plan coté"],["Un croquis à main levée"],["Non, rien pour l'instant"]]};
 
 E.enveloppe = {k:"Budget", q:"Dans quelle enveloppe souhaitez-vous rester ?", ch:"enveloppe", etudeNote:1,
@@ -449,7 +449,7 @@ function rendre(){
   }
 
   if(e.etudeNote && tarifEtude())
-    h += '<div class="note">Pour une surface de ' + esc(S.surface) + ' m², l\'étude détaillée — plan coté, chiffrage poste par poste et planning — est facturée <b>'
+    h += '<div class="note">Pour une surface de ' + esc(S.surface) + ' m², l\'étude détaillée — chiffrage poste par poste et planning de travaux — est facturée <b>'
        + tarifEtude() + '</b>, intégralement déduite de votre commande. Je ne vous la propose qu\'après notre premier échange.</div>';
   h += '<div id="err"></div></div>';
   document.getElementById("main").innerHTML = h;
