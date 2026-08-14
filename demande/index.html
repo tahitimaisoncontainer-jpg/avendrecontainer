@@ -530,7 +530,8 @@ function envoiPJ(sujet){
     fd.append("Rappel", "Ces fichiers accompagnent la demande de " + (S.nom||"sans nom")
       + (S.tel ? " — " + S.tel : "") + (S.mail ? " — " + S.mail : "") + ".");
     fd.append("Nombre", PJ.length + (PJ.length>1 ? " fichiers" : " fichier"));
-    for(var i=0;i<PJ.length;i++) fd.append("attachment", PJ[i].blob, PJ[i].nom);
+    /* un nom de champ distinct par fichier : le relais n en garde qu un seul si les noms sont identiques */
+    for(var i=0;i<PJ.length;i++) fd.append(i ? "attachment" + (i+1) : "attachment", PJ[i].blob, PJ[i].nom);
     fetch(RELAIS_PJ, {method:"POST", mode:"no-cors", body:fd});
   }catch(e){}
 }
