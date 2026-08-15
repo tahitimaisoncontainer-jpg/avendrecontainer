@@ -214,10 +214,14 @@ E.enveloppe = {k:"Budget", q:"Quel budget avez-vous prévu pour votre projet ?",
   ["50 millions XPF et plus","Projet de grande envergure ou programme complet"],
   ["Je ne sais pas encore, j'ai besoin d'être conseillé","Je vous situe au premier échange"]]};
 
-E.financement = {k:"Budget", q:"Comment envisagez-vous de financer ce projet ?", ch:"financement",
-  sub:"Cette question me sert à adapter le calendrier de facturation à votre situation.", o:[
-  ["Fonds propres disponibles"],["Prêt bancaire déjà accordé"],["Aide ou subvention notifiée"],
-  ["Prêt en cours d'instruction"],["Le financement reste à monter"],["Je ne sais pas encore"]]};
+E.financement = {k:"Budget", q:"Comment envisagez-vous de financer ce projet ?", ch:"financement", multi:1,
+  sub:"Plusieurs réponses possibles : beaucoup de projets combinent plusieurs sources. Cette question me sert à adapter le calendrier de facturation à votre situation.", o:[
+  ["Fonds propres disponibles"],
+  ["Prêt bancaire déjà accordé"],
+  ["Aide ou subvention notifiée"],
+  ["Prêt en cours d'instruction"],
+  ["Le financement reste à monter"],
+  ["Je ne sais pas encore", "", 1]]};
 
 /* ---- branche RDV ---- */
 E.rdvlieu = {k:"Rendez-vous", q:"Où souhaitez-vous qu'on se voie ?", ch:"rdvlieu", o:[
@@ -337,11 +341,11 @@ function noter(){
     else if(coh === "juste"){ C = 9; dr.push("enveloppe juste"); }
     else if(coh === "incompatible"){ C = 3; dr.push("enveloppe incompatible avec la surface"); }
     else C = 6;
-    var f = S.financement;
-    if(f === "Fonds propres disponibles" || f === "Prêt bancaire déjà accordé"
-       || f === "Aide ou subvention notifiée") C += 10;
-    else if(f === "Prêt en cours d'instruction") C += 6;
-    else if(f === "Le financement reste à monter") C += 2;
+    var f = String(S.financement || "");
+    if(f.indexOf("Fonds propres") > -1 || f.indexOf("déjà accordé") > -1
+       || f.indexOf("subvention notifiée") > -1) C += 10;
+    else if(f.indexOf("cours d'instruction") > -1) C += 6;
+    else if(f.indexOf("reste à monter") > -1) C += 2;
   }
   C = Math.max(0, Math.min(25, C));
 
@@ -458,7 +462,8 @@ function rendre(){
     h += '<div class="opts">';
     for(var i=0;i<e.o.length;i++){
       var v = e.o[i][0], d = e.o[i][1];
-      h += '<button class="opt' + (S[e.ch] === v ? ' sel' : '') + '" onclick="choix(\'' + e.ch + '\',' + i + ')">'
+      var actif = e.multi ? (MULTI[e.ch] || []).indexOf(v) > -1 : S[e.ch] === v;
+      h += '<button class="opt' + (actif ? ' sel' : '') + '" onclick="' + (e.multi ? 'coche' : 'choix') + '(\'' + e.ch + '\',' + i + ')">'
          + '<span class="ic">✓</span><span class="tx">' + esc(v)
          + (d ? '<small>' + esc(d) + '</small>' : '') + '</span></button>';
     }
@@ -599,6 +604,29 @@ function choix(champ, i){
      le client doit avoir le temps de joindre son plan avant de passer a la suite */
   if(!e.pj) setTimeout(suiv, 180);
 }
+/* choix multiple : on empile les reponses, l option marquee exclusive chasse les autres */
+var MULTI = {};
+function coche(champ, i){
+  var e = E[ordre[idx]], v = e.o[i][0], excl = !!e.o[i][2];
+  var a = MULTI[champ] || (MULTI[champ] = []);
+  var k = a.indexOf(v);
+  if(k > -1) a.splice(k, 1);
+  else if(excl){ a.length = 0; a.push(v); }
+  else {
+    for(var j = a.length - 1; j >= 0; j--){
+      for(var q = 0; q < e.o.length; q++)
+        if(e.o[q][0] === a[j] && e.o[q][2]) a.splice(j, 1);
+    }
+    a.push(v);
+  }
+  var rang = {};
+  for(var z = 0; z < e.o.length; z++) rang[e.o[z][0]] = z;
+  a.sort(function(x, y){ return rang[x] - rang[y]; });
+  S[champ] = a.join(" · ");
+  ordre = parcours();
+  rendre();
+}
+
 function maj(champ, val){ S[champ] = val; ordre = parcours(); majPrixLive(); }
 
 function majPrixLive(){
@@ -698,8 +726,12 @@ function vigilance(){
       m.push("  Enveloppe incompatible : "+S.surface+" m² ne descend pas sous "+fmt(pB)+" XPF sur mes devis. Recadrez avant tout chiffrage.");
     else if(cB==="juste")
       m.push("  Enveloppe juste : "+S.surface+" m² tourne autour de "+fmt(pB)+" XPF au plancher. Prévenez-le tout de suite.");
-    if(S.financement==="Le financement reste à monter"||S.financement==="Je ne sais pas encore")
+    var fin=String(S.financement||"");
+    var finSolide = fin.indexOf("Fonds propres")>-1 || fin.indexOf("déjà accordé")>-1 || fin.indexOf("subvention notifiée")>-1;
+    if(fin && !finSolide)
       m.push("  Financement non bouclé : ne lancez pas l'étude avant d'avoir un plan de financement.");
+    else if(finSolide && (fin.indexOf("reste à monter")>-1 || fin.indexOf("cours d'instruction")>-1))
+      m.push("  Financement partiel : une partie est acquise, le reste ne l'est pas. Calez l'échéancier de facturation là-dessus.");
     if(S.terrain==="Je n'ai pas encore de terrain"||S.terrain==="Je l'ai repéré, il n'est pas encore à moi")
       m.push("  Terrain non maîtrisé : estimation en fourchette seulement, pas de devis détaillé.");
     if(S.plan==="Non, rien pour l'instant")
