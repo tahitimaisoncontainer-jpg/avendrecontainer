@@ -232,12 +232,12 @@ E.rdvquand = {k:"Rendez-vous", q:"Quel moment vous arrange ?", ch:"rdvquand", o:
   ["En semaine, le matin"],["En semaine, l'après-midi"],["Le samedi"],["Peu importe, appelez-moi"]]};
 
 /* ---- commun fin ---- */
-E.decision = {k:"Presque fini", q:"Qui décide avec vous ?", ch:"decision", o:[
-  ["Je décide seul"],
-  ["Avec mon conjoint ou ma famille, nous sommes d'accord sur le principe"],
-  ["Avec mon conjoint ou ma famille, nous n'en avons pas encore parlé"],
-  ["Avec un associé, un conseil ou ma hiérarchie"],
-  ["Je me renseigne pour quelqu'un d'autre"]]};
+E.decision = {k:"Presque fini", q:"Qui décide du projet avec vous ?", ch:"decision", o:[
+  ["Je décide seul","Décision personnelle"],
+  ["Nous décidons en couple ou en famille","Le principe est déjà validé entre nous"],
+  ["Nous n'en avons pas encore parlé","Discussion à venir"],
+  ["Je décide avec un associé ou ma hiérarchie","Validation interne à obtenir"],
+  ["Je fais la demande pour quelqu'un d'autre","Je ne suis pas le décideur"]]};
 
 E.etape = {k:"Presque fini", q:"Si ma proposition vous convient, quelle serait votre prochaine étape ?", ch:"etape", o:[
   ["Je commande"],
@@ -359,7 +359,7 @@ function noter(){
   /* E - pouvoir de decision (10) */
   if(rdv) Ee = 7;
   else if(S.decision === "Je décide seul") Ee = 10;
-  else if(S.decision && S.decision.indexOf("d'accord sur le principe") > -1) Ee = 8;
+  else if(S.decision && S.decision.indexOf("en couple") > -1) Ee = 8;
   else if(S.decision && S.decision.indexOf("associé") > -1) Ee = 5;
   else if(S.decision && S.decision.indexOf("pas encore parlé") > -1) Ee = 4;
   else if(S.decision && S.decision.indexOf("quelqu'un d'autre") > -1) Ee = 0;
