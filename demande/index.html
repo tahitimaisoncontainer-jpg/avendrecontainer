@@ -278,14 +278,30 @@ function listePhases(){
   }
   return out;
 }
+/* Progression reelle : elle avance a chaque ecran et ne revient jamais en arriere.
+   Avant que le besoin soit choisi on prend le parcours amenagement comme hypothese,
+   pour que le pourcentage parte de zero des la premiere question. */
+function ecransUtiles(){
+  var L = ordre;
+  if(!S.besoin){
+    S.besoin = "Aménager un conteneur";
+    L = parcours();
+    delete S.besoin;
+  }
+  var u = [];
+  for(var i=0;i<L.length;i++)
+    if(L[i] !== "fini" && L[i] !== "redirection") u.push(L[i]);
+  return u;
+}
+function progression(){
+  var u = ecransUtiles(), pos = u.indexOf(ordre[idx]);
+  if(pos < 0) return null;
+  return Math.round((pos + 1) / u.length * 100);
+}
 function compteur(){
-  /* tant que le besoin n est pas choisi le parcours est inconnu : pas de compteur trompeur */
-  if(!S.besoin) return "";
-  var f = phaseDe(ordre[idx]);
-  if(!f) return "";
-  var L = listePhases(), r = L.indexOf(f) + 1;
-  if(r < 1 || !L.length) return "";
-  return '<b>Étape ' + r + ' / ' + L.length + '</b><i>·</i>' + esc(f);
+  var f = phaseDe(ordre[idx]), pc = progression();
+  if(!f || pc === null) return "";
+  return '<b>' + pc + ' %</b><i>·</i>' + esc(f);
 }
 
 /* ============ PARCOURS ============ */
@@ -456,7 +472,8 @@ function blocPrix(){
 
 function rendre(){
   var k = ordre[idx], e = E[k], h = "";
-  document.getElementById("bar").style.width = Math.round(idx / (ordre.length - 1) * 100) + "%";
+  var pcb = (e.fini || e.redirect) ? 100 : progression();
+  document.getElementById("bar").style.width = (pcb === null ? 0 : pcb) + "%";
 
   if(e.fini){
     var r = noter();
