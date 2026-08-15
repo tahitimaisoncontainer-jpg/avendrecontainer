@@ -177,7 +177,7 @@ E.usage = {k:"Votre projet", q:"Quel usage prévoyez-vous ?", ch:"usage", o:[
   ["Autre usage"]]};
 
 E.surface = {k:"Votre projet", q:"Quelle surface envisagez-vous ?", num:"surface",
-  sub:"Une valeur approximative suffit. Repères : un 20 pieds fait 13 m², un 40 pieds 26 m²."};
+  sub:"Une valeur approximative suffit. Repères : un 20 pieds fait 13 m², un 40 pieds 28 m²."};
 
 E.terrain = {k:"Le terrain", q:"Où en êtes-vous avec le terrain ?", ch:"terrain", o:[
   ["Il m'appartient ou je le loue"],
@@ -201,7 +201,7 @@ E.plan = {k:"Votre projet", q:"Avez-vous un plan ou un croquis ?", ch:"plan", pj
 
 E.enveloppe = {k:"Budget", q:"Dans quelle enveloppe souhaitez-vous rester ?", ch:"enveloppe", etudeNote:1,
   sub:"Aucun tarif ne s'affiche automatiquement ici, et c'est volontaire : le prix dépend du type de projet, de la surface, du lieu, de la difficulté de pose, des matériaux et du calendrier.",
-  reperes:"Ordres de grandeur relevés sur mes devis réels, conteneur, transport, matériaux et main-d'œuvre compris :<div class='grille'><i>Aménagement seul, conteneur déjà sur place</i><b>1,5 – 2 M</b><i>Bureau ou pièce à vivre, 20 pieds (15 m²)</i><b>3 – 4,5 M</b><i>Sanitaires ou vestiaires, 20 pieds</i><b>2,5 – 3,5 M</b><i>Bureau ou studio, 40 pieds (28 m²)</i><b>6 – 7 M</b><i>Local professionnel aux normes, 2 × 40 pieds</i><b>9 – 10 M</b><i>Maison 3 chambres ~80 m², 3 × 40 pieds</i><b>17 – 20 M</b><i>Bâtiment de 6 à 9 conteneurs</i><b>50 – 80 M</b></div>Ce sont des repères, pas des prix fermes : le vôtre dépend du lieu, de l'accès au terrain, des matériaux et du calendrier.", o:[
+  reperes:"Ordres de grandeur relevés sur mes devis réels, conteneur, transport, matériaux et main-d'œuvre compris :<div class='grille'><i>Aménagement seul, conteneur déjà sur place</i><b>1,5 – 2 M</b><i>Bureau ou pièce à vivre, 20 pieds (13 m²)</i><b>3 – 4,5 M</b><i>Sanitaires ou vestiaires, 20 pieds</i><b>2,5 – 3,5 M</b><i>Bureau ou studio, 40 pieds (28 m²)</i><b>6 – 7 M</b><i>Local professionnel aux normes, 2 × 40 pieds</i><b>9 – 10 M</b><i>Maison 3 chambres ~80 m², 3 × 40 pieds</i><b>17 – 20 M</b><i>Bâtiment de 6 à 9 conteneurs</i><b>50 – 80 M</b></div>Ce sont des repères, pas des prix fermes : le vôtre dépend du lieu, de l'accès au terrain, des matériaux et du calendrier.", o:[
   ["Moins de 3 millions XPF"],["De 3 à 6 millions"],["De 6 à 12 millions"],
   ["Plus de 12 millions"],["Je préfère en discuter"]]};
 
@@ -213,7 +213,7 @@ E.financement = {k:"Budget", q:"Comment envisagez-vous de financer ce projet ?",
 /* ---- branche RDV ---- */
 E.rdvlieu = {k:"Rendez-vous", q:"Où souhaitez-vous qu'on se voie ?", ch:"rdvlieu", o:[
   ["Chez vous, à Tahiti Maison Container","Domaine Vaitarua, Afaahiti"],
-  ["Sur mon terrain ou à mon bureau","Déplacement facturé 5 000 XPF sur Tahiti"],
+  ["Sur mon terrain ou à mon bureau","Déplacement facturé à partir de 5 000 XPF selon la commune"],
   ["Par téléphone ou en visio"]]};
 
 E.rdvquand = {k:"Rendez-vous", q:"Quel moment vous arrange ?", ch:"rdvquand", o:[
@@ -249,89 +249,131 @@ function parcours(){
     if(S.terrain === "Il m'appartient ou je le loue" || S.terrain === "Achat ou bail en cours de signature") p.push("indivision");
     p = p.concat(["parcelle","acces","plan","delai","enveloppe","financement","decision","etape","contact","recap"]);
   } else if(S.besoin === "Prendre rendez-vous"){
-    p = p.concat(["rdvlieu","rdvquand","usage","delai","contact","recap"]);
+    p.push("rdvlieu");
+    /* un deplacement sans commune est ingerable : on la demande */
+    if(S.rdvlieu === "Sur mon terrain ou à mon bureau") p.push("commune");
+    p = p.concat(["rdvquand","usage","delai","contact","recap"]);
   }
   p.push("fini");
   return p;
 }
 
+/* ============ COHERENCE BUDGET ============ */
+/* Plancher etabli sur les devis reels 2020-2022 : sert uniquement a reperer une
+   enveloppe manifestement incompatible. Jamais affiche au client, jamais un prix. */
+function tauxPlancher(){
+  if(S.usage === "Atelier ou stockage aménagé") return 120000;
+  if(S.usage === "Local technique") return 160000;
+  return 180000;
+}
+function estimPlancher(){
+  var m = parseFloat(String(S.surface||"").replace(",","."));
+  if(!m || m <= 0) return null;
+  return Math.round(m * tauxPlancher());
+}
+function plafondEnveloppe(){
+  if(S.enveloppe === "Moins de 3 millions XPF") return 3000000;
+  if(S.enveloppe === "De 3 à 6 millions") return 6000000;
+  if(S.enveloppe === "De 6 à 12 millions") return 12000000;
+  if(S.enveloppe === "Plus de 12 millions") return 1e12;
+  return null;
+}
+function coherenceBudget(){
+  var e = estimPlancher(), pl = plafondEnveloppe();
+  if(e === null || pl === null) return "inconnue";
+  if(pl < e * 0.8) return "incompatible";
+  if(pl < e) return "juste";
+  return "coherente";
+}
+
 /* ============ NOTATION ============ */
 function noter(){
-  var A=0,B=0,C=0,D=0,Ee=0,F=8, dr=[];
-  if(S.besoin === "Acheter un conteneur brut"){
-    A = (S.format === "Je ne sais pas encore") ? 6 : 16;
-    if(S.quantite) A += 2;
-  } else if(S.besoin === "Aménager un conteneur"){
-    A = 6;
-    if(S.usage && S.usage !== "Autre usage") A += 5;
-    if(S.surface) A += 3;
-    if(S.plan === "Oui, un plan coté") A += 6;
-    else if(S.plan === "Un croquis à main levée") A += 3;
-  } else {
-    A = 6;
+  var A=0,B=0,C=0,D=0,Ee=0,F=0, dr=[];
+  var rdv = (S.besoin === "Prendre rendez-vous");
+
+  /* A - precision du projet (20) */
+  if(rdv){
+    A = 8;
     if(S.usage && S.usage !== "Autre usage") A += 4;
     if(S.rdvlieu) A += 2;
+  } else {
+    if(S.usage && S.usage !== "Autre usage") A += 5;
+    if(S.surface) A += 4;
+    if(S.plan === "Oui, un plan coté") A += 7;
+    else if(S.plan === "Un croquis à main levée") A += 4;
+    if(typeof PJ !== "undefined" && PJ.length) A += 4;
   }
   A = Math.min(20, A);
 
-  var c = comInfo(S.commune);
-  if(S.besoin === "Prendre rendez-vous") B = 8;
-  else if(!c) B = 0;
-  else if(c[1] === -1) B = 6;
-  else B = 10;
-  if(S.terrain === "Il m'appartient ou je le loue") B = 12;
-  else if(S.terrain === "Achat ou bail en cours de signature") B = 9;
-  else if(S.terrain === "Je l'ai repéré, il n'est pas encore à moi") B = 4;
-  else if(S.terrain === "Je n'ai pas encore de terrain") B = 0;
-  if(S.acces === "Oui, l'accès est dégagé") B += 3;
-  if(S.acces === "Non, l'accès est difficile") B = Math.min(B, 7);
-  if(S.parcelle && S.parcelle.length > 2) B += 2;
+  /* B - terrain et logistique (15) */
+  if(rdv) B = 9;
+  else {
+    if(S.terrain === "Il m'appartient ou je le loue") B = 12;
+    else if(S.terrain === "Achat ou bail en cours de signature") B = 9;
+    else if(S.terrain === "Je l'ai repéré, il n'est pas encore à moi") B = 4;
+    else B = 0;
+    if(S.acces === "Oui, l'accès est dégagé") B += 3;
+    else if(S.acces === "Non, l'accès est difficile") B -= 3;
+    if(S.parcelle && String(S.parcelle).length > 2) B += 2;
+  }
   B = Math.max(0, Math.min(15, B));
 
-  if(S.budget === "Oui, c'est dans mon budget") C = 22;
-  else if(S.budget === "Un peu au-dessus, mais je peux ajuster") C = 12;
-  else if(S.budget === "Non, c'est trop élevé pour moi") { C = 3; dr.push("budget refusé"); }
-  else if(S.budget) C = 7;
-  var envOK = S.enveloppe && S.enveloppe !== "Je préfère en discuter";
-  if(envOK) C = Math.max(C, 15);
-  var fin_ = S.financement;
-  if(fin_ === "Fonds propres disponibles" || fin_ === "Prêt bancaire déjà accordé"
-     || fin_ === "Aide ou subvention notifiée") C = Math.max(C, envOK ? 25 : 10);
-  else if(fin_ === "Prêt en cours d'instruction") C = Math.max(C, envOK ? 18 : 8);
-  else if(fin_ === "Le financement reste à monter") C = Math.max(C, envOK ? 14 : 5);
-  if(S.besoin === "Prendre rendez-vous" && !S.budget && !S.enveloppe) C = 10;
-  C = Math.min(25, C);
+  /* C - budget et financement (25) */
+  var coh = coherenceBudget();
+  if(rdv) C = 12;
+  else {
+    if(coh === "coherente") C = 15;
+    else if(coh === "juste"){ C = 9; dr.push("enveloppe juste"); }
+    else if(coh === "incompatible"){ C = 3; dr.push("enveloppe incompatible avec la surface"); }
+    else C = 6;
+    var f = S.financement;
+    if(f === "Fonds propres disponibles" || f === "Prêt bancaire déjà accordé"
+       || f === "Aide ou subvention notifiée") C += 10;
+    else if(f === "Prêt en cours d'instruction") C += 6;
+    else if(f === "Le financement reste à monter") C += 2;
+  }
+  C = Math.max(0, Math.min(25, C));
 
+  /* D - echeance (15) */
   if(S.delai === "Dans le mois") D = 15;
   else if(S.delai === "Dans 1 à 3 mois") D = 13;
   else if(S.delai === "Dans 3 à 6 mois") D = 9;
   else if(S.delai === "Dans plus de 6 mois") D = 4;
   else D = 0;
 
-  if(S.decision === "Je décide seul") Ee = 10;
+  /* E - pouvoir de decision (10) */
+  if(rdv) Ee = 7;
+  else if(S.decision === "Je décide seul") Ee = 10;
   else if(S.decision && S.decision.indexOf("d'accord sur le principe") > -1) Ee = 8;
+  else if(S.decision && S.decision.indexOf("associé") > -1) Ee = 5;
   else if(S.decision && S.decision.indexOf("pas encore parlé") > -1) Ee = 4;
-  else if(S.decision && S.decision.indexOf("associé") > -1) Ee = 4;
   else if(S.decision && S.decision.indexOf("quelqu'un d'autre") > -1) Ee = 0;
-  else Ee = 6;
+  else Ee = 4;
 
-  if(S.etape === "Je commande") F = 15;
-  else if(S.etape && S.etape.indexOf("j'en parle") > -1) F = 12;
-  else if(S.etape && S.etape.indexOf("compare") > -1) F = 10;
-  else if(S.etape && S.etape.indexOf("plus tard") > -1) F = 5;
-  if(S.besoin === "Prendre rendez-vous") F = Math.max(F, 13);
-  if(S.plan === "Oui, un plan coté") F = Math.min(15, F + 2);
-  F = Math.min(15, F);
+  /* F - engagement (15) */
+  var et = String(S.etape||"").toLowerCase();
+  if(rdv) F = 15;
+  else if(et.indexOf("je commande") > -1) F = 15;
+  else if(et.indexOf("compare") > -1) F = 11;
+  else if(et.indexOf("j'en parle") > -1) F = 9;
+  else if(et.indexOf("plus tard") > -1) F = 4;
+  else F = 4;
+  if(!rdv && S.plan === "Oui, un plan coté") F += 2;
+  F = Math.max(0, Math.min(15, F));
 
   if(S.indivision === "Oui, et elle n'est pas réglée") dr.push("indivision non réglée");
   if(S.acces === "Non, l'accès est difficile") dr.push("accès camion-grue difficile");
+  if(S.terrain === "Je n'ai pas encore de terrain") dr.push("pas de terrain");
 
   var sc = Math.max(0, Math.min(100, A+B+C+D+Ee+F));
+  /* Les verrous abaissent le score lui-meme, pas seulement le niveau :
+     le score affiche et le niveau ne peuvent plus se contredire. */
+  if(coh === "incompatible") sc = Math.min(sc, 44);
+  if(S.terrain === "Je n'ai pas encore de terrain"
+     || S.terrain === "Je l'ai repéré, il n'est pas encore à moi") sc = Math.min(sc, 69);
+  if(S.indivision === "Oui, et elle n'est pas réglée") sc = Math.min(sc, 84);
+
   var n = sc >= 85 ? 5 : sc >= 70 ? 4 : sc >= 45 ? 3 : sc >= 25 ? 2 : 1;
-  if(S.budget === "Non, c'est trop élevé pour moi" && n > 2) n = 2;
-  if(S.indivision === "Oui, et elle n'est pas réglée" && n > 4) n = 4;
-  if(S.terrain === "Je n'ai pas encore de terrain" && n > 3) n = 3;
-  if(S.terrain === "Je l'ai repéré, il n'est pas encore à moi" && n > 3) n = 3;
   var noms = ["","Froid","À qualifier","Sérieux","Chaud","Prioritaire"];
   return {score:sc, niveau:n, nom:noms[n], detail:"A"+A+" B"+B+" C"+C+" D"+D+" E"+Ee+" F"+F,
           drapeaux:dr.join(", ")};
@@ -368,12 +410,12 @@ function rendre(){
     var r = noter();
     h = '<div class="step on"><div class="fin"><div class="ok">✓</div>'
       + '<h2>C\'est envoyé, merci.</h2>'
-      + '<p class="sub">Je vous réponds sous 48 heures'
-      + (r.niveau >= 4 ? ', et je vous appelle dans les 24 heures : votre projet est prêt.' : '.')
-      + '<br>Un accusé de réception vient de partir sur ' + esc(S.mail || "votre adresse") + '.</p></div>';
+      + '<p class="sub">Votre demande est bien arrivée.'
+      + (r.niveau >= 4 ? ' Votre projet est prêt : je vous appelle dans les 24 heures.' : ' Je vous réponds sous 48 heures.')
+      + (S.mail ? '<br>Ma réponse partira sur ' + esc(S.mail) + '.' : '') + '</p></div>';
     h += '<div class="note">Si votre projet est urgent, appelez-moi directement au <b>87 22 65 55</b>.</div>';
     if(S.besoin === "Aménager un conteneur" && tarifEtude())
-      h += '<div class="note">Pour aller jusqu\'au plan coté et au chiffrage poste par poste, l\'étude de votre projet est facturée <b>' + tarifEtude() + '</b>, déduite de votre commande. Je ne vous la propose qu\'après notre premier échange.</div>';
+      h += '<div class="note">Pour aller jusqu\'au chiffrage poste par poste et au planning de travaux, l\'étude de votre projet est facturée <b>' + tarifEtude() + '</b>, déduite de votre commande. Je ne vous la propose qu\'après notre premier échange.</div>';
     h += '</div>';
     document.getElementById("main").innerHTML = h;
     document.getElementById("back").style.display = "none";
@@ -587,8 +629,8 @@ var LIB = {profil:"Vous êtes", besoin:"Besoin", format:"Format", commune:"Commu
   terrain:"Terrain", indivision:"Indivision", parcelle:"Parcelle", plan:"Plan", enveloppe:"Enveloppe",
   financement:"Financement", decision:"Décision", etape:"Prochaine étape", rdvlieu:"Lieu du rendez-vous",
   rdvquand:"Moment souhaité", nom:"Nom", structure:"Structure", tel:"Téléphone", mail:"Email", msg:"Message"};
-var ORDRE_R = ["profil","structure","besoin","format","usage","surface","commune","quantite","acces","terrain",
-  "indivision","parcelle","plan","delai","budget","enveloppe","financement","decision","etape","rdvlieu",
+var ORDRE_R = ["profil","structure","besoin","usage","surface","commune","acces","terrain",
+  "indivision","parcelle","plan","delai","enveloppe","financement","decision","etape","rdvlieu",
   "rdvquand","nom","tel","mail","msg"];
 
 function lignesRecap(){
@@ -640,6 +682,11 @@ function vigilance(){
   if(S.besoin==="Aménager un conteneur"){
     if(!S.enveloppe||S.enveloppe==="Je préfère en discuter")
       m.push("  À obtenir : l'enveloppe budgétaire. C'est l'information qui manque le plus souvent.");
+    var cB=coherenceBudget(), pB=estimPlancher();
+    if(cB==="incompatible")
+      m.push("  Enveloppe incompatible : "+S.surface+" m² ne descend pas sous "+fmt(pB)+" XPF sur mes devis. Recadrez avant tout chiffrage.");
+    else if(cB==="juste")
+      m.push("  Enveloppe juste : "+S.surface+" m² tourne autour de "+fmt(pB)+" XPF au plancher. Prévenez-le tout de suite.");
     if(S.financement==="Le financement reste à monter"||S.financement==="Je ne sais pas encore")
       m.push("  Financement non bouclé : ne lancez pas l'étude avant d'avoir un plan de financement.");
     if(S.terrain==="Je n'ai pas encore de terrain"||S.terrain==="Je l'ai repéré, il n'est pas encore à moi")
@@ -663,6 +710,12 @@ function topo(r){
   L.push(N.n+"          "+r.score+"/100");
   L.push(""); L.push("CE QU'IL FAUT FAIRE"); L.push(tir(19));
   for(var i=0;i<N.a.length;i++) L.push("  "+(i+1)+". "+N.a[i]);
+  if(coherenceBudget()==="incompatible"){
+    L.push("");
+    L.push("  ! Seul le budget bloque : le reste du dossier peut être solide.");
+    L.push("    Appelez pour recadrer, annoncez la fourchette réelle, laissez-le décider.");
+    L.push("    Ne produisez aucun devis avant d'avoir eu cette conversation.");
+  }
 
   bloc("LE CLIENT",[lg("",(S.nom||"sans nom")+(S.structure?"  —  "+S.structure:"")),
     lg("",S.profil),lg("Téléphone",S.tel),lg("Email",S.mail)]);
@@ -677,7 +730,11 @@ function topo(r){
     lg("Lieu du RDV",S.rdvlieu),lg("Moment",S.rdvquand)]);
   bloc("LE PROJET",pr);
 
-  var ar=[lg("Budget",S.budget),lg("Enveloppe",S.enveloppe),lg("Financement",S.financement)];
+  var ar=[lg("Enveloppe",S.enveloppe),lg("Financement",S.financement)];
+  var pl=estimPlancher(), coh=coherenceBudget();
+  if(pl) ar.push(lg("Plancher estimé",fmt(pl)+" XPF  (surface x taux plancher constaté)"));
+  if(coh==="incompatible") ar.push(lg("ALERTE","enveloppe sous le plancher : à recadrer dès le premier appel"));
+  else if(coh==="juste") ar.push(lg("Attention","enveloppe juste au regard du plancher constaté"));
   var et=tarifEtude(); if(et) ar.push(lg("Étude applicable",et+"  (déduite de la commande)"));
   bloc("L'ARGENT",ar);
   bloc("LA DÉCISION",[lg("Décide",S.decision),lg("Prochaine étape",S.etape)]);
@@ -712,7 +769,7 @@ function accuse(r){
   for(var i=0;i<a.length;i++) L.push("   " + a[i][0] + " : " + a[i][1]);
   var et = tarifEtude();
   if(et){ L.push("");
-    L.push("Pour votre information : pour aller jusqu'au plan coté et au chiffrage poste par poste, l'étude de votre projet est facturée " + et + ", intégralement déduite de votre commande si vous donnez suite. Je ne vous la proposerai qu'après notre premier échange, jamais avant.");
+    L.push("Pour votre information : pour aller jusqu'au chiffrage poste par poste et au planning de travaux, l'étude de votre projet est facturée " + et + ", intégralement déduite de votre commande si vous donnez suite. Je ne vous la proposerai qu'après notre premier échange, jamais avant.");
   }
   L.push(""); L.push("Si votre projet est urgent, appelez-moi directement au 87 22 65 55.");
   L.push(""); L.push("Bien cordialement,");
@@ -741,7 +798,7 @@ function envoyer(){
     _template: "box",
     _captcha : "false",
     _replyto : S.mail || "",
-    _autoresponse : accuse(r),
+    "Message pret a envoyer au client" : accuse(r),
     "Topo"   : topo(r),
     "Nom"    : S.nom || "",
     "Telephone": S.tel || "",
