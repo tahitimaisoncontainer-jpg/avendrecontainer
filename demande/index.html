@@ -26,6 +26,8 @@ main{flex:1;padding:22px 18px 130px}
 .step.on{display:block}
 @keyframes in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 .kicker{font-size:11px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--or);margin-bottom:6px}
+.kicker b{color:var(--navy)}
+.kicker i{font-style:normal;color:#b3bdcb;margin:0 5px}
 h2{margin:0 0 6px;font-size:22px;line-height:1.25;color:var(--navy);font-weight:750}
 .sub{margin:0 0 18px;font-size:14px;color:var(--gris)}
 .opts{display:flex;flex-direction:column;gap:9px}
@@ -245,11 +247,46 @@ E.etape = {k:"Presque fini", q:"Si ma proposition vous convient, quelle serait v
   ["Je compare avec d'autres devis"],
   ["Je garde la proposition pour plus tard"]]};
 
-E.contact = {k:"Vos coordonnées", q:"Comment je vous recontacte ?", contact:1,
-  sub:"Je réponds sous 48 heures, et sous 24 heures si votre projet est urgent. Profitez du dernier champ pour me poser vos questions : j'y réponds une par une."};
+E.contact = {k:"Vos coordonnées", q:"Vos coordonnées pour recevoir votre proposition", contact:1,
+  sub:"Je réponds sous 48 heures, et sous 24 heures si votre projet est urgent. Profitez du dernier champ pour me poser vos questions : j'y réponds une par une.",
+  confid:1};
 
 E.recap = {k:"C'est prêt", q:"Vérifiez avant d'envoyer", recap:1};
 E.fini = {k:"", q:"", fini:1};
+
+/* ============ ETAPES AFFICHEES ============ */
+var PHASE = {
+  profil:"Votre projet", besoin:"Votre projet", usage:"Votre projet", surface:"Votre projet",
+  commune:"Le terrain", terrain:"Le terrain", indivision:"Le terrain", parcelle:"Le terrain", acces:"Le terrain",
+  plan:"Votre plan", delai:"Votre plan",
+  enveloppe:"Budget et décision", financement:"Budget et décision",
+  decision:"Budget et décision", etape:"Budget et décision",
+  rdvlieu:"Le rendez-vous", rdvquand:"Le rendez-vous",
+  contact:"Vos coordonnées", recap:"Vos coordonnées"
+};
+function phaseDe(k){
+  if(k === "commune" && S.besoin === "Prendre rendez-vous") return "Le rendez-vous";
+  if(k === "usage" && S.besoin === "Prendre rendez-vous") return "Le rendez-vous";
+  if(k === "delai" && S.besoin === "Prendre rendez-vous") return "Le rendez-vous";
+  return PHASE[k] || "";
+}
+function listePhases(){
+  var out = [], vu = {};
+  for(var i=0;i<ordre.length;i++){
+    var f = phaseDe(ordre[i]);
+    if(f && !vu[f]){ vu[f] = 1; out.push(f); }
+  }
+  return out;
+}
+function compteur(){
+  /* tant que le besoin n est pas choisi le parcours est inconnu : pas de compteur trompeur */
+  if(!S.besoin) return "";
+  var f = phaseDe(ordre[idx]);
+  if(!f) return "";
+  var L = listePhases(), r = L.indexOf(f) + 1;
+  if(r < 1 || !L.length) return "";
+  return '<b>Étape ' + r + ' / ' + L.length + '</b><i>·</i>' + esc(f);
+}
 
 /* ============ PARCOURS ============ */
 function parcours(){
@@ -453,7 +490,9 @@ function rendre(){
   }
 
   h = '<div class="step on">';
-  if(e.k) h += '<div class="kicker">' + esc(e.k) + '</div>';
+  var cpt = compteur();
+  if(cpt) h += '<div class="kicker">' + cpt + '</div>';
+  else if(e.k) h += '<div class="kicker">' + esc(e.k) + '</div>';
   h += '<h2>' + esc(e.q) + '</h2>';
   if(e.sub) h += '<p class="sub">' + esc(e.sub) + '</p>';
   if(e.reperes) h += '<div class="note">' + e.reperes + '</div>';
@@ -478,6 +517,10 @@ function rendre(){
   }
   if(e.num) h += '<label class="f"><span>Surface approximative en m²</span><input id="i_' + e.num + '" type="number" inputmode="decimal" min="1" placeholder="par exemple 26" value="' + esc(S[e.num]||"") + '" oninput="maj(\'' + e.num + '\',this.value)"></label>';
   if(e.txt) h += '<label class="f"><span>Numéro de parcelle</span><input id="i_' + e.txt + '" type="text" placeholder="par exemple AL29" value="' + esc(S[e.txt]||"") + '" oninput="maj(\'' + e.txt + '\',this.value)"></label>';
+
+  if(e.confid)
+    h += '<div class="note"><b>Vos informations restent confidentielles.</b> Elles servent uniquement à traiter votre demande, '
+       + 'et ne sont ni revendues ni transmises à qui que ce soit.</div>';
 
   if(e.contact){
     h += '<label class="f"><span>Nom et prénom</span><input id="i_nom" type="text" autocomplete="name" value="' + esc(S.nom||"") + '" oninput="maj(\'nom\',this.value)"></label>'
