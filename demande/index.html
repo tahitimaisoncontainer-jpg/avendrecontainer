@@ -54,9 +54,11 @@ textarea{min-height:88px;resize:vertical}
 .prix .det{font-size:12.5px;opacity:.85}
 .note{background:#fdf3e7;border-left:3px solid var(--or);padding:11px 13px;font-size:13.5px;border-radius:0 9px 9px 0;margin:14px 0}
 .note b{color:#a04c05}
-.grille{margin:9px 0 3px;display:grid;grid-template-columns:1fr auto;gap:6px 14px;font-size:12.8px;align-items:baseline}
+.grille{margin:9px 0 12px;display:grid;grid-template-columns:1fr auto;gap:6px 14px;font-size:12.8px;align-items:baseline}
 .grille i{font-style:normal;color:#6b5744;line-height:1.3}
 .grille b{color:#a04c05;white-space:nowrap;text-align:right;font-weight:700}
+.grille em{grid-column:1/-1;font-style:normal;font-weight:800;color:var(--navy);font-size:11.5px;letter-spacing:.6px;text-transform:uppercase;margin:9px 0 1px;padding-bottom:4px;border-bottom:1px solid #ecd9bf}
+.grille em:first-child{margin-top:2px}
 .pj{margin:16px 0 2px}
 .pjb{display:flex;align-items:center;justify-content:center;gap:9px;width:100%;background:var(--card);border:1.5px dashed #b9c3d2;border-radius:12px;padding:15px 16px;font-size:14.5px;font-weight:600;color:var(--navy);cursor:pointer;transition:.12s}
 .pjb:hover{border-color:var(--navy);background:#f6f9ff}
@@ -196,7 +198,7 @@ E.parcelle = {k:"Le terrain", q:"Le numéro de votre parcelle", txt:"parcelle",
   sub:"Il se trouve en quelques secondes sur otia.gov.pf. Facultatif, mais il me fait gagner un aller-retour.", opt:1};
 
 E.plan = {k:"Votre projet", q:"Avez-vous un plan ou un croquis ?", ch:"plan", pj:1,
-  reperes:"Un croquis à main levée photographié me suffit pour démarrer : joignez-le ci-dessous.<br>Si vous n'avez rien, je fais établir le plan. Le tarif dépend du nombre et de la taille des conteneurs, en XPF :<div class='grille'><i>Plan 2D coté — 1 conteneur 20 pieds</i><b>35 800</b><i>Plan 2D coté — 1 conteneur 40 pieds</i><b>53 700</b><i>Chaque 20 pieds supplémentaire</i><b>+ 17 900</b><i>Chaque 40 pieds supplémentaire</i><b>+ 29 900</b><i>Visuel 3D en option — 1 conteneur 20 pieds</i><b>47 800</b><i>Visuel 3D en option — 1 conteneur 40 pieds</i><b>65 700</b><i>Chaque 20 / 40 pieds supplémentaire</i><b>+ 23 900 / 35 800</b></div>Le plan 2D me sert à chiffrer votre projet au poste près, et il constitue votre <b>dossier de permis de construire ou de permis de travaux</b>. Le visuel 3D vous montre le rendu final avant que je commence. Ces montants sont déduits de votre commande si vous donnez suite.", o:[
+  reperes:"Un croquis à main levée photographié me suffit pour démarrer : joignez-le ci-dessous.<br>Si vous n'avez rien, je fais établir le plan. Tarifs en XPF :<div class='grille'><em>Plan 2D coté</em><i>1 conteneur 20 pieds</i><b>35 800</b><i>1 conteneur 40 pieds</i><b>53 700</b><i>Par conteneur 20 pieds en plus</i><b>+ 17 900</b><i>Par conteneur 40 pieds en plus</i><b>+ 29 900</b><em>Visuel 3D &nbsp;·&nbsp; en option</em><i>1 conteneur 20 pieds</i><b>47 800</b><i>1 conteneur 40 pieds</i><b>65 700</b><i>Par conteneur 20 pieds en plus</i><b>+ 23 900</b><i>Par conteneur 40 pieds en plus</i><b>+ 35 800</b></div><b>Le plan 2D</b> me sert à chiffrer votre projet au poste près, et il constitue votre dossier de permis de construire ou de permis de travaux.<br><b>Le visuel 3D</b> vous montre le rendu final de votre projet avant que je commence.<br>Ces deux prestations sont facturées à part, avant le lancement des travaux.", o:[
   ["Oui, un plan coté"],["Un croquis à main levée"],["Non, rien pour l'instant"]]};
 
 E.enveloppe = {k:"Budget", q:"Dans quelle enveloppe souhaitez-vous rester ?", ch:"enveloppe", etudeNote:1,
