@@ -172,11 +172,13 @@ E.delai = {k:"Calendrier", q:"Pour quand ?", ch:"delai", o:[
 
 /* ---- branche AMENAGEMENT ---- */
 E.usage = {k:"Votre projet", q:"Quel usage prévoyez-vous ?", ch:"usage", o:[
-  ["Logement","Studio, chambre, maison"],
-  ["Bureau ou local commercial","Bureau, boutique, kiosque"],
-  ["Atelier ou stockage aménagé","Isolé, électrifié"],
-  ["Local technique","Sanitaires, chambre froide, laboratoire"],
-  ["Autre usage"]]};
+  ["Logement","Studio, chambre, maison, logement locatif"],
+  ["Bureau ou activité professionnelle","Bureau, commerce, boutique, cabinet, kiosque"],
+  ["Hébergement ou tourisme","Bungalow, hébergement touristique, unité locative"],
+  ["Atelier ou stockage aménagé","Atelier, stockage, local isolé ou électrifié"],
+  ["Sanitaire ou local spécialisé","Sanitaires, vestiaires, chambre froide, laboratoire, local technique"],
+  ["Projet multi-conteneurs ou bâtiment","Plusieurs conteneurs, bâtiment professionnel, ensemble immobilier"],
+  ["Autre projet"]]};
 
 E.surface = {k:"Votre projet", q:"Quelle surface envisagez-vous ?", num:"surface",
   sub:"Une valeur approximative suffit. Repères : un 20 pieds fait 13 m², un 40 pieds 28 m²."};
@@ -201,11 +203,16 @@ E.plan = {k:"Votre projet", q:"Avez-vous un plan ou un croquis ?", ch:"plan", pj
   reperes:"Un croquis à main levée photographié me suffit pour démarrer : joignez-le ci-dessous.<br>Si vous n'avez rien, je fais établir le plan. Tarifs en XPF :<div class='grille'><em>Plan 2D coté</em><i>1 conteneur 20 pieds</i><b>35 800</b><i>1 conteneur 40 pieds</i><b>53 700</b><i>Par conteneur 20 pieds en plus</i><b>+ 17 900</b><i>Par conteneur 40 pieds en plus</i><b>+ 29 900</b><em>Visuel 3D &nbsp;·&nbsp; en option</em><i>1 conteneur 20 pieds</i><b>47 800</b><i>1 conteneur 40 pieds</i><b>65 700</b><i>Par conteneur 20 pieds en plus</i><b>+ 23 900</b><i>Par conteneur 40 pieds en plus</i><b>+ 35 800</b></div><b>Le plan 2D</b> me sert à chiffrer votre projet au poste près, et il constitue votre dossier de permis de construire ou de permis de travaux.<br><b>Le visuel 3D</b> vous montre le rendu final de votre projet avant que je commence.<br>Ces deux prestations sont facturées à part, avant le lancement des travaux.", o:[
   ["Oui, un plan coté"],["Un croquis à main levée"],["Non, rien pour l'instant"]]};
 
-E.enveloppe = {k:"Budget", q:"Dans quelle enveloppe souhaitez-vous rester ?", ch:"enveloppe", etudeNote:1,
-  sub:"Aucun tarif ne s'affiche automatiquement ici, et c'est volontaire : le prix dépend du type de projet, de la surface, du lieu, de la difficulté de pose, des matériaux et du calendrier.",
-  reperes:"Ordres de grandeur relevés sur mes devis réels, conteneur, transport, matériaux et main-d'œuvre compris :<div class='grille'><i>Aménagement seul, conteneur déjà sur place</i><b>1,5 – 2 M</b><i>Bureau ou pièce à vivre, 20 pieds (13 m²)</i><b>3 – 4,5 M</b><i>Sanitaires ou vestiaires, 20 pieds</i><b>2,5 – 3,5 M</b><i>Bureau ou studio, 40 pieds (28 m²)</i><b>6 – 7 M</b><i>Local professionnel aux normes, 2 × 40 pieds</i><b>9 – 10 M</b><i>Maison 3 chambres ~80 m², 3 × 40 pieds</i><b>17 – 20 M</b><i>Bâtiment de 6 à 9 conteneurs</i><b>50 – 80 M</b></div>Ce sont des repères, pas des prix fermes : le vôtre dépend du lieu, de l'accès au terrain, des matériaux et du calendrier.", o:[
-  ["Moins de 3 millions XPF"],["De 3 à 6 millions"],["De 6 à 12 millions"],
-  ["Plus de 12 millions"],["Je préfère en discuter"]]};
+E.enveloppe = {k:"Budget", q:"Quel budget avez-vous prévu pour votre projet ?", ch:"enveloppe", etudeNote:1,
+  sub:"Cette information me permet de vérifier que votre projet est cohérent avec l'enveloppe que vous envisagez, et de vous orienter vers une solution adaptée. Une estimation réaliste du budget est indispensable avant l'établissement d'un devis.", o:[
+  ["2 à 3 millions XPF","Petit aménagement ou conteneur 20 pieds"],
+  ["3 à 5 millions XPF","Bureau, pièce de vie, studio ou local de petite surface"],
+  ["5 à 10 millions XPF","Studio, 40 pieds, commerce ou petit ensemble professionnel"],
+  ["10 à 20 millions XPF","Maison, bureaux ou ensemble de plusieurs conteneurs"],
+  ["20 à 30 millions XPF","Projet résidentiel ou professionnel de grande taille"],
+  ["30 à 50 millions XPF","Bâtiment ou ensemble multi-conteneurs important"],
+  ["50 millions XPF et plus","Projet de grande envergure ou programme complet"],
+  ["Je ne sais pas encore, j'ai besoin d'être conseillé","Je vous situe au premier échange"]]};
 
 E.financement = {k:"Budget", q:"Comment envisagez-vous de financer ce projet ?", ch:"financement",
   sub:"Cette question me sert à adapter le calendrier de facturation à votre situation.", o:[
@@ -264,7 +271,7 @@ function parcours(){
    enveloppe manifestement incompatible. Jamais affiche au client, jamais un prix. */
 function tauxPlancher(){
   if(S.usage === "Atelier ou stockage aménagé") return 120000;
-  if(S.usage === "Local technique") return 160000;
+  if(S.usage === "Sanitaire ou local spécialisé") return 160000;
   return 180000;
 }
 function estimPlancher(){
@@ -273,10 +280,13 @@ function estimPlancher(){
   return Math.round(m * tauxPlancher());
 }
 function plafondEnveloppe(){
-  if(S.enveloppe === "Moins de 3 millions XPF") return 3000000;
-  if(S.enveloppe === "De 3 à 6 millions") return 6000000;
-  if(S.enveloppe === "De 6 à 12 millions") return 12000000;
-  if(S.enveloppe === "Plus de 12 millions") return 1e12;
+  if(S.enveloppe === "2 à 3 millions XPF") return 3000000;
+  if(S.enveloppe === "3 à 5 millions XPF") return 5000000;
+  if(S.enveloppe === "5 à 10 millions XPF") return 10000000;
+  if(S.enveloppe === "10 à 20 millions XPF") return 20000000;
+  if(S.enveloppe === "20 à 30 millions XPF") return 30000000;
+  if(S.enveloppe === "30 à 50 millions XPF") return 50000000;
+  if(S.enveloppe === "50 millions XPF et plus") return 1e12;
   return null;
 }
 function coherenceBudget(){
@@ -295,10 +305,10 @@ function noter(){
   /* A - precision du projet (20) */
   if(rdv){
     A = 8;
-    if(S.usage && S.usage !== "Autre usage") A += 4;
+    if(S.usage && S.usage !== "Autre projet") A += 4;
     if(S.rdvlieu) A += 2;
   } else {
-    if(S.usage && S.usage !== "Autre usage") A += 5;
+    if(S.usage && S.usage !== "Autre projet") A += 5;
     if(S.surface) A += 4;
     if(S.plan === "Oui, un plan coté") A += 7;
     else if(S.plan === "Un croquis à main levée") A += 4;
@@ -681,7 +691,7 @@ function vigilance(){
   if(!S.tel) m.push("  À obtenir : un numéro de téléphone.");
   if(!S.mail) m.push("  À obtenir : une adresse email.");
   if(S.besoin==="Aménager un conteneur"){
-    if(!S.enveloppe||S.enveloppe==="Je préfère en discuter")
+    if(!S.enveloppe||S.enveloppe==="Je ne sais pas encore, j'ai besoin d'être conseillé")
       m.push("  À obtenir : l'enveloppe budgétaire. C'est l'information qui manque le plus souvent.");
     var cB=coherenceBudget(), pB=estimPlancher();
     if(cB==="incompatible")
@@ -756,7 +766,7 @@ function accuse(r){
   var L = ["Bonjour " + p + ",", "", "J'ai bien reçu votre demande, merci d'avoir pris le temps de la détailler."];
   var terrainOK = (S.terrain === "Il m'appartient ou je le loue" || S.terrain === "Achat ou bail en cours de signature"
                    || S.besoin !== "Aménager un conteneur");
-  var budgetOK = (S.enveloppe && S.enveloppe !== "Je préfère en discuter")
+  var budgetOK = (S.enveloppe && S.enveloppe !== "Je ne sais pas encore, j'ai besoin d'être conseillé")
                  || (S.budget && S.budget.indexOf("Oui") === 0)
                  || (S.budget && S.budget.indexOf("ajuster") > -1);
   if(r.niveau >= 4 && terrainOK && budgetOK)
