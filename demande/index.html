@@ -246,7 +246,7 @@ E.etape = {k:"Presque fini", q:"Si ma proposition vous convient, quelle serait v
   ["Je garde la proposition pour plus tard"]]};
 
 E.contact = {k:"Vos coordonnées", q:"Comment je vous recontacte ?", contact:1,
-  sub:"Je réponds sous 48 heures, et sous 24 heures si votre projet est urgent."};
+  sub:"Je réponds sous 48 heures, et sous 24 heures si votre projet est urgent. Profitez du dernier champ pour me poser vos questions : j'y réponds une par une."};
 
 E.recap = {k:"C'est prêt", q:"Vérifiez avant d'envoyer", recap:1};
 E.fini = {k:"", q:"", fini:1};
@@ -483,7 +483,8 @@ function rendre(){
     h += '<label class="f"><span>Nom et prénom</span><input id="i_nom" type="text" autocomplete="name" value="' + esc(S.nom||"") + '" oninput="maj(\'nom\',this.value)"></label>'
        + '<label class="f"><span>Téléphone</span><input id="i_tel" type="tel" inputmode="tel" autocomplete="tel" placeholder="87 12 34 56" value="' + esc(S.tel||"") + '" oninput="maj(\'tel\',this.value)"></label>'
        + '<label class="f"><span>Email</span><input id="i_mail" type="email" inputmode="email" autocomplete="email" placeholder="vous@exemple.pf" value="' + esc(S.mail||"") + '" oninput="maj(\'mail\',this.value)"></label>'
-       + '<label class="f"><span>Un mot sur votre projet <small style="font-weight:400;color:#5b6470">(facultatif)</small></span><textarea id="i_msg" oninput="maj(\'msg\',this.value)">' + esc(S.msg||"") + '</textarea></label>';
+       + '<label class="f"><span>Vos questions, ou un mot sur votre projet <small style="font-weight:400;color:#5b6470">(facultatif)</small></span>'
+       + '<textarea id="i_msg" placeholder="Posez-moi vos questions : délais, matériaux, isolation, normes, transport, entretien, autorisations… J\'y réponds une par une." oninput="maj(\'msg\',this.value)">' + esc(S.msg||"") + '</textarea></label>';
     if(S.profil === "Une entreprise" || S.profil === "Une administration ou une commune" || S.profil === "Une association")
       h += '<label class="f"><span>Nom de la structure</span><input id="i_structure" type="text" value="' + esc(S.structure||"") + '" oninput="maj(\'structure\',this.value)"></label>';
   }
@@ -738,6 +739,7 @@ function vigilance(){
       m.push("  Aucun plan : demandez une photo du terrain et un croquis à main levée.");
   }
   if(S.acces==="Je ne sais pas") m.push("  Accès camion-grue inconnu : à vérifier avant tout chiffrage.");
+  if(S.msg && String(S.msg).indexOf("?")>-1) m.push("  Il attend des réponses : reprenez ses questions une par une, c'est ce qui décide de la suite.");
   if(S.etape&&S.etape.indexOf("compare")>-1) m.push("  Il compare avec d'autres devis : soignez le délai de réponse.");
   if(S.etape&&S.etape.indexOf("plus tard")>-1) m.push("  Projet différé : ne consacrez pas de temps de chiffrage maintenant.");
   if(S.decision&&S.decision.indexOf("quelqu'un d'autre")>-1) m.push("  Ce n'est pas le décideur : demandez à parler à la personne concernée.");
@@ -781,7 +783,7 @@ function topo(r){
   var et=tarifEtude(); if(et) ar.push(lg("Étude applicable",et+"  (déduite de la commande)"));
   bloc("L'ARGENT",ar);
   bloc("LA DÉCISION",[lg("Décide",S.decision),lg("Prochaine étape",S.etape)]);
-  if(S.msg) bloc("SON MESSAGE",["  "+String(S.msg).replace(/\n/g,"\n  ")]);
+  if(S.msg) bloc(String(S.msg).indexOf("?")>-1 ? "SES QUESTIONS" : "SON MESSAGE",["  "+String(S.msg).replace(/\n/g,"\n  ")]);
 
   var v=vigilance(); if(r.drapeaux) v.unshift("  ⚑ "+r.drapeaux);
   bloc("POINTS DE VIGILANCE",v.length?v:["  Aucun."]);
