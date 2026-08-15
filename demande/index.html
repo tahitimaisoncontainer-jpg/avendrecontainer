@@ -542,7 +542,9 @@ function choix(champ, i){
   S[champ] = e.o[i][0];
   ordre = parcours();
   rendre();
-  setTimeout(suiv, 180);
+  /* sur un ecran qui accepte des pieces jointes on n avance pas tout seul :
+     le client doit avoir le temps de joindre son plan avant de passer a la suite */
+  if(!e.pj) setTimeout(suiv, 180);
 }
 function maj(champ, val){ S[champ] = val; ordre = parcours(); majPrixLive(); }
 
