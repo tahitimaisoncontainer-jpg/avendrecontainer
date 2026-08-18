@@ -72,6 +72,12 @@ textarea{min-height:88px;resize:vertical}
 .pjf .rm{border:0;background:transparent;font:inherit;font-size:18px;line-height:1;color:#98a2b3;cursor:pointer;padding:0 2px}
 .pjf .rm:hover{color:var(--rouge)}
 .pjerr{color:var(--rouge);font-size:12.8px;font-weight:600;margin-top:8px}
+.gab{background:var(--card);border:1px solid var(--bord);border-radius:12px;padding:12px 10px 10px;margin:14px 0 4px;box-shadow:var(--ombre)}
+.gab svg{display:block;width:100%;height:auto}
+.gab .lg{font-size:12.3px;color:var(--gris);line-height:1.65;margin:9px 4px 0}
+.gab .lg b{color:#18202e}
+.gab .lg u{text-decoration:none;color:#a04c05;font-weight:700}
+.gab .sep{height:1px;background:var(--bord);margin:12px 2px 10px}
 .recap{background:var(--card);border:1px solid var(--bord);border-radius:13px;padding:4px 16px;box-shadow:var(--ombre)}
 .recap .r{display:flex;justify-content:space-between;gap:14px;padding:11px 0;border-bottom:1px solid #f0f3f7;font-size:14px}
 .recap .r:last-child{border:0}
@@ -182,8 +188,8 @@ E.usage = {k:"Votre projet", q:"Quel usage prévoyez-vous ?", ch:"usage", o:[
   ["Projet multi-conteneurs ou bâtiment","Plusieurs conteneurs, bâtiment professionnel, ensemble immobilier"],
   ["Autre projet"]]};
 
-E.surface = {k:"Votre projet", q:"Quelle surface envisagez-vous ?", num:"surface",
-  sub:"Une valeur approximative suffit. Repères : un 20 pieds fait 13 m², un 40 pieds 28 m²."};
+E.surface = {k:"Votre projet", q:"Quelle surface envisagez-vous ?", num:"surface", gabarit:1,
+  sub:"Une valeur approximative suffit. Voici de quoi vous repérer, à l'échelle :"};
 
 E.terrain = {k:"Le terrain", q:"Où en êtes-vous avec le terrain ?", ch:"terrain", o:[
   ["Il m'appartient ou je le loue"],
@@ -447,6 +453,76 @@ function noter(){
           drapeaux:dr.join(", ")};
 }
 
+/* ============ GABARIT A L ECHELLE ============ */
+/* Dessin de cote, 25 pixels par metre. Le personnage mesure 1,80 m
+   et se tient a l interieur : le client voit la hauteur sous plafond. */
+function bonhomme(x, sol, t){
+  t = t || 45; /* 45 px = 1,80 m a l echelle de 25 px par metre */
+  var e = t / 45;
+  return '<g fill="#e07b15" transform="translate(' + x + ',' + (sol - t) + ') scale(' + e + ')">'
+       + '<circle cx="7" cy="4.5" r="4.5"/>'
+       + '<path d="M7 10.5 c-5.5 0 -6.5 3.5 -6.5 7.5 v9.5 h2.6 v17.5 h2.6 v-16 h2.6 v16 h2.6 v-17.5 h2.6 v-9.5 c0 -4 -1 -7.5 -6.5 -7.5 z"/>'
+       + '</g>';
+}
+function cote(x1, y1, x2, y2, txt, tx, ty, anc){
+  return '<line x1="' + x1 + '" y1="' + y1 + '" x2="' + x2 + '" y2="' + y2 + '" stroke="#98a2b3" stroke-width="1"/>'
+       + '<text x="' + tx + '" y="' + ty + '" font-size="9" fill="#5b6470" text-anchor="' + anc + '">' + txt + '</text>';
+}
+function boite(x, y, w, h, titre, ty){
+  var g = '<text x="' + x + '" y="' + ty + '" font-size="10.5" font-weight="700" fill="#1e3a5f">' + titre + '</text>';
+  g += '<rect x="' + x + '" y="' + y + '" width="' + w + '" height="' + h + '" rx="2" fill="#eef2f8" stroke="#1e3a5f" stroke-width="1.6"/>';
+  var nb = Math.round(w / 15); /* une nervure tous les 60 cm environ */
+  for(var i = 1; i < nb; i++){
+    var cx = x + w * i / nb;
+    g += '<line x1="' + cx + '" y1="' + (y + 4) + '" x2="' + cx + '" y2="' + (y + h - 4) + '" stroke="#c9d4e4" stroke-width="1"/>';
+  }
+  g += '<line x1="' + (x - 6) + '" y1="' + (y + h) + '" x2="' + (x + w + 6) + '" y2="' + (y + h) + '" stroke="#1e3a5f" stroke-width="1.4"/>';
+  return g;
+}
+/* Vue de dessus : un simple rectangle a l echelle, longueur par largeur,
+   avec la surface au sol et le volume. Meme echelle que la vue de cote. */
+function dessus(x, y, L, W, k, titre, ty, surf, vol){
+  var w = L * k, h = W * k;
+  var g = '<text x="' + x + '" y="' + ty + '" font-size="10.5" font-weight="700" fill="#1e3a5f">' + titre + '</text>';
+  g += '<rect x="' + x + '" y="' + y + '" width="' + w.toFixed(1) + '" height="' + h.toFixed(1) + '" rx="2" fill="#eef2f8" stroke="#1e3a5f" stroke-width="1.6"/>';
+  /* portes sur le bout droit */
+  g += '<line x1="' + (x + w - 7).toFixed(1) + '" y1="' + y + '" x2="' + (x + w - 7).toFixed(1) + '" y2="' + (y + h).toFixed(1) + '" stroke="#1e3a5f" stroke-width="1"/>';
+  /* une personne vue de dessus : 55 cm de large */
+  var r = 0.275 * k;
+  g += '<circle cx="' + (x + 22).toFixed(1) + '" cy="' + (y + h / 2).toFixed(1) + '" r="' + r.toFixed(1) + '" fill="#e07b15"/>';
+  g += '<text x="' + (x + w / 2 + 14).toFixed(1) + '" y="' + (y + h / 2 + 5).toFixed(1) + '" font-size="13" font-weight="800" fill="#a04c05" text-anchor="middle">' + surf + '<tspan fill="#5b6470" font-weight="600" font-size="11.5">  ·  </tspan>' + vol + '</text>';
+  g += cote(x, y + h + 12, x + w, y + h + 12, L.toFixed(2).replace(".", ",") + " m", x + w / 2, y + h + 25, "middle");
+  g += cote(x + w + 8, y, x + w + 8, y + h, "2,44 m", x + w + 12, y + h / 2 + 3, "start");
+  return g;
+}
+var PLONGEE = (function(){
+  var k = 25;
+  var v = '<svg viewBox="0 0 360 234" role="img" aria-label="Vue de dessus a l echelle d un conteneur 20 pieds et d un 40 pieds">';
+  v += dessus(14, 22, 6.06, 2.44, k, "20 pieds DRY — vu de dessus", 15, "13 m²", "33 m³");
+  v += dessus(14, 135, 12.19, 2.44, k, "40 pieds HC — vu de dessus", 128, "28 m²", "76 m³");
+  return v + '</svg>';
+})();
+
+var GABARIT = (function(){
+  var v = '<svg viewBox="0 0 360 248" role="img" aria-label="Comparaison a l echelle d un conteneur 20 pieds et d un 40 pieds avec une personne de 1,80 m">';
+  /* 20 pieds : 6,06 x 2,59 m */
+  v += boite(14, 22, 151.5, 64.75, "20 pieds DRY", 15);
+  v += bonhomme(30, 86.75);
+  v += cote(172, 22, 172, 86.75, "2,59 m", 176, 57, "start");
+  v += cote(14, 100, 165.5, 100, "6,06 m", 90, 113, "middle");
+  /* 40 pieds : 12,19 x 2,90 m */
+  v += boite(14, 140, 304.75, 72.5, "40 pieds HC", 133);
+  v += bonhomme(30, 212.5);
+  v += cote(325, 140, 325, 212.5, "2,90 m", 329, 179, "start");
+  v += cote(14, 226, 318.75, 226, "12,19 m", 166, 239, "middle");
+  return v + '</svg>';
+})();
+var LEGENDE = '<div class="lg">'
+  + '<b>20 pieds DRY</b> — 6,06 × 2,44 × 2,59 m hors tout · <u>13 m²</u> au sol · 33 m³<br>'
+  + '<b>40 pieds HC</b> — 12,19 × 2,44 × 2,90 m hors tout · <u>28 m²</u> au sol · 76 m³<br>'
+  + 'Le personnage mesure 1,80 m. Hauteur libre : 2,39 m dans un 20 pieds, 2,70 m dans un 40 HC.'
+  + '</div>';
+
 /* ============ RENDU ============ */
 function esc(t){ return String(t==null?"":t).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
 
@@ -532,6 +608,8 @@ function rendre(){
       h += '<option' + (S[e.sel] === COM[j][0] ? ' selected' : '') + '>' + esc(COM[j][0]) + '</option>';
     h += '</select></label>';
   }
+  if(e.gabarit) h += '<div class="gab">' + GABARIT + '<div class="sep"></div>' + PLONGEE + LEGENDE + '</div>';
+
   if(e.num) h += '<label class="f"><span>Surface approximative en m²</span><input id="i_' + e.num + '" type="number" inputmode="decimal" min="1" placeholder="par exemple 26" value="' + esc(S[e.num]||"") + '" oninput="maj(\'' + e.num + '\',this.value)"></label>';
   if(e.txt) h += '<label class="f"><span>Numéro de parcelle</span><input id="i_' + e.txt + '" type="text" placeholder="par exemple AL29" value="' + esc(S[e.txt]||"") + '" oninput="maj(\'' + e.txt + '\',this.value)"></label>';
 
