@@ -259,6 +259,163 @@ function blocEstimation(complet){
   return h + '</div>';
 }
 
+/* ============ DEVIS PROVISOIRE ENVOYE AU CLIENT ============
+   Contenu strictement destine au client : aucune mention du cout de revient,
+   du taux au m2 ni du coefficient. Les postes internes restent dans le topo. */
+function reference(){
+  var d = new Date();
+  function z(n){ return (n < 10 ? "0" : "") + n; }
+  return "TMC-JDP2027-" + String(d.getFullYear()).slice(2) + z(d.getMonth() + 1) + z(d.getDate())
+       + "-" + z(d.getHours()) + z(d.getMinutes());
+}
+function ligne(g, m){ while(g.length < 52) g += "."; return "  " + g + " " + (m.length < 14 ? Array(14 - m.length).join(" ") + m : m); }
+function trait(n){ var s = ""; for(var i = 0; i < n; i++) s += "-"; return s; }
+
+function devisTexte(){
+  var r = chiffrage();
+  if(!r) return "";
+  var L = [], n = Math.max(1, totalMod());
+
+  L.push("DEVIS PROVISOIRE");
+  L.push(trait(60));
+  L.push("Tahiti Maison Container  —  N° Tahiti 710194");
+  L.push("87 22 65 55  —  tahitimaisoncontainer@gmail.com");
+  L.push("");
+  L.push("  Référence   : " + reference());
+  L.push("  Établi le   : " + new Date().toLocaleDateString("fr-FR"));
+  L.push("  Validité    : 30 jours");
+  L.push("");
+
+  L.push("DESTINATAIRE");
+  L.push(trait(12));
+  L.push("  Comité Organisateur des Jeux du Pacifique 2027");
+  if(S.direction) L.push("  " + S.direction);
+  if(S.referent && String(S.referent).trim() !== String(S.nom || "").trim()) L.push("  " + S.referent);
+  L.push("  " + (S.nom || "") + (S.tel ? "  —  " + S.tel : "") + (S.mail ? "  —  " + S.mail : ""));
+  L.push("");
+
+  L.push("OBJET");
+  L.push(trait(5));
+  L.push("  Aménagement de " + libelleMod() + (n > 1 ? " (" + n + " modules)" : ""));
+  L.push("  Surface au sol : " + surface() + " m²");
+  if(S.fonction)     L.push("  Fonction : " + S.fonction);
+  if(postes())       L.push("  Effectif accueilli : " + postes() + " personnes");
+  if(S.implantation) L.push("  Implantation : " + S.implantation);
+  if(S.ousites)      L.push("  Emplacement" + (nSites() > 1 ? "s (" + nSites() + " sites)" : "") + " : " + S.ousites);
+  if(S.duree)        L.push("  Durée d'usage : " + S.duree);
+  L.push("");
+
+  L.push("DÉTAIL ESTIMATIF  (XPF)");
+  L.push(trait(22));
+  L.push(ligne("Conteneurs " + libelleMod() + ", livrés et posés", fmt(r.cont)));
+  L.push(ligne("Aménagement intérieur, " + surface() + " m²", fmt(r.amen)));
+  if(r.equip){
+    L.push("");
+    L.push("  Équipements retenus");
+    var a = MULTI.equipements || [];
+    for(var i = 0; i < EQUIP.length; i++)
+      if(a.indexOf(EQUIP[i][0]) > -1)
+        L.push(ligne("  · " + EQUIP[i][0] + (EQUIP[i][3] === "module" ? " (" + n + " modules)" : ""),
+                     fmt(EQUIP[i][2] * (EQUIP[i][3] === "module" ? n : 1))));
+    L.push(ligne("  Sous-total équipements", fmt(r.equip)));
+    L.push("");
+  }
+  if(r.sites) L.push(ligne("Installation sur " + nSites() + " sites distincts", fmt(r.sites)));
+  L.push(ligne("Conditions de marché public et délai retenu", fmt(r.bas - r.sousTotal)));
+  L.push("  " + trait(66));
+  L.push(ligne("ESTIMATION BASSE", fmt(r.bas)));
+  L.push(ligne("ESTIMATION HAUTE", fmt(r.haut)));
+  L.push("");
+
+  L.push("DÉLAI RETENU");
+  L.push(trait(12));
+  L.push("  " + (S.delai || "non précisé"));
+  if(r.maj){
+    L.push("  Majoration appliquée : + " + Math.round(r.maj * 100) + " %");
+    L.push("  Équipe dédiée, heures supplémentaires et approvisionnement accéléré.");
+    L.push("");
+    L.push("  Sans contrainte de date, la même prestation se situerait");
+    L.push("  autour de " + mio(r.public) + " XPF, soit " + fmt(r.bas - r.public) + " XPF de moins.");
+    L.push("  Un mois de marge gagné sur le calendrier se retrouve dans le prix.");
+  } else {
+    L.push("  Aucune majoration : planning au rythme normal de l'atelier.");
+  }
+  L.push("");
+
+  L.push("CE QUE L'ESTIMATION COMPREND");
+  L.push(trait(28));
+  L.push("  · Fourniture des conteneurs, transport et pose sur emplacement préparé");
+  L.push("  · Aménagement intérieur : isolation, cloisonnement, revêtements,");
+  L.push("    électricité et menuiseries");
+  L.push("  · Les équipements listés ci-dessus");
+  L.push("");
+  L.push("CE QU'ELLE NE COMPREND PAS");
+  L.push(trait(26));
+  L.push("  · Terrassement, dalle, plots et raccordements aux réseaux");
+  L.push("  · Plans d'architecte et dossier de permis, chiffrés à part");
+  L.push("  · Transport maritime interîles si un site est hors de Tahiti");
+  if(String(S.duree || "").indexOf("démontage") > -1)
+    L.push("  · Dépose, évacuation et remise en état du site en fin d'usage");
+  L.push("");
+
+  L.push("CONDITIONS");
+  L.push(trait(10));
+  L.push("  Ce document est une ESTIMATION PROVISOIRE établie automatiquement à partir");
+  L.push("  de vos réponses. Il ne constitue ni un devis ni un engagement contractuel.");
+  L.push("  Le devis ferme est établi sur votre plan d'aménagement, après visite");
+  L.push("  technique du ou des sites. Montants en XPF.");
+  L.push("");
+  L.push("  Jean-Baptiste HAUATA");
+  L.push("  Tahiti Maison Container");
+  return L.join("\n");
+}
+
+/* Version imprimable du devis : le client la telecharge ou l imprime en PDF.
+   Aucune dependance a un service tiers, la mise en page est maitrisee. */
+function devisHTML(){
+  var t = devisTexte();
+  if(!t) return "";
+  return '<!doctype html><html lang="fr"><head><meta charset="utf-8">'
+    + '<meta name="viewport" content="width=device-width,initial-scale=1">'
+    + '<title>Devis provisoire ' + esc(reference()) + '</title><style>'
+    + '@page{margin:14mm}'
+    + 'body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;'
+    + 'color:#18202e;background:#eef1f6;margin:0;padding:22px 14px}'
+    + '.pg{max-width:760px;margin:0 auto;background:#fff;padding:26px 28px 34px;border-radius:12px;'
+    + 'box-shadow:0 2px 14px rgba(31,56,100,.10)}'
+    + '.hd{display:flex;align-items:center;gap:13px;border-bottom:3px solid #1f3864;padding-bottom:14px;margin-bottom:6px}'
+    + '.lg{width:44px;height:44px;border-radius:9px;background:#e36c0a;color:#fff;display:flex;'
+    + 'align-items:center;justify-content:center;font-weight:800;font-size:15px;flex:0 0 auto}'
+    + '.hd h1{margin:0;font-size:19px;color:#1f3864}.hd p{margin:2px 0 0;font-size:12.5px;color:#5b6470}'
+    + 'pre{font-family:"DejaVu Sans Mono",Menlo,Consolas,monospace;font-size:11.6px;line-height:1.55;'
+    + 'white-space:pre-wrap;word-wrap:break-word;margin:16px 0 0}'
+    + '.im{margin:20px 0 0;text-align:center}'
+    + '.im button{background:#1f3864;color:#fff;border:0;border-radius:9px;padding:12px 22px;'
+    + 'font:inherit;font-size:15px;font-weight:700;cursor:pointer}'
+    + '@media print{body{background:#fff;padding:0}.pg{box-shadow:none;border-radius:0;padding:0}.im{display:none}}'
+    + '</style></head><body><div class="pg">'
+    + '<div class="hd"><div class="lg">TMC</div><div><h1>Tahiti Maison Container</h1>'
+    + '<p>Devis provisoire — Jeux du Pacifique 2027</p></div></div>'
+    + '<pre>' + esc(t) + '</pre>'
+    + '<div class="im"><button onclick="window.print()">Imprimer ou enregistrer en PDF</button></div>'
+    + '</div></body></html>';
+}
+function telechargerDevis(){
+  var h = devisHTML();
+  if(!h) return;
+  var b = new Blob([h], {type:"text/html;charset=utf-8"});
+  var u = URL.createObjectURL(b);
+  var a = document.createElement("a");
+  a.href = u; a.download = "Devis-provisoire-" + reference() + ".html";
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  setTimeout(function(){ URL.revokeObjectURL(u); }, 4000);
+}
+function ouvrirDevis(){
+  var w = window.open("", "_blank");
+  if(!w){ telechargerDevis(); return; }
+  w.document.write(devisHTML()); w.document.close();
+}
+
 /* ============ GABARIT A L ECHELLE ============ */
 /* Dessin de cote, 25 pixels par metre. Le personnage mesure 1,80 m
    et se tient a l interieur : le client voit la hauteur sous plafond. */
@@ -569,6 +726,15 @@ function rendre(){
       + '<p class="sub">Votre demande est arrivée avec l\'ensemble des éléments'
       + (PJ.length ? ' et votre plan d\'aménagement' : '') + '.</p>'
       + blocEstimation(true)
+      + (chiffrage() ? '<div class="note"><b>Votre devis provisoire est prêt.</b><br>'
+          + 'Il reprend tout ce que vous avez indiqué, poste par poste. Ouvrez-le pour le lire, '
+          + 'l\'imprimer ou l\'enregistrer en PDF, et le transmettre à votre direction.</div>'
+          + '<div class="opts"><button class="opt" onclick="ouvrirDevis()">'
+          + '<span class="ic">\u2713</span><span class="tx">Ouvrir mon devis provisoire'
+          + '<small>S\'ouvre dans un nouvel onglet, avec un bouton pour l\'enregistrer en PDF</small></span></button>'
+          + '<button class="opt" onclick="telechargerDevis()">'
+          + '<span class="ic">\u2713</span><span class="tx">Le télécharger'
+          + '<small>Fichier ' + esc("Devis-provisoire-" + reference()) + '</small></span></button></div>' : '')
       + '<div class="note"><b>La suite.</b><br>Je vous rappelle sous 24 heures pour caler les points techniques, '
       + 'puis vous recevez la proposition chiffrée sur la base de votre plan.<br>'
       + 'Si c\'est urgent, appelez-moi directement au <b>87 22 65 55</b>.</div></div>';
@@ -934,6 +1100,7 @@ function envoyer(){
   var charge = {
     _subject: suj, _template: "box", _captcha: "false", _replyto: S.mail || "",
     "Topo": topo(),
+    "Devis provisoire a transmettre au client": devisTexte(),
     "Nom": S.nom || "", "Direction": S.direction || "", "Telephone": S.tel || "", "Email": S.mail || "",
     "Modules": libelleMod(), "Surface": surface() ? surface() + " m2" : "",
     "Echeance": S.delai || "",
