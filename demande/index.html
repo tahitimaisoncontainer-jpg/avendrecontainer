@@ -40,6 +40,7 @@ button.opt .tx{flex:1}
 button.opt .tx small{display:block;color:var(--gris);font-size:12.5px;margin-top:2px;line-height:1.35}
 label.f{display:block;margin-bottom:13px}
 .mods{display:grid;grid-template-columns:1fr 1fr;gap:11px;margin:2px 0 13px}
+.sep2{height:1px;background:var(--bord);margin:20px 0 16px}
 .mods label.f{margin-bottom:0}
 .mods input{text-align:center;font-weight:700}
 label.f span{display:block;font-size:13px;font-weight:600;margin-bottom:5px;color:#2b3646}
@@ -190,8 +191,8 @@ E.usage = {k:"Votre projet", q:"Quel usage prévoyez-vous ?", ch:"usage", o:[
   ["Sanitaire ou local spécialisé","Sanitaires, vestiaires, chambre froide, laboratoire, local technique"],
   ["Autre projet"]]};
 
-E.modules = {k:"Votre projet", q:"Combien de conteneurs votre projet comporte-t-il ?", mod:1,
-  sub:"Un même usage peut demander un seul module ou plusieurs. Tout ce qui suit — surface, plans, budget — portera sur <b>l'ensemble</b> du projet, jamais sur un module isolé."};
+E.modules = {k:"Votre projet", q:"Quelle surface envisagez-vous ?", mod:1, gabarit:1, num:"surface",
+  sub:"Voici les deux formats, à l'échelle, avec une personne d'1,80 m pour vous repérer. Indiquez ensuite combien de modules de chaque format : je calcule la surface, vous la corrigez si besoin. Tout ce qui suit — surface, plans, budget — portera sur <b>l'ensemble</b> du projet, jamais sur un module isolé."};
 
 E.implantation = {k:"Votre projet", q:"Comment ces modules seront-ils implantés ?", ch:"implantation",
   sub:"Assembler des conteneurs et en poser plusieurs séparément ne coûtent pas la même chose : jonctions et reprises d'étanchéité d'un côté, équipements et raccordements dupliqués de l'autre.", o:[
@@ -199,9 +200,6 @@ E.implantation = {k:"Votre projet", q:"Comment ces modules seront-ils implantés
   ["Séparés, posés indépendamment","Chaque module fonctionne seul, sur le même terrain ou sur plusieurs sites"],
   ["Superposés, avec un étage","Structure porteuse, escalier ou coursive"],
   ["Je ne sais pas encore","Nous le déterminerons ensemble"]]};
-
-E.surface = {k:"Votre projet", q:"Quelle surface envisagez-vous ?", num:"surface", gabarit:1,
-  sub:"Indiquez la surface au sol <b>totale</b> du projet, tous modules additionnés. Voici de quoi vous repérer, à l'échelle :"};
 
 E.terrain = {k:"Le terrain", q:"Où en êtes-vous avec le terrain ?", ch:"terrain", o:[
   ["Il m'appartient ou je le loue"],
@@ -367,6 +365,19 @@ function prixPlan(){
   return [35800 + (a - 1) * 17900, 47800 + (a - 1) * 23900];
 }
 
+/* La surface vit sur le meme ecran que le comptage : elle doit se rafraichir
+   des que le client change le nombre de modules. */
+function blocSurface(champ){
+  var h = "";
+  if(champ === "surface" && totalMod())
+    h += '<div class="note">Vous avez indiqu\u00e9 <b>' + esc(libelleMod()) + '</b>, soit environ <b>'
+       + surfaceMod() + ' m\u00b2 au sol au total</b>' + (totalMod() > 1 ? ' pour l\'ensemble des ' + totalMod() + ' modules' : '')
+       + '. Le champ ci-dessous est pr\u00e9rempli avec ce total : corrigez-le si votre am\u00e9nagement diff\u00e8re \u2014 mezzanine, terrasse, modules ouverts les uns sur les autres, partie non am\u00e9nag\u00e9e.</div>';
+  return h + '<label class="f"><span>Surface au sol totale du projet, en m\u00b2</span>'
+       + '<input id="i_' + champ + '" type="number" inputmode="decimal" min="1" placeholder="par exemple 26" value="'
+       + esc(S[champ]||"") + '" oninput="maj(\'' + champ + '\',this.value)"></label>';
+}
+
 function blocModules(){
   if(S.modules === "\u00c0 d\u00e9finir")
     return '<div class="note">Nombre de conteneurs \u00e0 d\u00e9finir. Indiquez tout de m\u00eame une surface approximative \u00e0 l\'\u00e9cran suivant : elle me suffit pour situer le projet.</div>';
@@ -380,6 +391,7 @@ function blocModules(){
 }
 function majMod(k, v){
   S[k] = v;
+  effaceErr();
   if(S.modules === "\u00c0 d\u00e9finir") delete S.modules;
   var t = totalMod();
   if(t) S.modules = libelleMod(); else delete S.modules;
@@ -387,6 +399,7 @@ function majMod(k, v){
   if(!S.surfaceManuelle){ var q = surfaceMod(); if(q) S.surface = String(q); else delete S.surface; }
   ordre = parcours();
   var z = document.getElementById("modres"); if(z) z.innerHTML = blocModules();
+  var y = document.getElementById("surfzone"); if(y) y.innerHTML = blocSurface("surface");
   var b = document.getElementById("modx"); if(b) b.className = "opt";
 }
 function modInconnu(){
@@ -405,7 +418,7 @@ function parcours(){
   } else if(S.besoin === "Aménager un conteneur"){
     p = p.concat(["usage","modules"]);
     if(totalMod() >= 2 || S.modules === "À définir") p.push("implantation");
-    p = p.concat(["surface","commune","terrain"]);
+    p = p.concat(["commune","terrain"]);
     if(S.terrain === "Il m'appartient ou je le loue" || S.terrain === "Achat ou bail en cours de signature") p.push("indivision");
     p = p.concat(["parcelle","acces","plan","delai","enveloppe","financement","decision","etape","contact","recap"]);
   } else if(S.besoin === "Prendre rendez-vous"){
@@ -720,6 +733,8 @@ function rendre(){
       h += '<option' + (S[e.sel] === COM[j][0] ? ' selected' : '') + '>' + esc(COM[j][0]) + '</option>';
     h += '</select></label>';
   }
+  if(e.gabarit) h += '<div class="gab">' + GABARIT + '<div class="sep"></div>' + PLONGEE + LEGENDE + '</div>';
+
   if(e.mod){
     h += '<div class="mods">'
        + '<label class="f"><span>Conteneurs 20 pieds</span><input id="i_n20" type="number" inputmode="numeric" min="0" max="60" step="1" placeholder="0" value="' + esc(S.n20||"") + '" oninput="majMod(\'n20\',this.value)"></label>'
@@ -730,14 +745,10 @@ function rendre(){
        + '<span class="ic">\u2713</span><span class="tx">Je ne sais pas encore combien'
        + '<small>Nous le d\u00e9terminerons ensemble \u00e0 partir de votre besoin.</small></span></button>';
   }
-  if(e.gabarit) h += '<div class="gab">' + GABARIT + '<div class="sep"></div>' + PLONGEE + LEGENDE + '</div>';
 
   if(e.num){
-    if(e.num === "surface" && totalMod())
-      h += '<div class="note">Vous avez indiqu\u00e9 <b>' + esc(libelleMod()) + '</b>, soit environ <b>'
-         + surfaceMod() + ' m\u00b2 au sol au total</b>' + (totalMod() > 1 ? ' pour l\'ensemble des ' + totalMod() + ' modules' : '')
-         + '. Le champ est pr\u00e9rempli avec ce total : corrigez-le si votre am\u00e9nagement diff\u00e8re — mezzanine, terrasse, modules ouverts les uns sur les autres, partie non am\u00e9nag\u00e9e.</div>';
-    h += '<label class="f"><span>Surface au sol totale du projet, en m\u00b2</span><input id="i_' + e.num + '" type="number" inputmode="decimal" min="1" placeholder="par exemple 26" value="' + esc(S[e.num]||"") + '" oninput="maj(\'' + e.num + '\',this.value)"></label>';
+    if(e.mod) h += '<div class="sep2"></div>';
+    h += '<div id="surfzone">' + blocSurface(e.num) + '</div>';
   }
   if(e.txt) h += '<label class="f"><span>Numéro de parcelle</span><input id="i_' + e.txt + '" type="text" placeholder="par exemple AL29" value="' + esc(S[e.txt]||"") + '" oninput="maj(\'' + e.txt + '\',this.value)"></label>';
 
@@ -910,8 +921,10 @@ function coche(champ, i){
   rendre();
 }
 
+function effaceErr(){ var d = document.getElementById("err"); if(d) d.innerHTML = ""; }
 function maj(champ, val){
   S[champ] = val;
+  effaceErr();
   /* des que le client corrige la surface lui-meme, on cesse de la recalculer */
   if(champ === "surface") S.surfaceManuelle = 1;
   ordre = parcours(); majPrixLive();
