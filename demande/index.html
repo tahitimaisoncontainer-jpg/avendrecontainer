@@ -232,7 +232,19 @@ E.enveloppe = {k:"Budget", q:"Quel budget avez-vous prévu pour votre projet ?",
   ["20 à 30 millions XPF","Projet résidentiel ou professionnel de grande taille"],
   ["30 à 50 millions XPF","Bâtiment complet ou ensemble de modules important"],
   ["50 millions XPF et plus","Programme complet, plusieurs bâtiments ou tranche importante"],
-  ["Je ne sais pas encore, j'ai besoin d'être conseillé","Je vous situe au premier échange"]]};
+  ["Je ne sais pas encore, j'ai besoin d'être conseillé","Je vous situe au premier échange"]],
+  /* Commande publique : delai de reglement, avance de tresorerie, garanties.
+     A projet identique le reperage descend d une tranche. Memes valeurs de
+     tranche, seuls les reperes changent. */
+  descPublic:[
+  "Rarement suffisant pour une commande publique",
+  "Aménagement simple d'un seul module",
+  "Un module entièrement aménagé et équipé",
+  "Un grand module abouti, ou deux modules",
+  "Trois à quatre modules, ou un ensemble de plusieurs pièces",
+  "Projet de grande taille, plusieurs modules assemblés",
+  "Bâtiment complet, programme ou tranche importante",
+  "Je vous situe au premier échange"]};
 
 E.financement = {k:"Budget", q:"Comment envisagez-vous de financer ce projet ?", ch:"financement", multi:1,
   sub:"Plusieurs réponses possibles : beaucoup de projets combinent plusieurs sources. Cette question me sert à adapter le calendrier de facturation à votre situation.", o:[
@@ -689,6 +701,7 @@ function rendre(){
     h += '<div class="opts">';
     for(var i=0;i<e.o.length;i++){
       var v = e.o[i][0], d = e.o[i][1];
+      if(e.descPublic && estPublic() && e.descPublic[i] != null) d = e.descPublic[i];
       var actif = e.multi ? (MULTI[e.ch] || []).indexOf(v) > -1 : S[e.ch] === v;
       h += '<button class="opt' + (actif ? ' sel' : '') + '" onclick="' + (e.multi ? 'coche' : 'choix') + '(\'' + e.ch + '\',' + i + ')">'
          + '<span class="ic">✓</span><span class="tx">' + esc(v)
