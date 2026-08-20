@@ -369,7 +369,7 @@ E.duree = {k:"L'usage", q:"Pendant combien de temps la base servira-t-elle ?", c
     + "Cela change aussi ce que vous pouvez en faire après.", o:[
   ["Installation pérenne","La base reste en service après les Jeux"],
   ["Le temps des Jeux, puis reconversion","Réaffectée à un autre usage ou à un autre site"],
-  ["Le temps des Jeux, puis démontage et revente","Nous pouvons vous racheter les modules en fin d'usage"],
+  ["Le temps des Jeux, puis démontage","Les modules sont déposés et retirés du site en fin d'usage. La dépose et l'évacuation sont chiffrées à part."],
   ["Ce n'est pas encore arbitré"]]};
 
 E.delai = {k:"Le calendrier", q:"Pour quand la base doit-elle être opérationnelle ?", ch:"delai", cmp:1,
@@ -849,8 +849,8 @@ function topo(){
     v.push("  Aucun acompte annoncé : règlement après service fait, portage à votre charge sur toute la durée.");
   if(r && r.maj >= 0.18)
     v.push("  Délai tendu (" + S.delai + ") : vérifiez la disponibilité atelier avant de confirmer la date.");
-  if(String(S.duree || "").indexOf("revente") > -1)
-    v.push("  Démontage et revente envisagés : proposez une reprise chiffrée, c'est un argument fort.");
+  if(String(S.duree || "").indexOf("démontage") > -1)
+    v.push("  Démontage prévu en fin d'usage : chiffrez la dépose, l'évacuation et la remise en état du site en lot séparé. Ne vous engagez sur aucun rachat des modules.");
   if(String(S.site || "").indexOf("ne connais pas") > -1)
     v.push("  Site non caractérisé : visite technique à Motu Uta avant tout devis ferme.");
   if(String(S.site || "").indexOf("horaires du port") > -1)
