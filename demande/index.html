@@ -39,6 +39,9 @@ button.opt.sel .ic{background:var(--navy);border-color:var(--navy)}
 button.opt .tx{flex:1}
 button.opt .tx small{display:block;color:var(--gris);font-size:12.5px;margin-top:2px;line-height:1.35}
 label.f{display:block;margin-bottom:13px}
+.mods{display:grid;grid-template-columns:1fr 1fr;gap:11px;margin:2px 0 13px}
+.mods label.f{margin-bottom:0}
+.mods input{text-align:center;font-weight:700}
 label.f span{display:block;font-size:13px;font-weight:600;margin-bottom:5px;color:#2b3646}
 input,select,textarea{width:100%;font:inherit;font-size:16px;padding:13px 14px;border:1.5px solid var(--bord);border-radius:11px;background:var(--card);color:#18202e}
 input:focus,select:focus,textarea:focus{outline:0;border-color:var(--navy)}
@@ -185,11 +188,20 @@ E.usage = {k:"Votre projet", q:"Quel usage prévoyez-vous ?", ch:"usage", o:[
   ["Hébergement ou tourisme","Bungalow, hébergement touristique, unité locative"],
   ["Atelier ou stockage aménagé","Atelier, stockage, local isolé ou électrifié"],
   ["Sanitaire ou local spécialisé","Sanitaires, vestiaires, chambre froide, laboratoire, local technique"],
-  ["Projet multi-conteneurs ou bâtiment","Plusieurs conteneurs, bâtiment professionnel, ensemble immobilier"],
   ["Autre projet"]]};
 
+E.modules = {k:"Votre projet", q:"Combien de conteneurs votre projet comporte-t-il ?", mod:1,
+  sub:"Un même usage peut demander un seul module ou plusieurs. Tout ce qui suit — surface, plans, budget — portera sur <b>l'ensemble</b> du projet, jamais sur un module isolé."};
+
+E.implantation = {k:"Votre projet", q:"Comment ces modules seront-ils implantés ?", ch:"implantation",
+  sub:"Assembler des conteneurs et en poser plusieurs séparément ne coûtent pas la même chose : jonctions et reprises d'étanchéité d'un côté, équipements et raccordements dupliqués de l'autre.", o:[
+  ["Assemblés en un seul bâtiment","Ouvertures entre les modules, un seul volume habitable"],
+  ["Séparés, posés indépendamment","Chaque module fonctionne seul, sur le même terrain ou sur plusieurs sites"],
+  ["Superposés, avec un étage","Structure porteuse, escalier ou coursive"],
+  ["Je ne sais pas encore","Nous le déterminerons ensemble"]]};
+
 E.surface = {k:"Votre projet", q:"Quelle surface envisagez-vous ?", num:"surface", gabarit:1,
-  sub:"Une valeur approximative suffit. Voici de quoi vous repérer, à l'échelle :"};
+  sub:"Indiquez la surface au sol <b>totale</b> du projet, tous modules additionnés. Voici de quoi vous repérer, à l'échelle :"};
 
 E.terrain = {k:"Le terrain", q:"Où en êtes-vous avec le terrain ?", ch:"terrain", o:[
   ["Il m'appartient ou je le loue"],
@@ -211,15 +223,15 @@ E.plan = {k:"Votre projet", q:"Avez-vous un plan ou un croquis ?", ch:"plan", pj
   reperes:"Un croquis à main levée photographié me suffit pour démarrer : joignez-le ci-dessous.<br>Si vous n'avez rien, je fais établir le plan. Tarifs en XPF :<div class='grille'><em>Plan 2D coté</em><i>1 conteneur 20 pieds</i><b>35 800</b><i>1 conteneur 40 pieds</i><b>53 700</b><i>Par conteneur 20 pieds en plus</i><b>+ 17 900</b><i>Par conteneur 40 pieds en plus</i><b>+ 29 900</b><em>Visuel 3D &nbsp;·&nbsp; en option</em><i>1 conteneur 20 pieds</i><b>47 800</b><i>1 conteneur 40 pieds</i><b>65 700</b><i>Par conteneur 20 pieds en plus</i><b>+ 23 900</b><i>Par conteneur 40 pieds en plus</i><b>+ 35 800</b></div><b>Le plan 2D</b> me sert à chiffrer votre projet au poste près, et il constitue votre dossier de permis de construire ou de permis de travaux.<br><b>Le visuel 3D</b> vous montre le rendu final de votre projet avant que je commence.<br>Ces deux prestations sont facturées à part, avant le lancement des travaux.", o:[
   ["Oui, un plan coté"],["Un croquis à main levée"],["Non, rien pour l'instant"]]};
 
-E.enveloppe = {k:"Budget", q:"Quel budget avez-vous prévu pour votre projet ?", ch:"enveloppe", etudeNote:1,
-  sub:"Cette information me permet de vérifier que votre projet est cohérent avec l'enveloppe que vous envisagez, et de vous orienter vers une solution adaptée. Une estimation réaliste du budget est indispensable avant l'établissement d'un devis.", o:[
-  ["2 à 3 millions XPF","Petit aménagement ou conteneur 20 pieds"],
-  ["3 à 5 millions XPF","Bureau, pièce de vie, studio ou local de petite surface"],
-  ["5 à 10 millions XPF","Studio, 40 pieds, commerce ou petit ensemble professionnel"],
-  ["10 à 20 millions XPF","Maison, bureaux ou ensemble de plusieurs conteneurs"],
+E.enveloppe = {k:"Budget", q:"Quel budget avez-vous prévu pour votre projet ?", ch:"enveloppe", etudeNote:1, echelle:1,
+  sub:"Indiquez le budget de <b>l'ensemble du projet</b> : les conteneurs et leur aménagement, tous modules compris. Cette information me permet de vérifier que votre projet est cohérent avec l'enveloppe que vous envisagez. Une estimation réaliste du budget est indispensable avant l'établissement d'un devis.", o:[
+  ["2 à 3 millions XPF","Aménagement simple d'un seul module"],
+  ["3 à 5 millions XPF","Un module entièrement aménagé et équipé"],
+  ["5 à 10 millions XPF","Un grand module abouti, ou deux modules"],
+  ["10 à 20 millions XPF","Trois à quatre modules, ou un ensemble de plusieurs pièces"],
   ["20 à 30 millions XPF","Projet résidentiel ou professionnel de grande taille"],
-  ["30 à 50 millions XPF","Bâtiment ou ensemble multi-conteneurs important"],
-  ["50 millions XPF et plus","Projet de grande envergure ou programme complet"],
+  ["30 à 50 millions XPF","Bâtiment complet ou ensemble de modules important"],
+  ["50 millions XPF et plus","Programme complet, plusieurs bâtiments ou tranche importante"],
   ["Je ne sais pas encore, j'ai besoin d'être conseillé","Je vous situe au premier échange"]]};
 
 E.financement = {k:"Budget", q:"Comment envisagez-vous de financer ce projet ?", ch:"financement", multi:1,
@@ -262,7 +274,8 @@ E.fini = {k:"", q:"", fini:1};
 
 /* ============ ETAPES AFFICHEES ============ */
 var PHASE = {
-  profil:"Votre projet", besoin:"Votre projet", usage:"Votre projet", surface:"Votre projet",
+  profil:"Votre projet", besoin:"Votre projet", usage:"Votre projet",
+  modules:"Votre projet", implantation:"Votre projet", surface:"Votre projet",
   commune:"Le terrain", terrain:"Le terrain", indivision:"Le terrain", parcelle:"Le terrain", acces:"Le terrain",
   plan:"Votre plan", delai:"Votre plan",
   enveloppe:"Budget et décision", financement:"Budget et décision",
@@ -310,13 +323,74 @@ function compteur(){
   return '<b>' + pc + ' %</b><i>·</i>' + esc(f);
 }
 
+/* ============ MODULES ============ */
+/* Le nombre de conteneurs est saisi explicitement : c est lui qui donne l echelle
+   du projet. Tout le reste — surface, plans, budget — en decoule et porte sur
+   l ensemble, jamais sur un module isole. */
+var S20 = 13, S40 = 28; /* surface au sol arrondie, hors tout */
+
+function nMod(k){ var v = parseInt(S[k], 10); return (isNaN(v) || v < 0) ? 0 : Math.min(60, v); }
+function totalMod(){ return nMod("n20") + nMod("n40"); }
+function surfaceMod(){ return nMod("n20") * S20 + nMod("n40") * S40; }
+function libelleMod(){
+  if(S.modules === "\u00c0 d\u00e9finir") return "nombre \u00e0 d\u00e9finir";
+  var a = nMod("n20"), b = nMod("n40"), p = [];
+  if(a) p.push(a + " \u00d7 20 pieds");
+  if(b) p.push(b + " \u00d7 40 pieds");
+  return p.join(" + ");
+}
+/* Cout d acquisition des conteneurs, prix publics de la page de vente, hors
+   supplement de commune : plancher volontairement prudent. */
+function plancherConteneurs(){ return nMod("n20") * BASE20 + nMod("n40") * BASE40; }
+
+/* Bareme de l architecte, sans marge. Le premier conteneur porte le tarif de base,
+   les suivants le tarif additionnel. */
+function prixPlan(){
+  var a = nMod("n20"), b = nMod("n40");
+  if(a + b < 1) return null;
+  if(b > 0) return [53700 + (b - 1) * 29900 + a * 17900, 65700 + (b - 1) * 35800 + a * 23900];
+  return [35800 + (a - 1) * 17900, 47800 + (a - 1) * 23900];
+}
+
+function blocModules(){
+  if(S.modules === "\u00c0 d\u00e9finir")
+    return '<div class="note">Nombre de conteneurs \u00e0 d\u00e9finir. Indiquez tout de m\u00eame une surface approximative \u00e0 l\'\u00e9cran suivant : elle me suffit pour situer le projet.</div>';
+  var t = totalMod();
+  if(!t) return "";
+  return '<div class="prix"><div class="lb">Votre projet</div>'
+       + '<div class="val" style="font-size:21px;line-height:1.3">' + esc(libelleMod()) + '</div>'
+       + '<div class="det"><b>' + surfaceMod() + ' m\u00b2 au sol au total</b>'
+       + (t > 1 ? ' \u00b7 ' + t + ' modules, soit ' + (nMod("n40") && nMod("n20") ? S20 + ' et ' + S40 : (nMod("n40") ? S40 : S20)) + ' m\u00b2 par module' : '')
+       + '. La surface, les plans et le budget demand\u00e9s ensuite portent sur cet ensemble.</div></div>';
+}
+function majMod(k, v){
+  S[k] = v;
+  if(S.modules === "\u00c0 d\u00e9finir") delete S.modules;
+  var t = totalMod();
+  if(t) S.modules = libelleMod(); else delete S.modules;
+  /* la surface suit le nombre de modules tant que le client ne l a pas corrigee lui meme */
+  if(!S.surfaceManuelle){ var q = surfaceMod(); if(q) S.surface = String(q); else delete S.surface; }
+  ordre = parcours();
+  var z = document.getElementById("modres"); if(z) z.innerHTML = blocModules();
+  var b = document.getElementById("modx"); if(b) b.className = "opt";
+}
+function modInconnu(){
+  S.modules = "\u00c0 d\u00e9finir";
+  delete S.n20; delete S.n40;
+  if(!S.surfaceManuelle) delete S.surface;
+  ordre = parcours();
+  rendre();
+}
+
 /* ============ PARCOURS ============ */
 function parcours(){
   var p = ["profil","besoin"];
   if(S.besoin === "Acheter un conteneur brut"){
     return ["profil","besoin","redirection"];
   } else if(S.besoin === "Aménager un conteneur"){
-    p = p.concat(["usage","surface","commune","terrain"]);
+    p = p.concat(["usage","modules"]);
+    if(totalMod() >= 2 || S.modules === "À définir") p.push("implantation");
+    p = p.concat(["surface","commune","terrain"]);
     if(S.terrain === "Il m'appartient ou je le loue" || S.terrain === "Achat ou bail en cours de signature") p.push("indivision");
     p = p.concat(["parcelle","acces","plan","delai","enveloppe","financement","decision","etape","contact","recap"]);
   } else if(S.besoin === "Prendre rendez-vous"){
@@ -337,10 +411,21 @@ function tauxPlancher(){
   if(S.usage === "Sanitaire ou local spécialisé") return 160000;
   return 180000;
 }
+/* Marche public : reglement a 60-90 jours apres service fait, avance de
+   tresorerie sur toute la duree du chantier, garanties et penalites. A
+   prestation identique l enveloppe a prevoir n est pas celle d un particulier.
+   Coefficient applique au seul plancher de coherence, jamais affiche comme un
+   prix. C est le curseur a bouger si le reglage parait trop dur ou trop mou. */
+var COEF_PUBLIC = 2;
+function estPublic(){ return S.profil === "Une administration ou une commune"; }
+
 function estimPlancher(){
   var m = parseFloat(String(S.surface||"").replace(",","."));
   if(!m || m <= 0) return null;
-  return Math.round(m * tauxPlancher());
+  /* l enveloppe annoncee par le client couvre l ensemble : les conteneurs
+     eux-memes plus leur amenagement. Prix conteneurs = tarifs publics de la
+     page de vente, hors supplement de commune. */
+  return Math.round((m * tauxPlancher() + plancherConteneurs()) * (estPublic() ? COEF_PUBLIC : 1));
 }
 function plafondEnveloppe(){
   if(S.enveloppe === "2 à 3 millions XPF") return 3000000;
@@ -442,7 +527,9 @@ function noter(){
   var sc = Math.max(0, Math.min(100, A+B+C+D+Ee+F));
   /* Les verrous abaissent le score lui-meme, pas seulement le niveau :
      le score affiche et le niveau ne peuvent plus se contredire. */
-  if(coh === "incompatible") sc = Math.min(sc, 44);
+  /* Une administration qui sous-estime l enveloppe reste un dossier a traiter :
+     le budget se renegocie, la commande publique pas. On plafonne moins fort. */
+  if(coh === "incompatible") sc = Math.min(sc, estPublic() ? 69 : 44);
   if(S.terrain === "Je n'ai pas encore de terrain"
      || S.terrain === "Je l'ai repéré, il n'est pas encore à moi") sc = Math.min(sc, 69);
   if(S.indivision === "Oui, et elle n'est pas réglée") sc = Math.min(sc, 84);
@@ -481,7 +568,7 @@ function boite(x, y, w, h, titre, ty){
 }
 /* Vue de dessus : un simple rectangle a l echelle, longueur par largeur,
    avec la surface au sol et le volume. Meme echelle que la vue de cote. */
-function dessus(x, y, L, W, k, titre, ty, surf, vol){
+function dessus(x, y, L, W, k, titre, ty, surf){
   var w = L * k, h = W * k;
   var g = '<text x="' + x + '" y="' + ty + '" font-size="10.5" font-weight="700" fill="#1e3a5f">' + titre + '</text>';
   g += '<rect x="' + x + '" y="' + y + '" width="' + w.toFixed(1) + '" height="' + h.toFixed(1) + '" rx="2" fill="#eef2f8" stroke="#1e3a5f" stroke-width="1.6"/>';
@@ -490,7 +577,7 @@ function dessus(x, y, L, W, k, titre, ty, surf, vol){
   /* une personne vue de dessus : 55 cm de large */
   var r = 0.275 * k;
   g += '<circle cx="' + (x + 22).toFixed(1) + '" cy="' + (y + h / 2).toFixed(1) + '" r="' + r.toFixed(1) + '" fill="#e07b15"/>';
-  g += '<text x="' + (x + w / 2 + 14).toFixed(1) + '" y="' + (y + h / 2 + 5).toFixed(1) + '" font-size="13" font-weight="800" fill="#a04c05" text-anchor="middle">' + surf + '<tspan fill="#5b6470" font-weight="600" font-size="11.5">  ·  </tspan>' + vol + '</text>';
+  g += '<text x="' + (x + w / 2 + 14).toFixed(1) + '" y="' + (y + h / 2 + 5).toFixed(1) + '" font-size="13" font-weight="800" fill="#a04c05" text-anchor="middle">' + surf + '</text>';
   g += cote(x, y + h + 12, x + w, y + h + 12, L.toFixed(2).replace(".", ",") + " m", x + w / 2, y + h + 25, "middle");
   g += cote(x + w + 8, y, x + w + 8, y + h, "2,44 m", x + w + 12, y + h / 2 + 3, "start");
   return g;
@@ -498,8 +585,8 @@ function dessus(x, y, L, W, k, titre, ty, surf, vol){
 var PLONGEE = (function(){
   var k = 25;
   var v = '<svg viewBox="0 0 360 234" role="img" aria-label="Vue de dessus a l echelle d un conteneur 20 pieds et d un 40 pieds">';
-  v += dessus(14, 22, 6.06, 2.44, k, "20 pieds DRY — vu de dessus", 15, "13 m²", "33 m³");
-  v += dessus(14, 135, 12.19, 2.44, k, "40 pieds HC — vu de dessus", 128, "28 m²", "76 m³");
+  v += dessus(14, 22, 6.06, 2.44, k, "20 pieds DRY — vu de dessus", 15, "13 m²");
+  v += dessus(14, 135, 12.19, 2.44, k, "40 pieds HC — vu de dessus", 128, "28 m²");
   return v + '</svg>';
 })();
 
@@ -518,9 +605,10 @@ var GABARIT = (function(){
   return v + '</svg>';
 })();
 var LEGENDE = '<div class="lg">'
-  + '<b>20 pieds DRY</b> — 6,06 × 2,44 × 2,59 m hors tout · <u>13 m²</u> au sol · 33 m³<br>'
-  + '<b>40 pieds HC</b> — 12,19 × 2,44 × 2,90 m hors tout · <u>28 m²</u> au sol · 76 m³<br>'
-  + 'Le personnage mesure 1,80 m. Hauteur libre : 2,39 m dans un 20 pieds, 2,70 m dans un 40 HC.'
+  + '<b>20 pieds DRY</b> — 6,06 × 2,44 × 2,59 m hors tout · <u>13 m²</u> au sol<br>'
+  + '<b>40 pieds HC</b> — 12,19 × 2,44 × 2,90 m hors tout · <u>28 m²</u> au sol<br>'
+  + 'Le personnage mesure 1,80 m. Hauteur libre : 2,39 m dans un 20 pieds, 2,70 m dans un 40 HC.<br>'
+  + 'Une surface de projet s\'obtient en additionnant les modules : deux 20 pieds font 26 m\u00b2, quatre font 52 m\u00b2.'
   + '</div>';
 
 /* ============ RENDU ============ */
@@ -571,7 +659,7 @@ function rendre(){
 
   if(e.redirect){
     h = '<div class="step on"><div class="kicker">' + esc(e.k) + '</div><h2>' + esc(e.q) + '</h2>'
-      + '<p class="sub">' + esc(e.sub) + '</p>'
+      + '<p class="sub">' + e.sub + '</p>'
       + '<a class="btn p" style="display:block;text-align:center;text-decoration:none;box-sizing:border-box" href="'
       + SITE_ACHAT + '">Voir les prix et commander</a>'
       + '<div class="note">Vous y choisissez le format et votre commune, le prix exact s\'affiche, et vous envoyez votre demande depuis la même page.</div></div>';
@@ -587,8 +675,15 @@ function rendre(){
   if(cpt) h += '<div class="kicker">' + cpt + '</div>';
   else if(e.k) h += '<div class="kicker">' + esc(e.k) + '</div>';
   h += '<h2>' + esc(e.q) + '</h2>';
-  if(e.sub) h += '<p class="sub">' + esc(e.sub) + '</p>';
-  if(e.reperes) h += '<div class="note">' + e.reperes + '</div>';
+  if(e.sub) h += '<p class="sub">' + e.sub + '</p>';
+  if(e.reperes){
+    var pp = (typeof prixPlan === "function") ? prixPlan() : null;
+    if(pp)
+      h += '<div class="prix"><div class="lb">Pour votre projet \u2014 ' + esc(libelleMod()) + '</div>'
+         + '<div class="val" style="font-size:22px;line-height:1.35">Plan 2D : ' + fmt(pp[0]) + ' XPF</div>'
+         + '<div class="det">Visuel 3D en option : ' + fmt(pp[1]) + ' XPF. Ce sont les tarifs de l\'architecte, sans marge de ma part. Le d\u00e9tail du bar\u00e8me est ci-dessous.</div></div>';
+    h += '<div class="note">' + e.reperes + '</div>';
+  }
 
   if(e.o){
     h += '<div class="opts">';
@@ -608,11 +703,43 @@ function rendre(){
       h += '<option' + (S[e.sel] === COM[j][0] ? ' selected' : '') + '>' + esc(COM[j][0]) + '</option>';
     h += '</select></label>';
   }
+  if(e.mod){
+    h += '<div class="mods">'
+       + '<label class="f"><span>Conteneurs 20 pieds</span><input id="i_n20" type="number" inputmode="numeric" min="0" max="60" step="1" placeholder="0" value="' + esc(S.n20||"") + '" oninput="majMod(\'n20\',this.value)"></label>'
+       + '<label class="f"><span>Conteneurs 40 pieds</span><input id="i_n40" type="number" inputmode="numeric" min="0" max="60" step="1" placeholder="0" value="' + esc(S.n40||"") + '" oninput="majMod(\'n40\',this.value)"></label>'
+       + '</div>';
+    h += '<div id="modres">' + blocModules() + '</div>';
+    h += '<button id="modx" class="opt' + (S.modules === "\u00c0 d\u00e9finir" ? ' sel' : '') + '" onclick="modInconnu()">'
+       + '<span class="ic">\u2713</span><span class="tx">Je ne sais pas encore combien'
+       + '<small>Nous le d\u00e9terminerons ensemble \u00e0 partir de votre besoin.</small></span></button>';
+  }
   if(e.gabarit) h += '<div class="gab">' + GABARIT + '<div class="sep"></div>' + PLONGEE + LEGENDE + '</div>';
 
-  if(e.num) h += '<label class="f"><span>Surface approximative en m²</span><input id="i_' + e.num + '" type="number" inputmode="decimal" min="1" placeholder="par exemple 26" value="' + esc(S[e.num]||"") + '" oninput="maj(\'' + e.num + '\',this.value)"></label>';
+  if(e.num){
+    if(e.num === "surface" && totalMod())
+      h += '<div class="note">Vous avez indiqu\u00e9 <b>' + esc(libelleMod()) + '</b>, soit environ <b>'
+         + surfaceMod() + ' m\u00b2 au sol au total</b>' + (totalMod() > 1 ? ' pour l\'ensemble des ' + totalMod() + ' modules' : '')
+         + '. Le champ est pr\u00e9rempli avec ce total : corrigez-le si votre am\u00e9nagement diff\u00e8re — mezzanine, terrasse, modules ouverts les uns sur les autres, partie non am\u00e9nag\u00e9e.</div>';
+    h += '<label class="f"><span>Surface au sol totale du projet, en m\u00b2</span><input id="i_' + e.num + '" type="number" inputmode="decimal" min="1" placeholder="par exemple 26" value="' + esc(S[e.num]||"") + '" oninput="maj(\'' + e.num + '\',this.value)"></label>';
+  }
   if(e.txt) h += '<label class="f"><span>Numéro de parcelle</span><input id="i_' + e.txt + '" type="text" placeholder="par exemple AL29" value="' + esc(S[e.txt]||"") + '" oninput="maj(\'' + e.txt + '\',this.value)"></label>';
 
+  if(e.echelle){
+    var lb = [];
+    if(S.modules) lb.push(libelleMod());
+    if(S.implantation && S.implantation !== "Je ne sais pas encore") lb.push(S.implantation.toLowerCase());
+    if(S.surface) lb.push(S.surface + " m\u00b2 au sol au total");
+    if(lb.length)
+      h += '<div class="note"><b>Le budget porte sur l\'ensemble de votre projet.</b><br>Vous avez d\u00e9crit : '
+         + esc(lb.join(" \u00b7 ")) + '.<br>Choisissez la tranche qui correspond \u00e0 ce total \u2014 conteneurs et am\u00e9nagement compris \u2014 et non au co\u00fbt d\'un seul module.</div>';
+  }
+  if(e.echelle && estPublic())
+    h += '<div class="note"><b>Commande publique ou marché d\'une collectivité.</b><br>'
+       + 'Le règlement d\'une administration intervient plusieurs mois après le service fait : '
+       + 'l\'entreprise avance les conteneurs, les matériaux et la main-d\'œuvre pendant toute cette période, '
+       + 'et porte seule le risque de trésorerie. À prestation identique, l\'enveloppe à prévoir est donc '
+       + 'sensiblement supérieure à celle d\'un chantier chez un particulier. Prévoyez-la en conséquence — '
+       + 'ou signalez-moi qu\'un acompte au bon de commande est possible, cela change tout.</div>';
   if(e.confid)
     h += '<div class="note"><b>Vos informations restent confidentielles.</b> Elles servent uniquement à traiter votre demande, '
        + 'et ne sont ni revendues ni transmises à qui que ce soit.</div>';
@@ -766,7 +893,12 @@ function coche(champ, i){
   rendre();
 }
 
-function maj(champ, val){ S[champ] = val; ordre = parcours(); majPrixLive(); }
+function maj(champ, val){
+  S[champ] = val;
+  /* des que le client corrige la surface lui-meme, on cesse de la recalculer */
+  if(champ === "surface") S.surfaceManuelle = 1;
+  ordre = parcours(); majPrixLive();
+}
 
 function majPrixLive(){
   var e = E[ordre[idx]];
@@ -782,6 +914,7 @@ function valide(){
   var e = E[ordre[idx]];
   if(e.o && !S[e.ch]) return "Choisissez une réponse pour continuer.";
   if(e.sel && !S[e.sel]) return "Indiquez la commune de livraison.";
+  if(e.mod && !S.modules) return "Indiquez le nombre de conteneurs, ou choisissez « Je ne sais pas encore ».";
   if(e.num && !S[e.num]) return "Indiquez une surface approximative.";
   if(e.txt && !e.opt && !S[e.txt]) return "Ce champ est nécessaire.";
   if(e.contact){
@@ -803,11 +936,12 @@ function prec(){ if(idx > 0){ idx--; rendre(); } }
 
 /* ============ RECAPITULATIF ============ */
 var LIB = {profil:"Vous êtes", besoin:"Besoin", format:"Format", commune:"Commune", quantite:"Quantité",
-  acces:"Accès camion-grue", delai:"Échéance", budget:"Budget", usage:"Usage", surface:"Surface (m²)",
+  acces:"Accès camion-grue", delai:"Échéance", budget:"Budget", usage:"Usage",
+  modules:"Conteneurs", implantation:"Implantation", surface:"Surface totale (m²)",
   terrain:"Terrain", indivision:"Indivision", parcelle:"Parcelle", plan:"Plan", enveloppe:"Enveloppe",
   financement:"Financement", decision:"Décision", etape:"Prochaine étape", rdvlieu:"Lieu du rendez-vous",
   rdvquand:"Moment souhaité", nom:"Nom", structure:"Structure", tel:"Téléphone", mail:"Email", msg:"Message"};
-var ORDRE_R = ["profil","structure","besoin","usage","surface","commune","acces","terrain",
+var ORDRE_R = ["profil","structure","besoin","usage","modules","implantation","surface","commune","acces","terrain",
   "indivision","parcelle","plan","delai","enveloppe","financement","decision","etape","rdvlieu",
   "rdvquand","nom","tel","mail","msg"];
 
@@ -861,10 +995,12 @@ function vigilance(){
     if(!S.enveloppe||S.enveloppe==="Je ne sais pas encore, j'ai besoin d'être conseillé")
       m.push("  À obtenir : l'enveloppe budgétaire. C'est l'information qui manque le plus souvent.");
     var cB=coherenceBudget(), pB=estimPlancher();
+    var det = S.surface+" m²"+(S.modules&&S.modules!=="À définir"?" ("+libelleMod()+")":"")
+            +", conteneurs et aménagement compris"+(estPublic()?", coefficient marché public x"+COEF_PUBLIC+" inclus":"");
     if(cB==="incompatible")
-      m.push("  Enveloppe incompatible : "+S.surface+" m² ne descend pas sous "+fmt(pB)+" XPF sur mes devis. Recadrez avant tout chiffrage.");
+      m.push("  Enveloppe incompatible : le plancher est de "+fmt(pB)+" XPF pour "+det+". Recadrez avant tout chiffrage.");
     else if(cB==="juste")
-      m.push("  Enveloppe juste : "+S.surface+" m² tourne autour de "+fmt(pB)+" XPF au plancher. Prévenez-le tout de suite.");
+      m.push("  Enveloppe juste : le plancher tourne autour de "+fmt(pB)+" XPF pour "+det+". Prévenez-le tout de suite.");
     var fin=String(S.financement||"");
     var finSolide = fin.indexOf("Fonds propres")>-1 || fin.indexOf("déjà accordé")>-1 || fin.indexOf("subvention notifiée")>-1;
     if(fin && !finSolide)
@@ -873,8 +1009,20 @@ function vigilance(){
       m.push("  Financement partiel : une partie est acquise, le reste ne l'est pas. Calez l'échéancier de facturation là-dessus.");
     if(S.terrain==="Je n'ai pas encore de terrain"||S.terrain==="Je l'ai repéré, il n'est pas encore à moi")
       m.push("  Terrain non maîtrisé : estimation en fourchette seulement, pas de devis détaillé.");
+    if(S.modules==="À définir")
+      m.push("  Nombre de conteneurs non défini : l'enveloppe annoncée ne veut pas dire grand-chose tant que l'échelle du projet n'est pas fixée.");
+    else if(totalMod()>=2)
+      m.push("  Projet multi-modules ("+libelleMod()+(S.implantation?", "+S.implantation.toLowerCase():"")+") : vérifiez à l'oral que l'enveloppe couvre bien l'ensemble et pas un seul module.");
+    if(S.implantation==="Séparés, posés indépendamment")
+      m.push("  Modules séparés : équipements et raccordements dupliqués, autant de livraisons que de modules. Chiffrez module par module.");
+    if(S.implantation==="Superposés, avec un étage")
+      m.push("  Superposition : structure porteuse, escalier et étude de charge à prévoir. Ne chiffrez pas au m² courant.");
     if(S.plan==="Non, rien pour l'instant")
       m.push("  Aucun plan : demandez une photo du terrain et un croquis à main levée.");
+  }
+  if(S.profil==="Une administration ou une commune"){
+    m.push("  Commande publique : règlement à 60-90 jours après service fait. Chiffrez le coût de portage, réclamez un acompte au bon de commande et un échéancier par phase.");
+    m.push("  Vérifiez le seuil de mise en concurrence et qui signe l'engagement : un accord oral de service ne vaut pas bon de commande.");
   }
   if(S.acces==="Je ne sais pas") m.push("  Accès camion-grue inconnu : à vérifier avant tout chiffrage.");
   if(S.msg && String(S.msg).indexOf("?")>-1) m.push("  Il attend des réponses : reprenez ses questions une par une, c'est ce qui décide de la suite.");
@@ -903,7 +1051,9 @@ function topo(r){
   bloc("LE CLIENT",[lg("",(S.nom||"sans nom")+(S.structure?"  —  "+S.structure:"")),
     lg("",S.profil),lg("Téléphone",S.tel),lg("Email",S.mail)]);
 
-  var pr=[lg("Besoin",S.besoin),lg("Usage",S.usage),lg("Surface",S.surface?S.surface+" m²":""),
+  var pr=[lg("Besoin",S.besoin),lg("Usage",S.usage),
+    lg("Conteneurs",S.modules?libelleMod():""),lg("Implantation",S.implantation),
+    lg("Surface totale",S.surface?S.surface+" m² au sol":""),
     lg("Format",S.format?S.format+(S.quantite?"  ×"+S.quantite:""):""),lg("Lieu",S.commune)];
   var t=prixTotal(); if(t&&t!=="devis") pr.push(lg("Prix livré",fmt(t)+" XPF TTC"));
   pr=pr.concat([lg("Terrain",S.terrain),lg("Indivision",S.indivision),lg("Parcelle",S.parcelle),
@@ -915,7 +1065,15 @@ function topo(r){
 
   var ar=[lg("Enveloppe",S.enveloppe),lg("Financement",S.financement)];
   var pl=estimPlancher(), coh=coherenceBudget();
-  if(pl) ar.push(lg("Plancher estimé",fmt(pl)+" XPF  (surface x taux plancher constaté)"));
+  if(pl){
+    var pc = plancherConteneurs();
+    ar.push(lg("Plancher estimé",fmt(pl)+" XPF pour l'ensemble du projet"));
+    if(estPublic()) ar.push(lg("",  "coefficient marché public x"+COEF_PUBLIC+" appliqué (délai de règlement et portage de trésorerie)"));
+    if(pc) ar.push(lg("",  "base : "+fmt(pc)+" XPF de conteneurs ("+libelleMod()+") + "+fmt(Math.round(pl/(estPublic()?COEF_PUBLIC:1))-pc)+" XPF d'aménagement"));
+    else   ar.push(lg("",  "base : surface x taux plancher constaté sur vos devis"));
+  }
+  var pp2 = (typeof prixPlan==="function") ? prixPlan() : null;
+  if(pp2) ar.push(lg("Plans architecte","2D "+fmt(pp2[0])+" XPF  ·  3D "+fmt(pp2[1])+" XPF  (sans marge)"));
   if(coh==="incompatible") ar.push(lg("ALERTE","enveloppe sous le plancher : à recadrer dès le premier appel"));
   else if(coh==="juste") ar.push(lg("Attention","enveloppe juste au regard du plancher constaté"));
   var et=tarifEtude(); if(et) ar.push(lg("Étude applicable",et+"  (déduite de la commande)"));
@@ -965,6 +1123,7 @@ function accuse(r){
 
 function objet(r){
   var N=NIV[r.niveau], res=(S.usage||S.format||S.besoin||"");
+  if(S.modules && S.modules!=="À définir") res+=" "+libelleMod().replace(/×/g,"x");
   if(S.surface) res+=" "+S.surface+" m2";
   if(S.commune) res+=" a "+S.commune;
   return (N.e?N.e+" ":"")+N.t+" ("+r.score+"/100) — "+(S.nom||"sans nom")+" — "+res;
