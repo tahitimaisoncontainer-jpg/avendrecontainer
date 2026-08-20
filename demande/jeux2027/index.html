@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="robots" content="noindex,nofollow">
-<title>Base logistique Motu Uta — Tahiti Maison Container</title>
+<title>Jeux du Pacifique 2027 — Tahiti Maison Container</title>
 <style>
 :root{--navy:#1f3864;--navy2:#2c4d86;--or:#e36c0a;--vert:#1e7b34;--rouge:#c0392b;--gris:#5b6470;--bg:#eef1f6;--card:#fff;--bord:#d9e0ea;--ombre:0 2px 10px rgba(31,56,100,.08)}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
@@ -112,7 +112,7 @@ footer a{color:var(--navy);text-decoration:none;font-weight:600}
 <div class="app">
 <header>
   <div class="logo">TMC</div>
-  <div><h1>Tahiti Maison Container</h1><p>Base logistique Motu Uta — Jeux du Pacifique 2027</p></div>
+  <div><h1>Tahiti Maison Container</h1><p>Jeux du Pacifique 2027 — Comité Organisateur</p></div>
 </header>
 <div class="bar"><i id="bar"></i></div>
 <main id="main"></main>
@@ -127,7 +127,7 @@ footer a{color:var(--navy);text-decoration:none;font-weight:600}
 </div>
 <script>
 /* =========================================================================
-   Base logistique Motu Uta — Jeux du Pacifique 2027
+   Jeux du Pacifique 2027 — Comite Organisateur
    Questionnaire dedie au Comite Organisateur. Une seule page, pas de cadre.
    ========================================================================= */
 
@@ -149,6 +149,9 @@ var TAUX_STOCK  = 120000;
 var COEF_PUBLIC = 2;                    /* conditions marche public */
 var HAUT = 1.30;                        /* borne haute de la fourchette */
 var M2_PAR_POSTE = 9;                   /* base logistique, poste de travail */
+/* Chaque site supplementaire demande une mobilisation de camion-grue et
+   d equipe, et ses propres raccordements. Forfait par site en plus du premier. */
+var FORFAIT_SITE = 240000;
 
 var EQUIP = [
   ["Climatisation",                      "Un split par module, pose et raccordement",         320000, "module"],
@@ -195,6 +198,12 @@ function surface(){
   return (!m || m <= 0) ? 0 : m;
 }
 function postes(){ var v = parseInt(S.effectif, 10); return (isNaN(v) || v < 0) ? 0 : v; }
+function nSites(){
+  if(S.lieux === "Sur un seul site") return 1;
+  var v = parseInt(S.nbsites, 10);
+  return (isNaN(v) || v < 1) ? 0 : Math.min(30, v);
+}
+function coutSites(){ return Math.max(0, nSites() - 1) * FORFAIT_SITE; }
 
 /* ============ CHIFFRAGE ============ */
 function tauxAmenagement(){
@@ -218,13 +227,13 @@ function majDelai(){
   return null;
 }
 function chiffrage(){
-  var c = coutConteneurs(), a = coutAmenagement(), e = coutEquipements();
+  var c = coutConteneurs(), a = coutAmenagement(), e = coutEquipements(), si = coutSites();
   if(!surface() || !totalMod()) return null;
-  var st = c + a + e;
+  var st = c + a + e + si;
   var pub = st * COEF_PUBLIC;
   var m = majDelai();
   var bas = pub * (1 + (m === null ? 0 : m));
-  return { cont:c, amen:a, equip:e, sousTotal:st, public:pub, maj:m, bas:bas, haut:bas * HAUT };
+  return { cont:c, amen:a, equip:e, sites:si, sousTotal:st, public:pub, maj:m, bas:bas, haut:bas * HAUT };
 }
 
 function blocEstimation(complet){
@@ -237,9 +246,10 @@ function blocEstimation(complet){
   if(r.maj) h += '<div class="urg">dont + ' + Math.round(r.maj * 100) + ' % liés au délai demandé</div>';
   if(complet){
     h += '<div class="decomp">'
-       + '<i>' + esc(libelleMod()) + ', achat et livraison à Motu Uta</i><b>' + fmt(r.cont) + '</b>'
+       + '<i>' + esc(libelleMod()) + ', achat et livraison' + (S.ousites ? ' — ' + esc(S.ousites) : '') + '</i><b>' + fmt(r.cont) + '</b>'
        + '<i>Aménagement de ' + surface() + ' m²</i><b>' + fmt(r.amen) + '</b>';
     if(r.equip) h += '<i>Équipements retenus</i><b>' + fmt(r.equip) + '</b>';
+    if(r.sites) h += '<i>Installation sur ' + nSites() + ' sites distincts</i><b>' + fmt(r.sites) + '</b>';
     h += '<i>Conditions marché public</i><b>' + fmt(r.public - r.sousTotal) + '</b>';
     if(r.maj) h += '<i>Délai — ' + esc(S.delai) + '</i><b>+ ' + fmt(r.bas - r.public) + '</b>';
     h += '<em>Conditions marché public : règlement après service fait, retenue de garantie, '
@@ -324,7 +334,7 @@ var LEGENDE = '<div class="lg">'
 /* ============ ECRANS ============ */
 var E = {};
 
-E.intro = {k:"Base logistique Motu Uta", q:"Chiffrons votre base logistique", intro:1,
+E.intro = {k:"Votre demande", q:"Chiffrons votre projet d'aménagement", intro:1,
   sub:"Ce questionnaire est préparé pour le Comité Organisateur des Jeux du Pacifique 2027. "
     + "Une dizaine de questions, cinq minutes. À la fin vous obtenez un <b>ordre de grandeur chiffré</b> "
     + "et je reçois tout ce qu'il me faut pour établir le devis sur votre plan."};
@@ -377,13 +387,22 @@ E.delai = {k:"Le calendrier", q:"Pour quand la base doit-elle être opérationne
     + "des heures supplémentaires et un approvisionnement accéléré sur les lots longs. "
     + "Voici l'effet de chaque échéance sur votre projet :"};
 
-E.site = {k:"Le site", q:"Que savez-vous du terrain à Motu Uta ?", ch:"site", multi:1,
-  sub:"Plusieurs réponses possibles. Ces points décident du planning de pose et du coût de raccordement.", o:[
-  ["Un camion-grue peut accéder à l'emplacement"],
+E.lieux = {k:"Le site", q:"Où les modules seront-ils installés ?", ch:"lieux", sites:1,
+  sub:"Votre mail parle de la base de Motu Uta, mais les Jeux se jouent sur plusieurs sites. "
+    + "Si des modules doivent être posés ailleurs, dites-le ici : chaque site supplémentaire "
+    + "demande sa propre livraison, son grutage et ses raccordements.", o:[
+  ["Sur un seul site","Tous les modules sont regroupés au même endroit"],
+  ["Sur plusieurs sites","Les modules sont répartis sur des emplacements distincts"]]};
+
+E.site = {k:"Le site", q:"Que savez-vous du ou des terrains ?", ch:"site", multi:1,
+  sub:"Plusieurs réponses possibles. Ces points décident du planning de pose et du coût de raccordement. "
+    + "Si vos sites ne sont pas tous logés à la même enseigne, cochez ce qui vaut pour le plus contraignant.", o:[
+  ["Un camion-grue peut accéder aux emplacements"],
   ["La dalle ou les plots existent déjà"],
   ["Eau et électricité sont disponibles à proximité"],
   ["La fibre ou le réseau data est disponible"],
-  ["L'accès est soumis aux horaires du port"],
+  ["L'accès est soumis à des horaires imposés","Zone portuaire, enceinte sportive, site sous accréditation"],
+  ["Un ou plusieurs sites sont hors de Tahiti","Transport maritime interîles à prévoir"],
   ["Je ne connais pas encore ces éléments","Nous ferons une visite technique ensemble", 1]]};
 
 E.plan = {k:"Votre plan", q:"Votre plan d'aménagement", pj:1, opt2:1,
@@ -408,13 +427,13 @@ E.fini = {k:"", q:"C'est envoyé", fini:1};
 
 function parcours(){
   return ["intro","service","fonction","effectif","modules","implantation","equipements",
-          "duree","delai","site","plan","cadre","contact","fini"];
+          "duree","delai","lieux","site","plan","cadre","contact","fini"];
 }
 
 var PHASE = {
   intro:"Votre demande", service:"Votre demande", fonction:"Votre besoin", effectif:"Votre besoin",
   modules:"Le dimensionnement", implantation:"Le dimensionnement", equipements:"Les équipements",
-  duree:"Le calendrier", delai:"Le calendrier", site:"Le site", plan:"Votre plan",
+  duree:"Le calendrier", delai:"Le calendrier", lieux:"Le site", site:"Le site", plan:"Votre plan",
   cadre:"La commande", contact:"Vos coordonnées"
 };
 function ecransUtiles(){
@@ -479,6 +498,24 @@ function blocDelais(){
   return h + '</div>';
 }
 
+function blocSites(){
+  var h = "";
+  if(S.lieux === "Sur plusieurs sites")
+    h += '<label class="f"><span>Combien de sites au total ?</span>'
+       + '<input id="i_nbsites" type="number" inputmode="numeric" min="2" max="30" placeholder="par exemple 3" value="'
+       + esc(S.nbsites || "") + '" oninput="majSite(\'nbsites\',this.value)"></label>';
+  if(S.lieux)
+    h += '<label class="f"><span>Le ou les emplacements concernés</span>'
+       + '<input id="i_ousites" type="text" placeholder="par exemple Motu Uta, ou Motu Uta et le site de Pater" value="'
+       + esc(S.ousites || "") + '" oninput="majSite(\'ousites\',this.value)"></label>';
+  if(nSites() > 1)
+    h += '<div class="note">Vous prévoyez <b>' + nSites() + ' sites distincts</b>. '
+       + 'Chaque site en plus du premier demande sa propre livraison, son grutage et ses raccordements : '
+       + '<b>' + fmt(FORFAIT_SITE) + ' XPF</b> par site supplémentaire, déjà compris dans l\'estimation ci-dessous. '
+       + 'Un site hors de Tahiti fait en plus l\'objet d\'un transport maritime chiffré à part.</div>';
+  return h;
+}
+
 function blocSurface(){
   var h = "";
   if(totalMod())
@@ -515,7 +552,8 @@ function lignesRecap(){
     ["Modules", libelleMod()], ["Surface totale", surface() ? surface() + " m²" : ""],
     ["Implantation", S.implantation], ["Équipements", S.equipements],
     ["Durée d'usage", S.duree], ["Échéance", S.delai],
-    ["Le site", S.site], ["Plan joint", PJ.length ? (PJ.length + (PJ.length > 1 ? " fichiers" : " fichier")) : "non"],
+    ["Implantation des sites", S.lieux], ["Nombre de sites", nSites() > 1 ? nSites() + " sites" : (S.lieux ? "1 site" : "")],
+    ["Emplacements", S.ousites], ["Le terrain", S.site], ["Plan joint", PJ.length ? (PJ.length + (PJ.length > 1 ? " fichiers" : " fichier")) : "non"],
     ["Cadre de la commande", S.cadre]
   ], out = [];
   for(var i = 0; i < L.length; i++) if(L[i][1]) out.push(L[i]);
@@ -572,6 +610,7 @@ function rendre(){
     h += '</div>';
   }
 
+  if(e.sites) h += '<div id="siteszone">' + blocSites() + '</div>';
   if(e.tarifs) h += '<div class="opts">' + blocEquipements() + '</div>';
   if(e.cmp)    h += blocComparatif() + blocDelais();
   if(e.gabarit) h += '<div class="gab">' + GABARIT + '<div class="sep"></div>' + PLONGEE + LEGENDE + '</div>';
@@ -719,7 +758,7 @@ function choix(champ, i){
   var e = E[ordre[idx]];
   S[champ] = e.o[i][0];
   rendre();
-  if(!e.pj && !e.cmp) setTimeout(suiv, 180);
+  if(!e.pj && !e.cmp && !e.sites) setTimeout(suiv, 180);
 }
 
 function coche(champ, i){
@@ -743,6 +782,14 @@ function coche(champ, i){
   if(!a.length) delete S[champ];
   effaceErr();
   rendre();
+}
+
+function majSite(champ, val){
+  S[champ] = val;
+  effaceErr();
+  var z = document.getElementById("siteszone");
+  if(z && champ === "nbsites") z.innerHTML = blocSites();
+  rafraichir();
 }
 
 function choixDelai(i){ S.delai = DELAIS[i][0]; effaceErr(); rendre(); }
@@ -776,6 +823,11 @@ function valide(){
   var e = E[ordre[idx]];
   if(e.o && !e.multi && !S[e.ch]) return "Choisissez une réponse pour continuer.";
   if(e.cmp && !S.delai) return "Choisissez une échéance pour continuer.";
+  if(e.sites){
+    if(!S.lieux) return "Indiquez si le projet porte sur un seul site ou sur plusieurs.";
+    if(S.lieux === "Sur plusieurs sites" && nSites() < 2) return "Indiquez le nombre de sites.";
+    if(!S.ousites || S.ousites.trim().length < 3) return "Indiquez le ou les emplacements concernés.";
+  }
   if((e.o || e.tarifs) && e.multi && !S[e.ch] && !e.tarifs) return "Choisissez au moins une réponse.";
   if(e.txts && (!S.direction || S.direction.trim().length < 2)) return "Indiquez la direction ou le service.";
   if(e.num && !postes()) return "Indiquez le nombre de personnes accueillies.";
@@ -809,7 +861,7 @@ function topo(){
     L.push(""); L.push(t); L.push(tir(t.length));
     for(var i = 0; i < ls.length; i++) L.push(ls[i]);
   }
-  L.push("JEUX DU PACIFIQUE 2027 — BASE LOGISTIQUE MOTU UTA");
+  L.push("JEUX DU PACIFIQUE 2027 — COMITÉ ORGANISATEUR");
   L.push(tir(50));
 
   bloc("LE DEMANDEUR", [lg("", S.nom || "sans nom"), lg("Direction", S.direction),
@@ -820,7 +872,8 @@ function topo(){
     lg("Implantation", S.implantation), lg("Durée d'usage", S.duree),
     lg("Équipements", S.equipements)]);
 
-  bloc("LE SITE", [lg("Motu Uta", S.site),
+  bloc("LE SITE", [lg("Sites", S.lieux + (nSites() > 1 ? " (" + nSites() + ")" : "")),
+    lg("Emplacements", S.ousites), lg("Terrain", S.site),
     lg("Plan joint", PJ.length ? PJ.length + (PJ.length > 1 ? " fichiers envoyés dans un second mail" : " fichier envoyé dans un second mail") : "aucun")]);
 
   if(r){
@@ -852,9 +905,13 @@ function topo(){
   if(String(S.duree || "").indexOf("démontage") > -1)
     v.push("  Démontage prévu en fin d'usage : chiffrez la dépose, l'évacuation et la remise en état du site en lot séparé. Ne vous engagez sur aucun rachat des modules.");
   if(String(S.site || "").indexOf("ne connais pas") > -1)
-    v.push("  Site non caractérisé : visite technique à Motu Uta avant tout devis ferme.");
-  if(String(S.site || "").indexOf("horaires du port") > -1)
-    v.push("  Accès soumis aux horaires portuaires : intégrez les créneaux de grutage au planning.");
+    v.push("  Site non caractérisé : visite technique sur place avant tout devis ferme.");
+  if(String(S.site || "").indexOf("horaires imposés") > -1)
+    v.push("  Accès à horaires imposés : intégrez les créneaux de grutage au planning, ils commandent la durée du chantier.");
+  if(String(S.site || "").indexOf("hors de Tahiti") > -1)
+    v.push("  Site hors de Tahiti : transport maritime interîles à chiffrer à part, consultez la compagnie avant de vous engager sur une date.");
+  if(nSites() > 1)
+    v.push("  " + nSites() + " sites distincts : autant de livraisons, de grutages et de raccordements. Vérifiez les accès un par un, un seul site difficile décale tout le planning.");
   if(!PJ.length) v.push("  Plan non joint : relancez pour l'obtenir, le devis au poste près en dépend.");
   if(S.msg && String(S.msg).indexOf("?") > -1) v.push("  Elle attend des réponses : reprenez ses questions une par une.");
   bloc("POINTS DE VIGILANCE", v);
@@ -871,7 +928,7 @@ function envoyer(){
   var b = document.getElementById("next");
   b.disabled = true; b.textContent = "Envoi…";
   var r = chiffrage();
-  var suj = "★ JEUX 2027 — Base Motu Uta — " + (S.direction || "COJOP") + " — "
+  var suj = "★ JEUX 2027 — " + (S.ousites || "site à préciser") + " — " + (S.direction || "COJOP") + " — "
           + (libelleMod() || "") + (surface() ? " " + surface() + " m2" : "")
           + (r ? " — " + mio(r.bas) + " a " + mio(r.haut) + " XPF" : "");
   var charge = {
