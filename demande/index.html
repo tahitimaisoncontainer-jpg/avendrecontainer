@@ -249,6 +249,9 @@ E.enveloppe = {k:"Budget", q:"Quel budget avez-vous prévu pour votre projet ?",
 E.financement = {k:"Budget", q:"Comment envisagez-vous de financer ce projet ?", ch:"financement", multi:1,
   sub:"Plusieurs réponses possibles : beaucoup de projets combinent plusieurs sources. Cette question me sert à adapter le calendrier de facturation à votre situation.", o:[
   ["Fonds propres disponibles"],
+  /* le 4e element limite l option aux structures : un particulier n emet pas de bon de commande */
+  ["Bon de commande ou marché signé","Engagement écrit de votre structure. C'est ce qui me permet de lancer.",0,"pro"],
+  ["Crédits votés, bon de commande à venir","Le budget est inscrit, l'engagement n'est pas encore émis.",0,"pro"],
   ["Prêt bancaire déjà accordé"],
   ["Aide ou subvention notifiée"],
   ["Prêt en cours d'instruction"],
@@ -499,8 +502,8 @@ function noter(){
     else C = 6;
     var f = String(S.financement || "");
     if(f.indexOf("Fonds propres") > -1 || f.indexOf("déjà accordé") > -1
-       || f.indexOf("subvention notifiée") > -1) C += 10;
-    else if(f.indexOf("cours d'instruction") > -1) C += 6;
+       || f.indexOf("subvention notifiée") > -1 || f.indexOf("Bon de commande") > -1) C += 10;
+    else if(f.indexOf("cours d'instruction") > -1 || f.indexOf("Crédits votés") > -1) C += 6;
     else if(f.indexOf("reste à monter") > -1) C += 2;
   }
   C = Math.max(0, Math.min(25, C));
@@ -701,6 +704,7 @@ function rendre(){
     h += '<div class="opts">';
     for(var i=0;i<e.o.length;i++){
       var v = e.o[i][0], d = e.o[i][1];
+      if(e.o[i][3] === "pro" && S.profil === "Un particulier") continue;
       if(e.descPublic && estPublic() && e.descPublic[i] != null) d = e.descPublic[i];
       var actif = e.multi ? (MULTI[e.ch] || []).indexOf(v) > -1 : S[e.ch] === v;
       h += '<button class="opt' + (actif ? ' sel' : '') + '" onclick="' + (e.multi ? 'coche' : 'choix') + '(\'' + e.ch + '\',' + i + ')">'
@@ -1015,10 +1019,17 @@ function vigilance(){
     else if(cB==="juste")
       m.push("  Enveloppe juste : le plancher tourne autour de "+fmt(pB)+" XPF pour "+det+". Prévenez-le tout de suite.");
     var fin=String(S.financement||"");
-    var finSolide = fin.indexOf("Fonds propres")>-1 || fin.indexOf("déjà accordé")>-1 || fin.indexOf("subvention notifiée")>-1;
-    if(fin && !finSolide)
+    var finSolide = fin.indexOf("Fonds propres")>-1 || fin.indexOf("déjà accordé")>-1
+                 || fin.indexOf("subvention notifiée")>-1 || fin.indexOf("Bon de commande")>-1;
+    if(fin.indexOf("Bon de commande")>-1)
+      m.push("  Bon de commande annoncé : demandez-en une copie avant de commander la matière. C'est la pièce qui vous protège en cas de changement d'interlocuteur.");
+    else if(fin.indexOf("Crédits votés")>-1)
+      m.push("  Crédits votés mais pas encore engagés : rien ne part avant le bon de commande signé. Demandez qui l'émet et sous quel délai.");
+    else if(estPublic())
+      m.push("  Aucun engagement budgétaire annoncé pour une commande publique : vérifiez que les crédits existent avant de consacrer du temps au chiffrage.");
+    if(fin && !finSolide && fin.indexOf("Crédits votés")===-1)
       m.push("  Financement non bouclé : ne lancez pas l'étude avant d'avoir un plan de financement.");
-    else if(finSolide && (fin.indexOf("reste à monter")>-1 || fin.indexOf("cours d'instruction")>-1))
+    else if(finSolide && (fin.indexOf("reste à monter")>-1 || fin.indexOf("cours d'instruction")>-1 || fin.indexOf("Crédits votés")>-1))
       m.push("  Financement partiel : une partie est acquise, le reste ne l'est pas. Calez l'échéancier de facturation là-dessus.");
     if(S.terrain==="Je n'ai pas encore de terrain"||S.terrain==="Je l'ai repéré, il n'est pas encore à moi")
       m.push("  Terrain non maîtrisé : estimation en fourchette seulement, pas de devis détaillé.");
