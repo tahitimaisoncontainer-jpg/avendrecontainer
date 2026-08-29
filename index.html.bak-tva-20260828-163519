@@ -778,7 +778,7 @@
       <div class="field full">
         <label>Commune de livraison</label>
         <select id="commune" onchange="updateTotal()"></select>
-        <div class="note"><strong>Tarif « au quai »</strong> (Raiatea, Bora-Bora, Tahaa) : le conteneur est mis à disposition sur le quai de l’île. La livraison jusqu’à votre terrain et la pose se font sur devis.<br><br><strong>Îles Sous-le-Vent — desserte maritime :</strong> le tarif affiché correspond à l’acheminement par le <strong>Taporo</strong>. Si le Taporo n’est pas disponible pour des raisons internes à l’armateur (immobilisation, réparation, etc.), le fret est <strong>suspendu</strong> jusqu’au rétablissement de la desserte ; à défaut, si le conteneur doit impérativement être livré, l’acheminement est assuré par le <strong>Hawaiki Nui</strong> (départs du lundi au jeudi), au tarif de <strong>145 000 XPF</strong> pour un 20 pieds DRY vide en aller simple ; pour un 40 pieds HC, tarif sur devis. Le complément de fret est alors facturé en sus.</div>
+        <div class="note"><strong>Tarif « au quai »</strong> (Raiatea, Bora-Bora, Tahaa) : le conteneur est mis à disposition sur le quai de l’île. La livraison jusqu’à votre terrain et la pose se font sur devis.<br><br><strong>Îles Sous-le-Vent — desserte maritime :</strong> le Taporo reprend sa rotation sur les Raromatai courant septembre. Si votre envoi est pressé, l’acheminement peut se faire par le Hawaiki Nui, au tarif de 145 000 XPF pour un 20 pieds DRY vide en aller simple, avec des départs du lundi au jeudi.</div>
       </div>
       <div class="field full hidden" id="field-autres">
         <label>Précisez l'île</label>
@@ -997,7 +997,7 @@ const C20={
   BASE:623451, CONTENEUR_HT:490000, COUT_OP_HT:115044,
   TVA_RATE:0.13, COUT_OP_TVA_RATE:0.16, COUT_OP_TVA:Math.round(115044*0.16),
   label:'20 DRY', prefix:'TMC',
-  communes:[{v:'0',t:'Papeete'},{v:'23892',t:'Pirae'},{v:'23892',t:"Faa'a"},{v:'23892',t:'Arue'},{v:'28908',t:'Punaauia'},{v:'28908',t:'Mahina'},{v:'35192',t:'Paea'},{v:'35192',t:'Tiarei'},{v:'35192',t:'Papenoo'},{v:'47760',t:'Papara'},{v:'47760',t:'Hitiaa'},{v:'47760',t:'Mahaena'},{v:'56559',t:'Mataiea'},{v:'60329',t:'Papeari'},{v:'66000',t:'Faaone'},{v:'69127',t:'Taravao'},{v:'70384',t:'Toahotu'},{v:'70384',t:'Afaahiti'},{v:'71641',t:'Vairao'},{v:'71641',t:'Pueu'},{v:'75411',t:'Teahupoo'},{v:'75411',t:'Tautira'},{v:'90000',t:'Moorea'},{v:'50000',t:'Raiatea (au quai)'},{v:'50000',t:'Bora-Bora (au quai)'},{v:'50000',t:'Tahaa (au quai)'},{v:'autres',t:'Autres îles'}]
+  communes:[{v:'0',t:'Papeete'},{v:'23892',t:'Pirae'},{v:'23892',t:"Faa'a"},{v:'23892',t:'Arue'},{v:'28908',t:'Punaauia'},{v:'28908',t:'Mahina'},{v:'35192',t:'Paea'},{v:'35192',t:'Tiarei'},{v:'35192',t:'Papenoo'},{v:'47760',t:'Papara'},{v:'47760',t:'Hitiaa'},{v:'47760',t:'Mahaena'},{v:'56559',t:'Mataiea'},{v:'60329',t:'Papeari'},{v:'66000',t:'Faaone'},{v:'69127',t:'Taravao'},{v:'70384',t:'Toahotu'},{v:'70384',t:'Afaahiti'},{v:'71641',t:'Vairao'},{v:'71641',t:'Pueu'},{v:'75411',t:'Teahupoo'},{v:'75411',t:'Tautira'},{v:'90000',t:'Moorea'},{v:'145000',t:'Raiatea (au quai)'},{v:'145000',t:'Bora-Bora (au quai)'},{v:'145000',t:'Tahaa (au quai)'},{v:'autres',t:'Autres îles'}]
 };
 
 /* ─── Constantes 40 HC ─── */
@@ -1252,7 +1252,7 @@ function buildModal20(d){
 
   // Frais de gestion organisme public (hors Papeete — Papeete déjà géré ci-dessus)
   if(clientType === 'public' && !isPapeete){
-    const del_ht_m      = Math.round(d.delivery_cost/(1+tauxLivraison(TVA_RATE)));
+    const del_ht_m      = Math.round(d.delivery_cost / (1 + TVA_RATE));
     const total_ht_m    = C20.CONTENEUR_HT * qty + del_ht_m * qty + C20.COUT_OP_HT * qty;
     const frais_ht_m    = Math.round(total_ht_m * 0.15);
     const frais_tva_m   = Math.round(frais_ht_m * TVA_RATE);
@@ -1460,7 +1460,7 @@ function collectData20(){
         <td style="${B}"><strong>Livraison — ${communeTxt}</strong></td>
         <td style="${BC}">${qtyNum}</td>
         <td style="${BR}">${n(del_ht_u)} XPF</td>
-        <td style="${BTV}">${estFretIle(communeTexte())?'/':'13%'}</td>
+        <td style="${BTV}">13%</td>
         <td style="${BR}">${n(del_ht_tot)} XPF</td>
       </tr>`;
     }
@@ -1725,11 +1725,11 @@ function generatePDF20(d){
   // Calculs HT / TVA
   const cont_ht     = CONTENEUR_HT * qty;                         // exo TVA
   const del_ttc_u   = d.delivery_cost;                             // TTC livraison par unité
-  const del_ht_u    = isAutres ? 0 : Math.round(del_ttc_u/(1+tauxLivraison(TVA_RATE)));
+  const del_ht_u    = isAutres ? 0 : Math.round(del_ttc_u / (1 + TVA_RATE));
   const del_ht      = del_ht_u * qty;                              // HT total livraison
   const op_ht       = COUT_OP_HT * qty;
   // TVA : 13% sur livraison, 16% sur coût opérationnel
-  const tva_del     = isAutres ? 0 : Math.round(del_ht * tauxLivraison(TVA_RATE));
+  const tva_del     = isAutres ? 0 : Math.round(del_ht * TVA_RATE);
   const tva_op      = Math.round(op_ht * COUT_OP_TVA_RATE);
   const total_tva   = tva_del + tva_op;
   const base_ttc    = cont_ht + del_ht + op_ht + total_tva;       // avant frais gestion
@@ -1877,7 +1877,7 @@ function generatePDF20(d){
   doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(50,65,85);
   doc.text(isPapeete?'0':isAutres?'-':xpf20(del_ht_u), TC2+12, y+9, {align:'center'}); // P.U.HT livraison par unité
   doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor(80,95,115);
-  doc.text(isAutres?'-':(estFretIle(communeTexte())?'/':'13%'), TC3+15, y+9, {align:'center'});
+  doc.text(isAutres?'-':'13%', TC3+15, y+9, {align:'center'});
   doc.setFont('helvetica','bold'); doc.setFontSize(10);
   if(isPapeete){ doc.setTextColor(40,160,90); doc.text('0', TCE-4, y+9, {align:'right'}); }
   else if(isAutres){ doc.setTextColor(150,160,175); doc.text('Sur etude', TCE-4, y+9, {align:'right'}); }
@@ -2123,7 +2123,7 @@ function buildModal40(d){
     const opTtcPu=Math.round(COUT_OP_HT*(1+C40.COUT_OP_TVA_RATE)), opTtcTot=opTtcPu*qty;
     const r3=tbody.insertRow(); r3.innerHTML=`<td>Coût opérationnel</td><td>${qty}</td><td class="td-right">${opTtcPu.toLocaleString('fr-FR')} XPF</td><td class="td-right">${opTtcTot.toLocaleString('fr-FR')} XPF</td>`;
     if(clientType==='public'){
-      const del_ht_m=Math.round(d.delivery_cost/(1+tauxLivraison(TVA_RATE)));
+      const del_ht_m=Math.round(d.delivery_cost/(1+TVA_RATE));
       const tot_ht_m=C40.CONTENEUR_HT*qty+del_ht_m*qty+C40.COUT_OP_HT*qty;
       const fht=Math.round(tot_ht_m*0.15), ftva=Math.round(fht*TVA_RATE), fttc=fht+ftva;
       const r4=tbody.insertRow(); r4.innerHTML=`<td style="color:#e07030;font-weight:700">Frais de gestion, financement et mobilisation<br><small style="color:#c06020;font-weight:600">Commande publique (paiement différé)</small></td><td>1</td><td class="td-right" style="color:#e07030">${fttc.toLocaleString('fr-FR')} XPF</td><td class="td-right" style="color:#e07030">${fttc.toLocaleString('fr-FR')} XPF</td>`;
@@ -2181,17 +2181,17 @@ function collectData40(){
 
     detail_html = `<table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top:10px;"><tr><td width="38%"></td><td width="62%"><table width="100%" cellpadding="0" cellspacing="0" border="0" style="border-radius:8px;overflow:hidden;border:1px solid #e2e8f0;"><tr style="background:#1a1e28;"><td style="padding:8px 12px;font-size:8px;color:#fff;text-transform:uppercase;letter-spacing:1px;font-weight:700;font-family:Arial,sans-serif;">Détail TVA</td><td style="padding:8px 12px;font-size:8px;color:#fff;text-transform:uppercase;letter-spacing:1px;font-weight:700;text-align:right;font-family:Arial,sans-serif;">Montant (XPF)</td></tr><tr style="background:#f8fafc;"><td style="${BM}">Total TVA</td><td style="${BMR}">${n(total_tva_val)} XPF</td></tr><tr style="background:#fff;"><td style="${BM}">Sous-total HT</td><td style="${BMR}">${n(sous_ht_val)} XPF</td></tr><tr style="background:#e56535;"><td style="padding:12px;font-size:11px;font-weight:700;color:#fff;text-transform:uppercase;letter-spacing:1px;font-family:Arial,sans-serif;">TOTAL TTC</td><td style="padding:12px;text-align:right;font-size:16px;font-weight:900;color:#fff;font-family:Arial,sans-serif;">${n(total_ttc_val)} XPF</td></tr></table></td></tr></table>`;
   } else {
-    const del_ht_u   = Math.round(deliveryCost/(1+tauxLivraison(TVA_RATE)));
+    const del_ht_u   = Math.round(deliveryCost/(1+TVA_RATE));
     const del_ht_tot = del_ht_u * qtyNum;
     const op_ht_tot  = COUT_OP_HT * qtyNum;
-    const tva_del    = isAutres ? 0 : Math.round(del_ht_tot * tauxLivraison(TVA_RATE));
+    const tva_del    = isAutres ? 0 : Math.round(del_ht_tot * TVA_RATE);
     const tva_op     = Math.round(op_ht_tot * C40.COUT_OP_TVA_RATE);
     const tva_glob   = tva_del + tva_op;
     sous_ht_val = CONTENEUR_HT*qtyNum + del_ht_tot + op_ht_tot;
     total_tva_val = tva_glob;
     rows_html += `<tr style="background:#fff;"><td style="${B}"><strong>Conteneur 40 pieds HC</strong><br><span style="font-size:9px;color:#94a3b8;">Occasion · Acier Corten · bon état</span></td><td style="${BC}">${qtyNum}</td><td style="${BR}">${n(CONTENEUR_HT)} XPF</td><td style="${BTV}">/</td><td style="${BR}">${n(CONTENEUR_HT*qtyNum)} XPF</td></tr>`;
     if(isAutres){ rows_html += `<tr style="background:#f8fafc;"><td style="${B}"><strong>Fret maritime — ${ile_txt}</strong></td><td style="${BC}">${qtyNum}</td><td style="${BR}">—</td><td style="${BTV}">Sur étude</td><td style="${BR}color:#94a3b8;">Sur étude</td></tr>`; }
-    else { rows_html += `<tr style="background:#f8fafc;"><td style="${B}"><strong>Livraison — ${communeTxt}</strong></td><td style="${BC}">${qtyNum}</td><td style="${BR}">${n(del_ht_u)} XPF</td><td style="${BTV}">${estFretIle(communeTexte())?'/':'13%'}</td><td style="${BR}">${n(del_ht_tot)} XPF</td></tr>`; }
+    else { rows_html += `<tr style="background:#f8fafc;"><td style="${B}"><strong>Livraison — ${communeTxt}</strong></td><td style="${BC}">${qtyNum}</td><td style="${BR}">${n(del_ht_u)} XPF</td><td style="${BTV}">13%</td><td style="${BR}">${n(del_ht_tot)} XPF</td></tr>`; }
     rows_html += `<tr style="background:#fff;"><td style="${B}"><strong>Coût opérationnel</strong></td><td style="${BC}">${qtyNum}</td><td style="${BR}">${n(COUT_OP_HT)} XPF</td><td style="${BTV}">16%</td><td style="${BR}">${n(op_ht_tot)} XPF</td></tr>`;
     let frais_ht=0, frais_tva=0;
     if(isPublic){ frais_ht=Math.round(sous_ht_val*0.15); frais_tva=Math.round(frais_ht*TVA_RATE); total_tva_val+=frais_tva; rows_html+=`<tr style="background:#fff7f3;"><td style="${B}color:#c05a20;"><strong>Frais de gestion, financement et mobilisation</strong><br><span style="font-size:9px;color:#d4784a;">Commande publique (paiement différé)</span></td><td style="padding:10px 11px;border-bottom:1px solid #fde8d8;text-align:center;font-weight:900;color:#e56535;font-size:13px;font-family:Arial,sans-serif;">1</td><td style="padding:10px 11px;border-bottom:1px solid #fde8d8;text-align:right;font-weight:700;font-size:11px;color:#c05a20;font-family:Arial,sans-serif;">${n(frais_ht)} XPF</td><td style="padding:10px 11px;border-bottom:1px solid #fde8d8;text-align:center;font-size:11px;color:#c05a20;font-family:Arial,sans-serif;">13%</td><td style="padding:10px 11px;border-bottom:1px solid #fde8d8;text-align:right;font-weight:700;font-size:11px;color:#c05a20;font-family:Arial,sans-serif;">${n(frais_ht)} XPF HT</td></tr>`; }
@@ -2258,11 +2258,11 @@ function generatePDF40(d){
   // Calculs HT / TVA
   const cont_ht      = CONTENEUR_HT * qty;
   const del_ttc_u    = d.delivery_cost;
-  const del_ht_u     = isAutres ? 0 : Math.round(del_ttc_u/(1+tauxLivraison(TVA_RATE)));
+  const del_ht_u     = isAutres ? 0 : Math.round(del_ttc_u / (1 + TVA_RATE));
   const del_ht       = del_ht_u * qty;
   const op_ht        = COUT_OP_HT * qty;
   // TVA : 13% sur livraison, 16% sur coût opérationnel
-  const tva_del      = isAutres ? 0 : Math.round(del_ht * tauxLivraison(TVA_RATE));
+  const tva_del      = isAutres ? 0 : Math.round(del_ht * TVA_RATE);
   const tva_op       = Math.round(op_ht * COUT_OP_TVA_RATE);
   const total_tva    = tva_del + tva_op;
   const base_ttc     = cont_ht + del_ht + op_ht + total_tva;
@@ -2397,7 +2397,7 @@ function generatePDF40(d){
   doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(50,65,85);
   doc.text(isPapeete?'0':isAutres?'-':xpf40(del_ht_u), TC2+12, y+9, {align:'center'});
   doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor(80,95,115);
-  doc.text(isAutres?'-':(estFretIle(communeTexte())?'/':'13%'), TC3+15, y+9, {align:'center'});
+  doc.text(isAutres?'-':'13%', TC3+15, y+9, {align:'center'});
   doc.setFont('helvetica','bold'); doc.setFontSize(10);
   if(isPapeete){ doc.setTextColor(40,160,90); doc.text('0', TCE-4, y+9, {align:'right'}); }
   else if(isAutres){ doc.setTextColor(150,160,175); doc.text('Sur etude', TCE-4, y+9, {align:'right'}); }
