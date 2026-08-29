@@ -22,7 +22,7 @@ body{margin:0;background:var(--g);color:var(--t);font-family:'DM Sans',system-ui
 .container{width:min(var(--max),calc(100% - 2.4rem));margin:0 auto}
 nav{position:fixed;inset:0 0 auto 0;z-index:1000;backdrop-filter:blur(14px);
 background:rgba(20,24,30,.88);border-bottom:1px solid rgba(255,255,255,.06)}
-.nav-spacer{padding-top:78px}
+.nav-spacer{padding-top:var(--navh,78px)}
 .nav-inner{min-height:78px;display:flex;align-items:center;justify-content:space-between;gap:1rem}
 .brand{font-family:'Bebas Neue',Impact,sans-serif;letter-spacing:.08em;font-size:1.5rem;
 white-space:nowrap;text-decoration:none;color:var(--text)}
@@ -34,7 +34,7 @@ white-space:nowrap;text-decoration:none;font-family:'DM Sans',sans-serif}
 .btn2:hover{transform:translateY(-1px)}
 .btn2-p{background:linear-gradient(135deg,var(--accent),var(--accent-2));color:#fff;box-shadow:0 10px 24px rgba(229,101,53,.24)}
 .btn2-s{background:rgba(255,255,255,.03);color:var(--text);border:1px solid var(--line)}
-.ptabs-wrap{position:sticky;top:78px;z-index:900;background:rgba(18,22,29,.96);
+.ptabs-wrap{position:sticky;top:var(--navh,78px);z-index:900;background:rgba(18,22,29,.96);
 backdrop-filter:blur(14px);border-bottom:2px solid var(--line)}
 .ptabs{display:flex;gap:.5rem;padding:.6rem 0 0;max-width:var(--max);margin:0 auto;
 width:min(var(--max),calc(100% - 2.4rem));overflow-x:auto;scrollbar-width:none}
@@ -50,8 +50,6 @@ padding:.15rem .4rem;border-radius:999px;font-weight:700}
 .ptab-short{display:none}
 @media(max-width:780px){
  .nav-inner{flex-direction:column;align-items:center;gap:.55rem;padding:.7rem 0;min-height:auto}
- .nav-spacer{padding-top:120px}
- .ptabs-wrap{position:static;top:auto}
  .brand{font-size:1.1rem}
  .nav-right{gap:.5rem}
  .nav-right .btn2{padding:.6rem 1rem;font-size:.85rem}
@@ -362,6 +360,14 @@ document.getElementById('go').addEventListener('click', function(){
 });
 </script>
 
+<script>
+/* hauteur réelle du bandeau : le décalage et la barre collante s'y adaptent */
+(function(){var n=document.querySelector('nav');
+function h(){document.documentElement.style.setProperty('--navh',
+  Math.round(n.getBoundingClientRect().height)+'px');}
+h();addEventListener('resize',h);addEventListener('load',h);
+if(document.fonts&&document.fonts.ready)document.fonts.ready.then(h);})();
+</script>
 <footer>
   Tahiti Maison Container — N° Tahiti 710194 — Domaine Vaitarua, Afaahiti, Tahiti<br>
   87 22 65 55 · tahitimaisoncontainer@gmail.com<br>

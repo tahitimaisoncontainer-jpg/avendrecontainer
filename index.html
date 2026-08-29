@@ -190,7 +190,7 @@
     .container{ width:min(var(--max), calc(100% - 2.4rem)); margin:0 auto; }
     nav{ position:fixed; inset:0 0 auto 0; z-index:1000; backdrop-filter:blur(14px); background:rgba(20,24,30,.74); border-bottom:1px solid rgba(255,255,255,.06); }
     .nav-inner{ min-height:78px; display:flex; align-items:center; justify-content:space-between; gap:1rem; }
-    .nav-spacer{ padding-top:78px; }
+    .nav-spacer{ padding-top:var(--navh,78px); }
     .brand{ font-family:'Bebas Neue',sans-serif; letter-spacing:.08em; font-size:1.5rem; white-space:nowrap; }
     .brand span{ color:var(--accent); }
     .brand .brand-full{ color:inherit; }
@@ -325,7 +325,7 @@
       .brand{ font-size:1.1rem; }
       .nav-right{ gap:.5rem; }
       .nav-right .btn{ padding:.6rem 1rem; font-size:.85rem; }
-      .nav-spacer{ padding-top:120px; }
+
       .modal-body{ padding:1.2rem; }
       .modal-header{ padding:1.2rem 1.2rem .8rem; }
       .modal-footer{ padding:.8rem 1.2rem 1.2rem; }
@@ -339,7 +339,6 @@
       .ptab .ptab-badge{ display:none; }
       .ptab .ptab-long{ display:none; }
       .ptab .ptab-short{ display:inline; }
-      .ptabs-wrap{ position:static; top:auto; }
       #tab-offre{ color:var(--accent); border-color:rgba(229,101,53,.5); }
       #tab-offre.active{ color:var(--text); }
       /* Modal sur mobile */
@@ -353,7 +352,7 @@
     }
   
 /* ── ONGLETS PRODUITS ── */
-.ptabs-wrap{position:sticky;top:78px;z-index:900;background:rgba(18,22,29,.96);backdrop-filter:blur(14px);border-bottom:2px solid var(--line);}
+.ptabs-wrap{position:sticky;top:var(--navh,78px);z-index:900;background:rgba(18,22,29,.96);backdrop-filter:blur(14px);border-bottom:2px solid var(--line);}
 .ptabs{display:flex;gap:.5rem;padding:.6rem 0 0;max-width:var(--max);margin:0 auto;width:min(var(--max),calc(100% - 2.4rem));}
 .ptab{display:flex;align-items:center;gap:.55rem;padding:.7rem 1.4rem;border-radius:12px 12px 0 0;font-family:"Bebas Neue",sans-serif;font-size:1.1rem;letter-spacing:.06em;cursor:pointer;transition:.2s;background:rgba(255,255,255,.03);border:1px solid var(--line);border-bottom:none;color:var(--muted);}
 .ptab.active{background:rgba(229,101,53,.13);border-color:var(--accent);color:var(--text);}
@@ -1035,6 +1034,12 @@ document.addEventListener('DOMContentLoaded',function(){
   var p=new URLSearchParams(location.search).get('p');
   if(p==='40'||p==='20') switchProduct(p);
 });
+/* Hauteur réelle du bandeau : le décalage et la barre d'onglets collante s'y adaptent */
+(function(){var n=document.querySelector('nav');
+function h(){document.documentElement.style.setProperty('--navh',
+  Math.round(n.getBoundingClientRect().height)+'px');}
+h();addEventListener('resize',h);addEventListener('load',h);
+if(document.fonts&&document.fonts.ready)document.fonts.ready.then(h);})();
 function switchProduct(p){
   activeProduct=p;
   document.querySelectorAll('.psec').forEach(s=>s.classList.remove('active'));
