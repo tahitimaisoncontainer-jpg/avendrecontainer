@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow,noarchive">
+<title>Conteneur 40 HC d&#x27;occasion, étanche — Tahiti Maison Container</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;700&display=swap">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+:root{--navy:#16202c;--or:#f4712d;--or2:#b8501a;--g:#f4f6f8;--s:#fff;--s2:#eef2f6;
+--t:#16202c;--t2:#5d6b7a;--t3:#8d9aa8;--l:#dce3ea;--l2:#c6d0da;--ok:#15795c;--okb:#e6f3ee}
+*{box-sizing:border-box}
+body{margin:0;background:var(--g);color:var(--t);font-family:'DM Sans',system-ui,Arial,sans-serif;font-size:15px;line-height:1.55;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1040px;margin:0 auto;padding:0 18px 64px}
+header{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:20px 0 16px;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:10px}
+.brand img{width:38px;height:38px;border-radius:5px}
+.brand .n{font-family:'Bebas Neue',Impact,sans-serif;font-size:26px;letter-spacing:.04em;line-height:1}
+.brand .n span{color:var(--or)}
+.brand .s{font-size:11.5px;color:var(--t3);letter-spacing:.02em}
+.tel{font-size:14px;color:var(--t2)}
+.tel b{color:var(--t)}
+.rule{height:4px;background:var(--or);border-radius:2px}
+.card{margin-top:22px;background:var(--s);border:1px solid var(--l);border-radius:8px;overflow:hidden;
+box-shadow:0 1px 2px rgba(22,32,44,.06),0 8px 24px rgba(22,32,44,.07);display:grid;grid-template-columns:1.12fr .88fr}
+@media(max-width:880px){.card{grid-template-columns:1fr}}
+.gal{padding:14px;background:var(--s2);display:flex;flex-direction:column;gap:10px}
+.main{position:relative;border-radius:5px;overflow:hidden;background:#0c1116;aspect-ratio:4/3}
+.main img{width:100%;height:100%;object-fit:cover;display:block}
+.flag{position:absolute;left:0;top:14px;background:var(--or);color:#fff;font-family:'Bebas Neue',Impact,sans-serif;
+font-size:17px;letter-spacing:.14em;padding:4px 14px 2px}
+.th{display:grid;grid-template-columns:repeat(6,1fr);gap:6px}
+.th button{padding:0;border:2px solid transparent;border-radius:4px;overflow:hidden;cursor:pointer;background:none;aspect-ratio:1;line-height:0}
+.th img{width:100%;height:100%;object-fit:cover}
+.th button[aria-current=true]{border-color:var(--or)}
+.th button:focus-visible{outline:2px solid var(--or);outline-offset:2px}
+.pan{padding:24px 26px 26px}
+.eb{font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--or2)}
+h1{font-family:'Bebas Neue',Impact,sans-serif;font-size:36px;line-height:1.02;margin:8px 0 0;letter-spacing:.02em;font-weight:400}
+.ref{font-size:12.5px;color:var(--t3);margin-top:5px;font-variant-numeric:tabular-nums}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:15px}
+.chip{font-size:12px;font-weight:500;padding:3px 10px;border-radius:999px;background:var(--okb);color:var(--ok)}
+.desc{margin-top:15px;font-size:14.5px;color:var(--t2);max-width:54ch}
+.f{margin-top:18px}
+.f label{display:block;font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--t3);margin-bottom:6px}
+select,input{width:100%;font-family:inherit;font-size:15px;color:var(--t);background:var(--s);border:1px solid var(--l2);border-radius:5px;padding:10px 12px}
+select:focus,input:focus{outline:2px solid var(--or);outline-offset:1px;border-color:var(--or)}
+.tot{margin-top:20px;border-top:2px solid var(--navy);padding-top:14px}
+.tot .k{font-family:'Bebas Neue',Impact,sans-serif;font-size:19px;letter-spacing:.1em;color:var(--t2)}
+.tot .v{font-family:'Bebas Neue',Impact,sans-serif;font-size:56px;line-height:1;color:var(--or);font-variant-numeric:tabular-nums}
+.tot .v small{font-size:23px;letter-spacing:.04em;margin-left:4px}
+.tot .fine{font-size:12.5px;color:var(--t3);margin-top:6px;max-width:46ch}
+.resv{margin-top:16px;background:#fff8f3;border-left:4px solid var(--or);border-radius:0 5px 5px 0;padding:12px 16px;font-size:13px;color:var(--t2)}
+.resv b{color:var(--t)}
+.form{margin-top:20px;border-top:1px solid var(--l);padding-top:18px}
+.form h2{font-family:'Bebas Neue',Impact,sans-serif;font-size:22px;letter-spacing:.05em;margin:0 0 4px;font-weight:400}
+.form p{margin:0 0 14px;font-size:13.5px;color:var(--t2)}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media(max-width:520px){.row{grid-template-columns:1fr}}
+.btn{margin-top:14px;width:100%;font-family:'Bebas Neue',Impact,sans-serif;font-size:21px;letter-spacing:.07em;
+background:var(--or);color:#fff;border:0;border-radius:5px;padding:13px 20px 11px;cursor:pointer}
+.btn:hover{background:var(--or2)}
+.btn:focus-visible{outline:2px solid var(--navy);outline-offset:2px}
+.msg{margin-top:12px;font-size:13.5px;color:var(--ok);display:none}
+.msg.on{display:block}
+.sold{margin-top:22px;background:var(--navy);color:#fff;border-radius:8px;padding:34px 28px;text-align:center}
+.sold h2{font-family:'Bebas Neue',Impact,sans-serif;font-size:34px;letter-spacing:.06em;margin:0 0 8px;font-weight:400}
+.sold p{margin:0 auto;color:#b9c4cf;font-size:15px;max-width:46ch}
+.sold a{color:var(--or)}
+footer{margin-top:26px;font-size:12px;color:var(--t3);text-align:center;line-height:1.7}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <div class="brand">
+    <img src="../../images/logo-tmc-carre.png" alt="">
+    <div><div class="n"><span>TMC</span> Tahiti Maison Container</div>
+    <div class="s">Conteneurs maritimes · livraison · aménagement</div></div>
+  </div>
+  <div class="tel">Un conteneur à vendre&nbsp;? <b>87 22 65 55</b></div>
+</header>
+<div class="rule"></div>
+<div class="card">
+  <div class="gal">
+    <div class="main"><span class="flag">OPPORTUNITÉ</span>
+      <img id="mainImg" src="p01.jpg" alt="Conteneur 40 HC d&#x27;occasion, étanche"></div>
+    <div class="th" id="thumbs"></div>
+  </div>
+  <div class="pan">
+    <div class="eb">Une seule unité · premier arrivé</div>
+    <h1>Conteneur 40 HC d&#x27;occasion, étanche</h1>
+    <div class="ref">Réf. OPP-2026-01 · disponible immédiatement</div>
+    <div class="chips"><span class="chip">Étanche</span><span class="chip">Plancher sain</span><span class="chip">Portes fonctionnelles</span></div>
+    <p class="desc">Unité rachetée à un particulier. Structure saine, intérieur sec, aucune trace d&#x27;infiltration. L&#x27;extérieur porte la rouille de surface visible sur les photos, sans incidence sur l&#x27;étanchéité.</p>
+
+    <div class="f">
+      <label for="commune">Livraison</label>
+      <select id="commune"></select>
+    </div>
+
+    <div class="tot">
+      <div class="k">TOTAL NET À PAYER</div>
+      <div class="v" id="total">— <small>XPF</small></div>
+      <div class="fine">Prix net, tout compris : conteneur, transport et mise à disposition. Aucun frais supplémentaire.</div>
+    </div>
+
+    <div class="resv"><b>Offre sous réserve de disponibilité.</b> L'unité proposée est unique.
+      La vente n'est définitive qu'après confirmation écrite de TMC, adressée au premier acquéreur
+      dont le devis signé nous est parvenu.</div>
+
+    <div class="form">
+      <h2>Ce conteneur m'intéresse</h2>
+      <p>Votre devis est généré immédiatement. Il suffit de le retourner signé et daté pour conclure.</p>
+      <div class="row">
+        <input id="nom" type="text" placeholder="Nom et prénom" autocomplete="name">
+        <input id="tel" type="tel" placeholder="Téléphone" autocomplete="tel">
+      </div>
+      <div class="f"><input id="mail" type="email" placeholder="Adresse e-mail" autocomplete="email"></div>
+      <button class="btn" id="go">TÉLÉCHARGER MON DEVIS</button>
+      <div class="msg" id="msg">Devis téléchargé. Retournez-le signé et daté à tahitimaisoncontainer@gmail.com — le premier devis signé reçu emporte le conteneur.</div>
+    </div>
+  </div>
+</div>
+
+<script>
+var PHOTOS = ["p01.jpg", "p02.jpg", "p03.jpg", "p04.jpg", "p05.jpg", "p06.jpg", "p07.jpg", "p08.jpg", "p09.jpg", "p10.jpg", "p11.jpg"];
+var COMMUNES = [["Papeete", 0], ["Pirae", 28908], ["Faa'a", 28908], ["Arue", 28908], ["Punaauia", 47760], ["Mahina", 47760], ["Paea", 72897], ["Tiarei", 72897], ["Papenoo", 72897], ["Papara", 91750], ["Hitiaa", 91750], ["Mahaena", 91750], ["Mataiea", 106832], ["Papeari", 109346], ["Faaone", 111860], ["Taravao", 113117], ["Toahotu", 115630], ["Afaahiti", 115630], ["Vairao", 116888], ["Pueu", 116888], ["Teahupoo", 123171], ["Tautira", 123171], ["Moorea", 160000], ["Raiatea (au quai)", 95000], ["Bora-Bora (au quai)", 95000], ["Tahaa (au quai)", 95000]];
+var PRIX = 350000, MARGE = 50000, TVA = Math.round(50000 * 0.16);
+var REF = "OPP-2026-01", TITRE = "Conteneur 40 HC d&#x27;occasion, étanche", DATE = "29 août 2026";
+
+function fr(n){ return n.toLocaleString('fr-FR').replace(/ | /g,' '); }
+
+var sel = document.getElementById('commune');
+COMMUNES.forEach(function(c,i){
+  var o = document.createElement('option');
+  o.value = c[1]; o.textContent = c[0]; if(i===0) o.selected = true; sel.appendChild(o);
+});
+
+var th = document.getElementById('thumbs'), mainImg = document.getElementById('mainImg');
+PHOTOS.forEach(function(src,i){
+  var b = document.createElement('button');
+  b.type='button'; b.setAttribute('aria-current', i===0?'true':'false');
+  b.setAttribute('aria-label','Photo '+(i+1));
+  b.innerHTML = '<img src="'+src+'" alt="">';
+  b.onclick = function(){
+    mainImg.src = src;
+    Array.prototype.forEach.call(th.children, function(c){ c.setAttribute('aria-current','false'); });
+    b.setAttribute('aria-current','true');
+  };
+  th.appendChild(b);
+});
+
+function total(){ return PRIX + (+sel.value||0) + MARGE + TVA; }
+function maj(){ document.getElementById('total').innerHTML = fr(total()) + ' <small>XPF</small>'; }
+sel.addEventListener('change', maj); maj();
+
+var U=['zéro','un','deux','trois','quatre','cinq','six','sept','huit','neuf','dix','onze','douze','treize','quatorze','quinze','seize','dix-sept','dix-huit','dix-neuf'];
+var D=['','','vingt','trente','quarante','cinquante','soixante','soixante','quatre-vingt','quatre-vingt'];
+function c99(n){ if(n<20) return U[n];
+  var d=Math.floor(n/10), u=n%10;
+  if(d===7||d===9){ return D[d]+(u===1&&d===7?' et ':'-')+U[10+u]; }
+  return D[d]+(u===0?(d===8?'s':''):(u===1&&d!==8?' et ':'-')+U[u]); }
+function c999(n){ if(n<100) return c99(n);
+  var c=Math.floor(n/100), r=n%100;
+  return (c>1?U[c]+' ':'')+'cent'+(r===0&&c>1?'s':'')+(r?' '+c99(r):''); }
+function lettres(n){ if(n===0) return 'zéro';
+  var m=Math.floor(n/1000000), k=Math.floor((n%1000000)/1000), r=n%1000, p=[];
+  if(m) p.push((m>1?c999(m)+' ':'')+(m>1?'millions':'million'));
+  if(k) p.push((k>1?c999(k)+' ':'')+'mille');
+  if(r) p.push(c999(r));
+  return p.join(' '); }
+
+document.getElementById('go').addEventListener('click', function(){
+  var nom=(document.getElementById('nom').value||'').trim();
+  var tel=(document.getElementById('tel').value||'').trim();
+  var mail=(document.getElementById('mail').value||'').trim();
+  if(!nom){ document.getElementById('nom').focus(); return; }
+  var commune=sel.options[sel.selectedIndex].text, T=total();
+  var jsPDF=window.jspdf.jsPDF, d=new jsPDF({unit:'mm',format:'a4'});
+  var W=210, M=16;
+  d.setFillColor(22,32,44); d.rect(0,0,W,34,'F');
+  d.setTextColor(244,113,45); d.setFont('helvetica','bold'); d.setFontSize(22); d.text('TMC',M,17);
+  d.setTextColor(255,255,255); d.setFontSize(12); d.text('Tahiti Maison Container',M+16,17);
+  d.setFont('helvetica','normal'); d.setFontSize(7.5); d.setTextColor(150,163,177);
+  d.text('Conteneurs maritimes · livraison · aménagement',M,23);
+  d.setFont('helvetica','bold'); d.setFontSize(20); d.setTextColor(255,255,255); d.text('DEVIS',W-M,16,{align:'right'});
+  d.setFont('helvetica','normal'); d.setFontSize(7.5); d.setTextColor(150,163,177);
+  d.text('Réf. TMC-'+REF,W-M,21.5,{align:'right'});
+  d.text('Date : '+DATE,W-M,25,{align:'right'});
+  d.setFillColor(244,113,45); d.rect(0,34,W,1.6,'F');
+
+  var y=46;
+  d.setTextColor(138,151,166); d.setFontSize(7); d.setFont('helvetica','bold');
+  d.text('ÉMETTEUR',M,y); d.text('CLIENT',W/2+2,y);
+  d.setTextColor(27,39,52); d.setFontSize(10.5); d.text('Tahiti Maison Container',M,y+6);
+  d.text(nom,W/2+2,y+6);
+  d.setFont('helvetica','normal'); d.setFontSize(9); d.setTextColor(93,107,122);
+  d.text('N° Tahiti : 710194',M,y+11.5);
+  d.text('Tél. 87 22 65 55',M,y+16.5);
+  d.text('tahitimaisoncontainer@gmail.com',M,y+21.5);
+  if(tel) d.text('Tél. '+tel,W/2+2,y+11.5);
+  if(mail) d.text(mail,W/2+2,y+16.5);
+  d.text('Livraison : '+commune,W/2+2,y+21.5);
+
+  y=y+32;
+  d.setFillColor(22,32,44); d.rect(M,y,W-2*M,9,'F');
+  d.setTextColor(255,255,255); d.setFont('helvetica','bold'); d.setFontSize(7.5);
+  d.text('DÉSIGNATION',M+4,y+6); d.text('MONTANT NET (XPF)',W-M-4,y+6,{align:'right'});
+  y=y+9;
+  d.setDrawColor(227,233,239); d.setFillColor(255,255,255);
+  d.rect(M,y,W-2*M,17,'FD');
+  d.setTextColor(27,39,52); d.setFont('helvetica','bold'); d.setFontSize(10.5);
+  d.text(TITRE,M+4,y+7);
+  d.setFont('helvetica','normal'); d.setFontSize(8.2); d.setTextColor(138,151,166);
+  d.text('Mise à disposition et livraison incluses — '+commune,M+4,y+12.5);
+  d.setFont('helvetica','bold'); d.setFontSize(11); d.setTextColor(27,39,52);
+  d.text(fr(T),W-M-4,y+9,{align:'right'});
+
+  y=y+25;
+  d.setFillColor(22,32,44); d.rect(W-M-88,y,88,14,'F');
+  d.setTextColor(255,255,255); d.setFont('helvetica','bold'); d.setFontSize(9);
+  d.text('TOTAL NET À PAYER',W-M-84,y+9);
+  d.setTextColor(244,113,45); d.setFontSize(13); d.text(fr(T)+' XPF',W-M-4,y+9,{align:'right'});
+
+  y=y+22;
+  d.setTextColor(93,107,122); d.setFont('helvetica','italic'); d.setFontSize(9);
+  d.text('Arrêter le présent devis à la somme de : '+lettres(T)+' francs (XPF '+fr(T)+' net).',M,y,{maxWidth:W-2*M});
+
+  y=y+14;
+  d.setFillColor(255,248,243); d.rect(M,y,W-2*M,30,'F');
+  d.setFillColor(244,113,45); d.rect(M,y,1.4,30,'F');
+  d.setTextColor(164,104,47); d.setFont('helvetica','bold'); d.setFontSize(7.5);
+  d.text('CONDITIONS',M+5,y+6);
+  d.setTextColor(61,75,90); d.setFont('helvetica','normal'); d.setFontSize(8.6);
+  d.text('Offre sous réserve de disponibilité. L\'unité proposée est unique. La vente n\'est définitive '
+    +'qu\'après confirmation écrite de TMC, adressée au premier acquéreur dont le devis signé nous est '
+    +'parvenu. Conteneur d\'occasion vendu dans l\'état décrit et photographié. Règlement à la commande, '
+    +'par virement ; les coordonnées bancaires sont communiquées avec la confirmation.',
+    M+5,y+11.5,{maxWidth:W-2*M-10,lineHeightFactor:1.45});
+
+  y=y+38;
+  d.setDrawColor(244,113,45); d.setLineWidth(0.6); d.line(M,y,W-M,y);
+  d.setTextColor(27,39,52); d.setFont('helvetica','bold'); d.setFontSize(9.5);
+  d.text('Pour accepter ce devis, merci de le retourner signé et daté par mail à tahitimaisoncontainer@gmail.com',
+    M,y+7,{maxWidth:W-2*M});
+  d.setFont('helvetica','normal'); d.setFontSize(8.4); d.setTextColor(93,107,122);
+  d.text('Date et signature du client, précédées de la mention « bon pour accord » :',M,y+16);
+  d.setDrawColor(198,208,218); d.setLineWidth(0.3);
+  d.rect(M,y+19,78,26); d.rect(W-M-78,y+19,78,26);
+  d.setFontSize(7.5); d.setTextColor(138,151,166);
+  d.text('Le client',M+3,y+24); d.text('Tahiti Maison Container',W-M-75,y+24);
+
+  d.setFontSize(7); d.setTextColor(138,151,166);
+  d.text('Taxe sur la valeur ajoutée acquittée sur la marge — articles 341-8, 344-8 et 345-20 du code des impôts de la Polynésie française.',
+    M,282,{maxWidth:W-2*M});
+  d.text('Tahiti Maison Container — N° Tahiti 710194 — Domaine Vaitarua, Afaahiti, Tahiti — 87 22 65 55',M,287);
+
+  var f='Devis_TMC-'+REF+'_'+nom.toUpperCase().replace(/[^A-Z0-9]+/g,'_').replace(/^_|_$/g,'')+'.pdf';
+  d.save(f);
+  document.getElementById('msg').classList.add('on');
+});
+</script>
+
+<footer>
+  Tahiti Maison Container — N° Tahiti 710194 — Domaine Vaitarua, Afaahiti, Tahiti<br>
+  87 22 65 55 · tahitimaisoncontainer@gmail.com<br>
+  Page privée, non référencée. Offre OPP-2026-01 du 29 août 2026.
+</footer>
+</div>
+</body>
+</html>
