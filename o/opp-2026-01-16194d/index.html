@@ -29,12 +29,12 @@ input::placeholder{color:var(--t3)}
 box-shadow:0 1px 2px rgba(22,32,44,.06),0 10px 28px rgba(22,32,44,.09);display:grid;grid-template-columns:1.12fr .88fr}
 @media(max-width:880px){.card{grid-template-columns:1fr}}
 .gal{padding:14px;background:var(--s2);display:flex;flex-direction:column;gap:10px}
-.main{position:relative;border-radius:5px;overflow:hidden;background:#0c1116;aspect-ratio:4/3}
+.main{position:relative;border-radius:5px;overflow:hidden;background:#0c1116;aspect-ratio:1/1}
 .main img{width:100%;height:100%;object-fit:cover;display:block}
 .flag{position:absolute;left:0;top:14px;background:var(--or);color:#fff;font-family:'Bebas Neue',Impact,sans-serif;
 font-size:17px;letter-spacing:.14em;padding:4px 14px 2px}
-.th{display:grid;grid-template-columns:repeat(6,1fr);gap:6px}
-.th button{padding:0;border:2px solid transparent;border-radius:4px;overflow:hidden;cursor:pointer;background:none;aspect-ratio:1;line-height:0}
+.th{display:flex;gap:6px;flex-wrap:wrap}
+.th button{flex:1 1 60px;max-width:110px;padding:0;border:2px solid transparent;border-radius:4px;overflow:hidden;cursor:pointer;background:none;aspect-ratio:1;line-height:0}
 .th img{width:100%;height:100%;object-fit:cover}
 .th button[aria-current=true]{border-color:var(--or)}
 .th button:focus-visible{outline:2px solid var(--or);outline-offset:2px}
