@@ -64,8 +64,18 @@ select:focus,input:focus{outline:2px solid var(--or);outline-offset:1px;border-c
 background:var(--or);color:#fff;border:0;border-radius:5px;padding:13px 20px 11px;cursor:pointer}
 .btn:hover{background:var(--or2)}
 .btn:focus-visible{outline:2px solid var(--navy);outline-offset:2px}
-.msg{margin-top:12px;font-size:13.5px;color:var(--ok);display:none}
+.msg{margin-top:14px;font-size:13.5px;color:var(--t2);display:none;background:var(--okb);border-radius:6px;padding:14px 16px}
 .msg.on{display:block}
+.msg b{color:var(--ok)}
+.wa{display:block;margin-top:12px;text-align:center;background:#25d366;color:#0b3d24;text-decoration:none;
+font-family:'Bebas Neue',Impact,sans-serif;font-size:19px;letter-spacing:.06em;border-radius:5px;padding:11px 16px 9px}
+.wa:hover{background:#1fb857}
+.wa:focus-visible{outline:2px solid var(--navy);outline-offset:2px}
+.alt{display:block;margin-top:9px;font-size:12.5px;color:var(--t3);text-align:center}
+.steps{margin-top:18px;display:flex;flex-direction:column;gap:7px}
+.step{display:flex;gap:10px;align-items:flex-start;font-size:13.5px;color:var(--t2)}
+.step b{flex:none;width:19px;height:19px;border-radius:50%;background:var(--navy);color:#fff;
+font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;margin-top:1px}
 .sold{margin-top:22px;background:var(--navy);color:#fff;border-radius:8px;padding:34px 28px;text-align:center}
 .sold h2{font-family:'Bebas Neue',Impact,sans-serif;font-size:34px;letter-spacing:.06em;margin:0 0 8px;font-weight:400}
 .sold p{margin:0 auto;color:#b9c4cf;font-size:15px;max-width:46ch}
@@ -87,7 +97,7 @@ footer{margin-top:26px;font-size:12px;color:var(--t3);text-align:center;line-hei
 <div class="rule"></div>
 <div class="card">
   <div class="gal">
-    <div class="main"><span class="flag">OPPORTUNITÉ</span>
+    <div class="main"><span class="flag">OFFRE SPÉCIALE</span>
       <img id="mainImg" src="p01.jpg" alt="Conteneur 40 HC d&#x27;occasion, étanche"></div>
     <div class="th" id="thumbs"></div>
   </div>
@@ -113,22 +123,41 @@ footer{margin-top:26px;font-size:12px;color:var(--t3);text-align:center;line-hei
       La vente n'est définitive qu'après confirmation écrite de TMC, adressée au premier acquéreur
       dont le devis signé nous est parvenu.</div>
 
+    <div class="steps">
+      <div class="step"><b>1</b>Vous éditez votre devis, à votre nom, en un clic.</div>
+      <div class="step"><b>2</b>Vous le retournez signé et daté.</div>
+      <div class="step"><b>3</b>Nous confirmons et vous transmettons les coordonnées de règlement.</div>
+    </div>
+
     <div class="form">
       <h2>Ce conteneur m'intéresse</h2>
-      <p>Votre devis est généré immédiatement. Il suffit de le retourner signé et daté pour conclure.</p>
+      <p>Votre devis est établi immédiatement, à votre nom. Il suffit de le retourner signé et daté pour conclure.</p>
       <div class="row">
         <input id="nom" type="text" placeholder="Nom et prénom" autocomplete="name">
         <input id="tel" type="tel" placeholder="Téléphone" autocomplete="tel">
       </div>
       <div class="f"><input id="mail" type="email" placeholder="Adresse e-mail" autocomplete="email"></div>
-      <button class="btn" id="go">TÉLÉCHARGER MON DEVIS</button>
-      <div class="msg" id="msg">Devis téléchargé. Retournez-le signé et daté à tahitimaisoncontainer@gmail.com — le premier devis signé reçu emporte le conteneur.</div>
+      <div class="f"><input id="pose" type="text" placeholder="Lieu de pose et accès camion (ex : terrain à Paopao, accès par piste)"></div>
+      <div class="f">
+        <select id="quand">
+          <option value="">Vous en avez besoin…</option>
+          <option value="Besoin immédiat">Tout de suite</option>
+          <option value="Dans le mois">Dans le mois</option>
+          <option value="Projet plus tard">Plus tard, je prépare mon projet</option>
+        </select>
+      </div>
+      <button class="btn" id="go">ÉDITER MON DEVIS</button>
+      <div class="msg" id="msg">
+        <b>Votre devis est téléchargé.</b> Signez-le, datez-le, et renvoyez-le — le premier devis signé reçu emporte le conteneur.
+        <a class="wa" id="wa" target="_blank" rel="noopener">ENVOYER MON DEVIS SIGNÉ PAR WHATSAPP</a>
+        <span class="alt">ou par mail à tahitimaisoncontainer@gmail.com — une question avant de signer&nbsp;? 87 22 65 55</span>
+      </div>
     </div>
   </div>
 </div>
 
 <script>
-var PHOTOS = ["p01.jpg", "p02.jpg", "p03.jpg", "p04.jpg", "p05.jpg", "p06.jpg", "p07.jpg", "p08.jpg", "p09.jpg", "p10.jpg", "p11.jpg"];
+var PHOTOS = ["p01.jpg", "p02.jpg", "p03.jpg", "p04.jpg", "p05.jpg"];
 var COMMUNES = [["Papeete", 0], ["Pirae", 28908], ["Faa'a", 28908], ["Arue", 28908], ["Punaauia", 47760], ["Mahina", 47760], ["Paea", 72897], ["Tiarei", 72897], ["Papenoo", 72897], ["Papara", 91750], ["Hitiaa", 91750], ["Mahaena", 91750], ["Mataiea", 106832], ["Papeari", 109346], ["Faaone", 111860], ["Taravao", 113117], ["Toahotu", 115630], ["Afaahiti", 115630], ["Vairao", 116888], ["Pueu", 116888], ["Teahupoo", 123171], ["Tautira", 123171], ["Moorea", 160000], ["Raiatea (au quai)", 95000], ["Bora-Bora (au quai)", 95000], ["Tahaa (au quai)", 95000]];
 var PRIX = 350000, MARGE = 50000, TVA = Math.round(50000 * 0.16);
 var REF = "OPP-2026-01", TITRE = "Conteneur 40 HC d&#x27;occasion, étanche", DATE = "29 août 2026";
@@ -179,7 +208,10 @@ document.getElementById('go').addEventListener('click', function(){
   var nom=(document.getElementById('nom').value||'').trim();
   var tel=(document.getElementById('tel').value||'').trim();
   var mail=(document.getElementById('mail').value||'').trim();
+  var pose=(document.getElementById('pose').value||'').trim();
+  var quand=document.getElementById('quand').value||'';
   if(!nom){ document.getElementById('nom').focus(); return; }
+  if(!tel){ document.getElementById('tel').focus(); return; }
   var commune=sel.options[sel.selectedIndex].text, T=total();
   var jsPDF=window.jspdf.jsPDF, d=new jsPDF({unit:'mm',format:'a4'});
   var W=210, M=16;
@@ -205,7 +237,7 @@ document.getElementById('go').addEventListener('click', function(){
   d.text('tahitimaisoncontainer@gmail.com',M,y+21.5);
   if(tel) d.text('Tél. '+tel,W/2+2,y+11.5);
   if(mail) d.text(mail,W/2+2,y+16.5);
-  d.text('Livraison : '+commune,W/2+2,y+21.5);
+  d.text('Livraison : '+commune+(pose?' — '+pose:''),W/2+2,y+21.5,{maxWidth:W/2-M-2});
 
   y=y+32;
   d.setFillColor(22,32,44); d.rect(M,y,W-2*M,9,'F');
@@ -262,7 +294,16 @@ document.getElementById('go').addEventListener('click', function(){
 
   var f='Devis_TMC-'+REF+'_'+nom.toUpperCase().replace(/[^A-Z0-9]+/g,'_').replace(/^_|_$/g,'')+'.pdf';
   d.save(f);
+
+  var txt = 'Bonjour, je vous envoie mon devis signé pour l\'offre ' + REF + '.'
+    + '\n' + TITRE
+    + '\nNom : ' + nom
+    + '\nLivraison : ' + commune + (pose ? ' — ' + pose : '')
+    + (quand ? '\nDélai : ' + quand : '')
+    + '\nTotal net : ' + fr(T) + ' XPF';
+  document.getElementById('wa').href = 'https://wa.me/68987226555?text=' + encodeURIComponent(txt);
   document.getElementById('msg').classList.add('on');
+  document.getElementById('msg').scrollIntoView({block:'center'});
 });
 </script>
 
