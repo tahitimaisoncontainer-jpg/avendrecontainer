@@ -105,6 +105,9 @@ background:var(--or);color:#fff;border:0;border-radius:5px;padding:13px 20px 11p
 .msg{margin-top:14px;font-size:13.5px;color:var(--t2);display:none;background:var(--okb);border-radius:6px;padding:14px 16px}
 .msg.on{display:block}
 .msg b{color:var(--ok)}
+.msg.info{background:#fff6f0;color:var(--t2)}
+.msg.info b{color:var(--or2)}
+.msg.info a{color:var(--or2)}
 .wa{display:block;margin-top:12px;text-align:center;background:#25d366;color:#0b3d24;text-decoration:none;
 font-family:'Bebas Neue',Impact,sans-serif;font-size:19px;letter-spacing:.06em;border-radius:5px;padding:11px 16px 9px}
 .wa:hover{background:#1fb857}
@@ -142,7 +145,7 @@ footer{margin-top:26px;font-size:12px;color:var(--t3);text-align:center;line-hei
       <span class="ptab-long">Conteneur 40 HC</span><span class="ptab-short">40 HC</span><span class="ptab-badge">832 451 XPF</span>
     </a>
     <a class="ptab active" href="../offre-speciale/">
-      <span class="ptab-long">Offre spéciale</span><span class="ptab-short">Offre spéciale</span><span class="ptab-badge" style="background:transparent;color:#e56535;border:1px solid rgba(229,101,53,.55)">SUR INVITATION</span>
+      <span class="ptab-long">Offre spéciale</span><span class="ptab-short">Offre spéciale</span>
     </a>
   </div>
 </div>
@@ -176,19 +179,11 @@ footer{margin-top:26px;font-size:12px;color:var(--t3);text-align:center;line-hei
 
 <div class="intro">
   <div class="eb2">Offre spéciale · une seule unité</div>
-  <div class="two">
-    <div class="bx">
-      <h2>Notre catalogue</h2>
-      <p>Vous choisissez votre conteneur, votre date et votre commune. Nous garantissons l'état,
-      la disponibilité et le délai, et nous pouvons vous en livrer plusieurs. C'est ce que vous
-      payez : la certitude. <a href="../">Voir le catalogue</a></p>
-    </div>
-    <div class="bx or">
-      <h2>Une offre spéciale</h2>
-      <p>Un conteneur racheté à un particulier, ici sur Tahiti. Celui-là, tel qu'il est, vendu à
-      une seule personne. Impossible à promettre à l'avance, impossible à refaire le mois suivant :
-      c'est pour cela que le prix n'est pas celui du catalogue.</p>
-    </div>
+  <div class="bx or">
+    <h2>Une offre spéciale</h2>
+    <p>Un conteneur racheté à un particulier, ici sur Tahiti. Celui-là, tel qu'il est, vendu à
+    une seule personne. Impossible à promettre à l'avance, impossible à refaire le mois suivant :
+    c'est pour cela que le prix n'est pas celui du catalogue.</p>
   </div>
 </div>
 <div class="card">
@@ -200,9 +195,9 @@ footer{margin-top:26px;font-size:12px;color:var(--t3);text-align:center;line-hei
   <div class="pan">
     <div class="eb">Une seule unité · premier arrivé</div>
     <h1>Conteneur 40 HC d&#x27;occasion, étanche</h1>
-    <div class="ref">Réf. OPP-2026-01 · High Cube 12,19 m · disponible tout de suite</div>
+    <div class="ref">Réf. OPP-2026-01 · High Cube 12,19 m · conteneur visible à Afaahiti · disponible tout de suite</div>
     <div class="chips"><span class="chip">Étanche</span><span class="chip">Plancher sain</span><span class="chip">Portes fonctionnelles</span><span class="chip plain">Occasion · extérieur patiné</span></div>
-    <p class="desc">Unité rachetée à un particulier. Structure saine, intérieur sec, aucune trace d&#x27;infiltration. L&#x27;extérieur porte la rouille de surface visible sur les photos — sans incidence sur l&#x27;étanchéité.</p>
+    <p class="desc">Unité rachetée à un particulier, actuellement à Afaahiti. Structure saine, intérieur sec, aucune trace d&#x27;infiltration. L&#x27;extérieur porte la rouille de surface visible sur les photos — sans incidence sur l&#x27;étanchéité.</p>
 
     <div class="f">
       <label for="commune">Livraison</label>
@@ -227,7 +222,9 @@ footer{margin-top:26px;font-size:12px;color:var(--t3);text-align:center;line-hei
 
     <div class="form">
       <h2>Ce conteneur m'intéresse</h2>
-      <p>Votre devis est établi immédiatement, à votre nom. Il suffit de le retourner signé et daté pour conclure.</p>
+      <p>Le devis est établi pour un achat immédiat, à votre nom. Il suffit de le retourner
+      signé et daté pour conclure. Pour un projet à préparer, passez plutôt par
+      <a href="../" style="color:var(--or2)">notre catalogue</a>.</p>
       <div class="row">
         <input id="nom" type="text" placeholder="Nom et prénom" autocomplete="name">
         <input id="tel" type="tel" placeholder="Téléphone" autocomplete="tel">
@@ -236,13 +233,19 @@ footer{margin-top:26px;font-size:12px;color:var(--t3);text-align:center;line-hei
       <div class="f"><input id="pose" type="text" placeholder="Lieu de pose et accès camion (ex : terrain à Paopao, accès par piste)"></div>
       <div class="f">
         <select id="quand">
-          <option value="">Vous en avez besoin…</option>
-          <option value="Besoin immédiat">Tout de suite</option>
-          <option value="Dans le mois">Dans le mois</option>
-          <option value="Projet plus tard">Plus tard, je prépare mon projet</option>
+          <option value="">Vous achetez ce conteneur…</option>
+          <option value="Achat immédiat">Oui, je l'achète maintenant</option>
+          <option value="Achat sous quinzaine">Oui, sous quinzaine</option>
+          <option value="Renseignement">Je me renseigne seulement</option>
         </select>
       </div>
       <button class="btn" id="go">ÉDITER MON DEVIS</button>
+      <div class="msg info" id="info">
+        <b>Pas de devis pour un simple renseignement.</b> Ce conteneur est une unité unique,
+        vendue au premier acquéreur : le devis n'est établi que pour un achat.
+        Pour comparer et préparer un projet, tout est sur
+        <a href="../">notre catalogue</a> — ou appelez le 87 22 65 55.
+      </div>
       <div class="msg" id="msg">
         <b>Votre devis est téléchargé.</b> Signez-le, datez-le, et renvoyez-le — le premier devis signé reçu emporte le conteneur.
         <a class="wa" id="wa" target="_blank" rel="noopener">ENVOYER MON DEVIS SIGNÉ PAR WHATSAPP</a>
@@ -306,6 +309,14 @@ document.getElementById('go').addEventListener('click', function(){
   var mail=(document.getElementById('mail').value||'').trim();
   var pose=(document.getElementById('pose').value||'').trim();
   var quand=document.getElementById('quand').value||'';
+  document.getElementById('info').classList.remove('on');
+  if(!quand){ document.getElementById('quand').focus(); return; }
+  if(quand === 'Renseignement'){
+    document.getElementById('msg').classList.remove('on');
+    document.getElementById('info').classList.add('on');
+    document.getElementById('info').scrollIntoView({block:'center'});
+    return;
+  }
   if(!nom){ document.getElementById('nom').focus(); return; }
   if(!tel){ document.getElementById('tel').focus(); return; }
   var commune=sel.options[sel.selectedIndex].text, T=total();
