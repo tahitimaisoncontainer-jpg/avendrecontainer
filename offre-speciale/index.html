@@ -146,15 +146,18 @@ et elle part vite, parce qu'il n'y en a qu'une.</p>
 
 <script>
 document.getElementById('go').addEventListener('click', function(e){
+  e.preventDefault();
   var v = function(id){ return (document.getElementById(id).value || '').trim(); };
-  if(!v('nom') || !v('tel')){ e.preventDefault(); document.getElementById(v('nom')?'tel':'nom').focus(); return; }
+  if(!v('nom') || !v('tel')){ document.getElementById(v('nom')?'tel':'nom').focus(); return; }
   var txt = 'Bonjour, je souhaite être prévenu de vos offres spéciales.'
     + '\nNom : ' + v('nom')
     + '\nTéléphone : ' + v('tel')
     + '\nRecherche : ' + v('type')
     + '\nLivraison : ' + (v('ile') || 'à préciser')
     + '\nDélai : ' + v('quand');
-  this.href = 'https://wa.me/68987226555?text=' + encodeURIComponent(txt);
+  var url = 'https://wa.me/68987226555?text=' + encodeURIComponent(txt);
+  this.href = url;
+  window.open(url, '_blank', 'noopener');
 });
 </script>
 </body>
