@@ -4,6 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="robots" content="noindex,nofollow,noarchive">
+<meta name="description" content="Conteneur 40 HC d&#x27;occasion, étanche — offre spéciale Tahiti Maison Container, une seule unité, prix net livré.">
+
 <title>Conteneur 40 HC d&#x27;occasion, étanche — Tahiti Maison Container</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -179,7 +181,7 @@ PHOTOS.forEach(function(src,i){
   b.setAttribute('aria-label','Photo '+(i+1));
   b.innerHTML = '<img src="'+src+'" alt="">';
   b.onclick = function(){
-    mainImg.src = src;
+    mainImg.src = ''+src;
     Array.prototype.forEach.call(th.children, function(c){ c.setAttribute('aria-current','false'); });
     b.setAttribute('aria-current','true');
   };
