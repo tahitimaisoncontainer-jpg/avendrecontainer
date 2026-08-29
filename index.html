@@ -1030,6 +1030,11 @@ let clientType='particulier', currentTotal=C20.BASE, currentBaseTTC=C20.BASE;
 let currentData={}, devisCounter=Math.floor(Date.now()/1000)%9000+1000;
 
 /* ═══ SWITCH PRODUIT ═══ */
+/* Arrivée depuis la page Offre spéciale : ?p=40 ouvre directement le bon onglet */
+document.addEventListener('DOMContentLoaded',function(){
+  var p=new URLSearchParams(location.search).get('p');
+  if(p==='40'||p==='20') switchProduct(p);
+});
 function switchProduct(p){
   activeProduct=p;
   document.querySelectorAll('.psec').forEach(s=>s.classList.remove('active'));

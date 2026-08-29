@@ -17,14 +17,27 @@
 *{box-sizing:border-box}
 body{margin:0;background:var(--g);color:var(--t);font-family:'DM Sans',system-ui,Arial,sans-serif;font-size:15px;line-height:1.55;-webkit-font-smoothing:antialiased}
 .wrap{max-width:1040px;margin:0 auto;padding:0 18px 64px}
-header{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:20px 0 16px;flex-wrap:wrap}
-.brand{display:flex;align-items:center;gap:10px}
+.band{background:#14181e;border-bottom:3px solid var(--or)}
+.band-in{max-width:1040px;margin:0 auto;padding:16px 18px 12px;display:flex;align-items:center;
+justify-content:space-between;gap:14px;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:10px;text-decoration:none;color:#f3eee5}
 .brand img{width:38px;height:38px;border-radius:5px}
 .brand .n{font-family:'Bebas Neue',Impact,sans-serif;font-size:26px;letter-spacing:.04em;line-height:1}
 .brand .n span{color:var(--or)}
-.brand .s{font-size:11.5px;color:var(--t3);letter-spacing:.02em}
-.tel{font-size:14px;color:var(--t2)}
-.tel b{color:var(--t)}
+.brand .s{font-size:11.5px;color:#98a4b5;letter-spacing:.02em}
+.tel{font-size:14px;color:#b3bcc8}
+.tel b{color:#f3eee5}
+.ptabs{max-width:1040px;margin:0 auto;padding:0 18px;display:flex;gap:.4rem;overflow-x:auto;scrollbar-width:none}
+.ptabs::-webkit-scrollbar{display:none}
+.ptab{display:flex;align-items:center;justify-content:center;flex:1 1 auto;white-space:nowrap;
+padding:.6rem 1.1rem;border-radius:10px 10px 0 0;font-family:'Bebas Neue',Impact,sans-serif;
+font-size:1.05rem;letter-spacing:.06em;text-decoration:none;color:#98a4b5;
+background:rgba(255,255,255,.03);border:1px solid #2a323c;border-bottom:none;margin-bottom:-1px}
+.ptab:hover{color:#f3eee5}
+.ptab.active{background:rgba(229,101,53,.16);border-color:var(--or);color:#fff}
+.ptab .sm{display:none}
+@media(max-width:640px){.ptab .lg{display:none}.ptab .sm{display:inline}
+.ptab{padding:.55rem .45rem;font-size:1rem}.ptabs{gap:.3rem;padding:0 10px}}
 input::placeholder{color:var(--t3)}
 .rule{height:4px;background:var(--or);border-radius:2px}
 .card{margin-top:22px;background:var(--s);border:1px solid var(--l);border-radius:8px;overflow:hidden;
@@ -89,16 +102,22 @@ footer{margin-top:26px;font-size:12px;color:var(--t3);text-align:center;line-hei
 </style>
 </head>
 <body>
-<div class="wrap">
-<header>
-  <div class="brand">
-    <img src="../../images/logo-tmc-carre.png" alt="">
-    <div><div class="n"><span>TMC</span> Tahiti Maison Container</div>
-    <div class="s">Conteneurs maritimes · livraison · aménagement</div></div>
+<div class="band">
+  <div class="band-in">
+    <a class="brand" href="../../">
+      <img src="../../images/logo-tmc-carre.png" alt="">
+      <div><div class="n"><span>TMC</span> Tahiti Maison Container</div>
+      <div class="s">Conteneurs maritimes · livraison · aménagement</div></div>
+    </a>
+    <div class="tel">Un conteneur à vendre&nbsp;? <b>87 22 65 55</b></div>
   </div>
-  <div class="tel">Un conteneur à vendre&nbsp;? <b>87 22 65 55</b></div>
-</header>
-<div class="rule"></div>
+  <div class="ptabs">
+    <a class="ptab" href="../../?p=20"><span class="lg">Conteneur 20 DRY</span><span class="sm">20 DRY</span></a>
+    <a class="ptab" href="../../?p=40"><span class="lg">Conteneur 40 HC</span><span class="sm">40 HC</span></a>
+    <a class="ptab active" href="../../offre-speciale/"><span class="lg">Offre spéciale</span><span class="sm">Offre spéciale</span></a>
+  </div>
+</div>
+<div class="wrap">
 <div class="card">
   <div class="gal">
     <div class="main"><span class="flag">OFFRE SPÉCIALE</span>
