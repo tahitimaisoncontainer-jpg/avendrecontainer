@@ -329,10 +329,18 @@
       .modal-body{ padding:1.2rem; }
       .modal-header{ padding:1.2rem 1.2rem .8rem; }
       .modal-footer{ padding:.8rem 1.2rem 1.2rem; }
-      /* Onglets produits sur mobile */
-      .ptabs{ gap:.3rem; padding:.4rem 0 0; }
-      .ptab{ padding:.55rem .8rem; font-size:.95rem; gap:.35rem; border-radius:10px 10px 0 0; }
-      .ptab-badge{ font-size:.58rem; padding:.1rem .35rem; }
+      /* Onglets produits sur mobile : libelles courts, prix masques */
+      .ptabs{ gap:.35rem; padding:.4rem 0 0; overflow-x:auto; scrollbar-width:none;
+              -webkit-overflow-scrolling:touch; width:calc(100% - 1.6rem); }
+      .ptabs::-webkit-scrollbar{ display:none; }
+      .ptab{ flex:1 1 0; min-width:0; justify-content:center; text-align:center;
+             padding:.6rem .5rem; font-size:1.05rem; gap:.3rem; border-radius:10px 10px 0 0;
+             white-space:nowrap; }
+      .ptab-badge{ display:none; }
+      .ptab-long{ display:none; }
+      .ptab-short{ display:inline; }
+      #tab-offre{ color:var(--accent); border-color:rgba(229,101,53,.5); }
+      #tab-offre.active{ color:var(--text); }
       /* Modal sur mobile */
       .modal{ width:min(720px,100%); }
       .devis-meta{ grid-template-columns:1fr 1fr; }
@@ -349,6 +357,7 @@
 .ptab{display:flex;align-items:center;gap:.55rem;padding:.7rem 1.4rem;border-radius:12px 12px 0 0;font-family:"Bebas Neue",sans-serif;font-size:1.1rem;letter-spacing:.06em;cursor:pointer;transition:.2s;background:rgba(255,255,255,.03);border:1px solid var(--line);border-bottom:none;color:var(--muted);}
 .ptab.active{background:rgba(229,101,53,.13);border-color:var(--accent);color:var(--text);}
 .ptab-badge{font-size:.62rem;font-family:"DM Sans",sans-serif;background:var(--accent);color:#fff;padding:.15rem .4rem;border-radius:999px;font-weight:700;}
+.ptab-short{display:none;}
 .psec{display:none;}.psec.active{display:block;}
 
 /* ── WHATSAPP FLOATING BUTTON ── */
@@ -443,13 +452,13 @@
 <div class="ptabs-wrap">
   <div class="ptabs">
     <button class="ptab active" id="tab-20" onclick="switchProduct('20')">
-      <span>Conteneur 20 DRY</span><span class="ptab-badge">623 451 XPF</span>
+      <span class="ptab-long">Conteneur 20 DRY</span><span class="ptab-short">20 DRY</span><span class="ptab-badge">623 451 XPF</span>
     </button>
     <button class="ptab" id="tab-40" onclick="switchProduct('40')">
-      <span>Conteneur 40 HC</span><span class="ptab-badge" id="badge40">832 451 XPF</span>
+      <span class="ptab-long">Conteneur 40 HC</span><span class="ptab-short">40 HC</span><span class="ptab-badge" id="badge40">832 451 XPF</span>
     </button>
     <button class="ptab" id="tab-offre" onclick="location.href='offre-speciale/'">
-      <span>Offre spéciale</span><span class="ptab-badge" style="background:#16202c;color:#f4712d">SUR INVITATION</span>
+      <span class="ptab-long">Offre spéciale</span><span class="ptab-short">Offre spéciale</span><span class="ptab-badge" style="background:transparent;color:var(--accent);border:1px solid rgba(229,101,53,.55)">SUR INVITATION</span>
     </button>
   </div>
 </div>
