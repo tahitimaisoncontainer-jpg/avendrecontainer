@@ -101,6 +101,8 @@ select:focus,input:focus{outline:2px solid var(--or);outline-offset:1px;border-c
 .tot2 .k{font-size:16px}
 .tot2 .v{font-size:40px}
 .tot2 .v small{font-size:17px}
+.apres{margin-top:11px;font-size:12.5px;line-height:1.5;color:var(--t3);text-align:center}
+.apres a{color:var(--or2)}
 .resv{margin-top:16px;background:#fff6f0;border-left:4px solid var(--or);border-radius:0 5px 5px 0;padding:12px 16px;font-size:13px;color:var(--t2)}
 .resv b{color:var(--t)}
 .form{margin-top:20px;border-top:1px solid var(--l);padding-top:18px}
@@ -196,9 +198,7 @@ footer{margin-top:26px;font-size:12px;color:var(--t3);text-align:center;line-hei
     <div class="form">
       <h2>Ce conteneur m'intéresse</h2>
       <p>Le devis est établi pour un achat immédiat, à votre nom. Il suffit de le retourner
-      signé et daté pour conclure. Pour un projet à préparer, voyez
-      <a href="../../?p=40" style="color:var(--or2)">notre catalogue</a> : disponible
-      toute l'année, au tarif de nos fournisseurs du moment.</p>
+      signé et daté pour conclure.</p>
       <div class="row">
         <input id="nom" type="text" placeholder="Nom et prénom" autocomplete="name">
         <input id="tel" type="tel" placeholder="Téléphone" autocomplete="tel">
@@ -224,6 +224,9 @@ footer{margin-top:26px;font-size:12px;color:var(--t3);text-align:center;line-hei
         </select>
       </div>
       <button class="btn" id="go">ÉDITER MON DEVIS</button>
+      <div class="apres">Pour un projet à préparer, voyez
+        <a href="../../?p=40">notre catalogue</a> : disponible toute l'année,
+        au tarif de nos fournisseurs du moment.</div>
       <div class="msg info" id="info">
         <b>Pas de devis pour un simple renseignement.</b> Ce conteneur est une unité unique,
         vendue au premier acquéreur : le devis n'est établi que pour un achat.
