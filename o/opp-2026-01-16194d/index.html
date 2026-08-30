@@ -255,7 +255,7 @@ footer{margin-top:26px;font-size:12px;color:var(--t3);text-align:center;line-hei
   </div>
 </div>
 
-<script>
+<script>(function(){
 var PHOTOS = ["p01.jpg", "p02.jpg", "p03.jpg", "p04.jpg", "p05.jpg"];
 var COMMUNES = [["Afaahiti", 38908], ["Papeete", 125630], ["Pirae", 125630], ["Faa'a", 125630], ["Arue", 125630], ["Punaauia", 106778], ["Mahina", 106778], ["Paea", 81641], ["Tiarei", 81641], ["Papenoo", 81641], ["Papara", 62788], ["Hitiaa", 62788], ["Mahaena", 62788], ["Mataiea", 47706], ["Papeari", 45192], ["Faaone", 42678], ["Taravao", 41421], ["Toahotu", 38908], ["Vairao", 40166], ["Pueu", 40166], ["Teahupoo", 46449], ["Tautira", 46449], ["Moorea", 256722], ["Raiatea (au quai)", 220630], ["Bora-Bora (au quai)", 220630], ["Tahaa (au quai)", 220630]];
 var PRIX = 350000, MARGE = 50000, TVA = Math.round(50000 * 0.16);
@@ -435,6 +435,8 @@ document.getElementById('go').addEventListener('click', function(){
   document.getElementById('msg').classList.add('on');
   document.getElementById('msg').scrollIntoView({block:'center'});
 });
+
+})();
 </script>
 
 <script>
