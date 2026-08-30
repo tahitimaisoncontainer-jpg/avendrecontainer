@@ -102,6 +102,14 @@ select:focus,input:focus{outline:2px solid var(--or);outline-offset:1px;border-c
 .tot2 .k{font-size:16px}
 .tot2 .v{font-size:40px}
 .tot2 .v small{font-size:17px}
+.choix{display:flex;flex-direction:column;gap:8px}
+.opt{display:flex;align-items:center;gap:10px;border:1px solid var(--l2);border-radius:5px;
+padding:11px 13px;cursor:pointer;font-size:14.5px;color:var(--t);background:var(--s)}
+.opt:hover{border-color:var(--or)}
+.opt input{width:18px;height:18px;flex:0 0 auto;margin:0;accent-color:var(--or);cursor:pointer}
+.opt:has(input:checked){border-color:var(--or);background:#fff6f0}
+.err{margin-top:9px;font-size:13px;color:#b4341a;background:#fdeeea;border-left:3px solid #b4341a;
+border-radius:0 4px 4px 0;padding:9px 12px}
 .apres{margin-top:11px;font-size:12.5px;line-height:1.5;color:var(--t3);text-align:center}
 .apres a{color:var(--or2)}
 .resv{margin-top:16px;background:#fff6f0;border-left:4px solid var(--or);border-radius:0 5px 5px 0;padding:12px 16px;font-size:13px;color:var(--t2)}
@@ -254,11 +262,14 @@ footer{margin-top:26px;font-size:12px;color:var(--t3);text-align:center;line-hei
       </div>
 
       <div class="f">
-        <select id="quand">
-          <option value="">Vous achetez ce conteneur…</option>
-          <option value="Achat immédiat">Oui, je l'achète maintenant</option>
-          <option value="Renseignement">Je me renseigne seulement</option>
-        </select>
+        <label>Vous achetez ce conteneur&nbsp;?</label>
+        <div class="choix">
+          <label class="opt"><input type="radio" name="quand" value="Achat immédiat">
+            <span>Oui, je l'achète maintenant</span></label>
+          <label class="opt"><input type="radio" name="quand" value="Renseignement">
+            <span>Je me renseigne seulement</span></label>
+        </div>
+        <div class="err" id="errq" hidden>Merci de cocher l'une des deux réponses avant d'éditer le devis.</div>
       </div>
       <button class="btn" id="go">ÉDITER MON DEVIS</button>
       <div class="apres">Pour un projet à préparer, voyez
@@ -350,9 +361,16 @@ document.getElementById('go').addEventListener('click', function(){
   var tel=(document.getElementById('tel').value||'').trim();
   var mail=(document.getElementById('mail').value||'').trim();
   var pose=(document.getElementById('pose').value||'').trim();
-  var quand=document.getElementById('quand').value||'';
+  var coche=document.querySelector('input[name="quand"]:checked');
+  var quand=coche?coche.value:'';
   document.getElementById('info').classList.remove('on');
-  if(!quand){ document.getElementById('quand').focus(); return; }
+  document.getElementById('errq').hidden = true;
+  if(!quand){
+    document.getElementById('msg').classList.remove('on');
+    document.getElementById('errq').hidden = false;
+    document.getElementById('errq').scrollIntoView({block:'center'});
+    return;
+  }
   if(quand !== 'Achat immédiat'){
     document.getElementById('msg').classList.remove('on');
     document.getElementById('info').classList.add('on');
