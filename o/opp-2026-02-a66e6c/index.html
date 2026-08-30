@@ -11,6 +11,14 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;700&display=swap">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+<script>
+/* Meme compte EmailJS que le site : le devis part au client, avec copie a TMC. */
+var EMAILJS_PUBLIC_KEY='au3T6ceaeV1ANEIkp',
+    EMAILJS_SERVICE_ID='service_i0e49ke',
+    EMAILJS_TEMPLATE_ID='template_wmeo81k';
+if(window.emailjs) emailjs.init({publicKey:EMAILJS_PUBLIC_KEY});
+</script>
 <style>
 :root{--navy:#16202c;--or:#e56535;--or2:#b8501a;--g:#f4f6f8;--s:#fff;--s2:#eef2f6;
 --t:#16202c;--t2:#5d6b7a;--t3:#8d9aa8;--l:#dce3ea;--l2:#c6d0da;--ok:#15795c;--okb:#e6f3ee}
@@ -247,7 +255,8 @@ footer{margin-top:26px;font-size:12px;color:var(--t3);text-align:center;line-hei
         disponible toute l'année, au tarif de nos fournisseurs du moment — ou appelez le 87 22 65 55.
       </div>
       <div class="msg" id="msg">
-        <b>Votre devis est téléchargé.</b> Signez-le, datez-le, et renvoyez-le — le premier devis signé reçu emporte le conteneur.
+        <b>Votre devis est téléchargé et vous a été envoyé par mail</b>, avec une copie à Tahiti Maison Container.
+        Signez-le, datez-le, et renvoyez-le — le premier devis signé reçu emporte le conteneur.
         <a class="wa" id="wa" target="_blank" rel="noopener">ENVOYER MON DEVIS SIGNÉ PAR WHATSAPP</a>
         <span class="alt">ou par mail à tahitimaisoncontainer@gmail.com — une question avant de signer&nbsp;? 87 22 65 55</span>
       </div>
@@ -332,6 +341,8 @@ document.getElementById('go').addEventListener('click', function(){
   document.getElementById('errq').hidden = true;
   if(!quand){
     document.getElementById('msg').classList.remove('on');
+    document.getElementById('errq').textContent =
+      "Merci de cocher l'une des deux réponses avant d'éditer le devis.";
     document.getElementById('errq').hidden = false;
     document.getElementById('errq').scrollIntoView({block:'center'});
     return;
@@ -344,6 +355,14 @@ document.getElementById('go').addEventListener('click', function(){
   }
   if(!nom){ document.getElementById('nom').focus(); return; }
   if(!tel){ document.getElementById('tel').focus(); return; }
+  if(!mail || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(mail)){
+    document.getElementById('errq').textContent =
+      "Merci d'indiquer votre adresse e-mail : le devis vous y est envoyé, et c'est ce mail qui fait foi sur l'ordre d'arrivée.";
+    document.getElementById('errq').hidden = false;
+    document.getElementById('mail').focus();
+    document.getElementById('errq').scrollIntoView({block:'center'});
+    return;
+  }
   var commune=sel.options[sel.selectedIndex].text, T=total();
   var jsPDF=window.jspdf.jsPDF, d=new jsPDF({unit:'mm',format:'a4'});
   var W=210, M=16;
@@ -424,6 +443,56 @@ document.getElementById('go').addEventListener('click', function(){
 
   var f='Devis_TMC-'+REF+'_'+nom.toUpperCase().replace(/[^A-Z0-9]+/g,'_').replace(/^_|_$/g,'')+'.pdf';
   d.save(f);
+
+  /* ── Copie du devis dans le corps d'un mail : au client, avec copie a TMC ── */
+  (function(){
+    var B  = 'padding:10px 11px;border-bottom:1px solid #f1f5f9;font-size:11px;color:#1a1e28;font-family:Arial,sans-serif;';
+    var BR = B + 'text-align:right;font-weight:700;';
+    var BC = B + 'text-align:center;font-weight:900;color:#e56535;font-size:13px;';
+    var BM = B + 'color:#94a3b8;font-size:10px;';
+    var rows =
+      '<tr><td style="' + B + '">' + TITRE +
+      '<br><span style="color:#94a3b8;font-size:10px">Réf. ' + REF +
+      ' · une seule unité · livré à ' + commune +
+      '<br>Prix net à payer, tout compris : conteneur, transport et mise à disposition.</span></td>' +
+      '<td style="' + BC + '">1</td>' +
+      '<td style="' + BR + '">' + fr(T) + ' XPF</td>' +
+      '<td style="' + BM + 'text-align:center">net</td>' +
+      '<td style="' + BR + '">' + fr(T) + ' XPF</td></tr>';
+
+    var params = {
+      devis_num: 'TMC-' + REF, devis_date: DATE,
+      client_nom: nom, client_type: 'Offre spéciale', client_entreprise: '—',
+      client_tel: tel, client_email: mail, email: mail,
+      commune: commune, commune_val: '', delivery_cost: 0,
+      quantite: '1', quantite_num: 1,
+      rows_html: rows,
+      detail_html: '<tr><td style="' + B + '">TVA acquittée sur la marge</td>' +
+                   '<td style="' + BR + '">incluse</td></tr>',
+      lettres_html: lettres(T) + ' francs (XPF ' + fr(T) + ' net)',
+      msg_row: pose ? 'Lieu de pose et accès camion : ' + pose : '',
+      message: pose ? 'Lieu de pose et accès camion : ' + pose : '',
+      total: fr(T) + ' XPF net',
+      total_ttc: fr(T) + ' XPF net',
+      total_ht: '—', total_tva: 'incluse',
+      prix_unitaire: fr(T) + ' XPF net', livraison: 'Incluse — ' + commune,
+      cout_operationnel: 'Inclus', surcharge: 'Non', frais_gestion: 'Non',
+      validite: "jusqu'à la vente du conteneur",
+      cond_validite: "Offre sous réserve de disponibilité : l'unité proposée est unique. " +
+        "La vente n'est définitive qu'après confirmation écrite de TMC, adressée au premier " +
+        "acquéreur dont le devis signé nous est parvenu.",
+      paiement_condition: "Règlement à la commande, par virement. Les coordonnées bancaires " +
+        "sont communiquées avec la confirmation.",
+      ile: ''
+    };
+    var alerte = document.getElementById('errq');
+    if (!window.emailjs) { return; }
+    emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, params).catch(function(e){
+      alerte.textContent = "Votre devis est bien téléchargé, mais l'envoi par mail n'a pas abouti. " +
+        "Renvoyez-le-nous par WhatsApp ou à tahitimaisoncontainer@gmail.com.";
+      alerte.hidden = false;
+    });
+  })();
 
   var txt = 'Bonjour, je vous envoie mon devis signé pour l\'offre ' + REF + '.'
     + '\n' + TITRE
