@@ -769,7 +769,7 @@ document.getElementById('go-2').addEventListener('click', function(){
   }
   function aller(k){
     i=Math.max(0,Math.min(slides.length-1,k));
-    piste.scrollTo({left:slides[i].offsetLeft-piste.offsetLeft,behavior:'smooth'});
+    piste.scrollTo({left:slides[i].offsetLeft-slides[0].offsetLeft,behavior:'smooth'});
     marquer();
   }
   document.getElementById('cprev').onclick=function(){aller(i-1);};
@@ -778,7 +778,7 @@ document.getElementById('go-2').addEventListener('click', function(){
   var t; piste.addEventListener('scroll',function(){
     clearTimeout(t); t=setTimeout(function(){
       var d=1e9,k=0;
-      slides.forEach(function(s,n){ var e=Math.abs(s.offsetLeft-piste.offsetLeft-piste.scrollLeft);
+      slides.forEach(function(s,n){ var e=Math.abs(s.offsetLeft-slides[0].offsetLeft-piste.scrollLeft);
         if(e<d){d=e;k=n;} });
       i=k; marquer();
     },90);
