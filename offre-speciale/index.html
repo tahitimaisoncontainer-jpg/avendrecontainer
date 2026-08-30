@@ -103,11 +103,12 @@ select:focus,input:focus{outline:2px solid var(--or);outline-offset:1px;border-c
 .tot2 .v{font-size:40px}
 .tot2 .v small{font-size:17px}
 .choix{display:flex;flex-direction:column;gap:8px}
-.opt{display:flex;align-items:center;gap:10px;border:1px solid var(--l2);border-radius:5px;
-padding:11px 13px;cursor:pointer;font-size:14.5px;color:var(--t);background:var(--s)}
-.opt:hover{border-color:var(--or)}
+.f label.opt{display:flex;align-items:center;gap:10px;border:1px solid var(--l2);border-radius:5px;
+padding:11px 13px;margin:0;cursor:pointer;font-size:14.5px;font-weight:400;letter-spacing:0;
+text-transform:none;color:var(--t);background:var(--s)}
+.f label.opt:hover{border-color:var(--or)}
 .opt input{width:18px;height:18px;flex:0 0 auto;margin:0;accent-color:var(--or);cursor:pointer}
-.opt:has(input:checked){border-color:var(--or);background:#fff6f0}
+.f label.opt:has(input:checked){border-color:var(--or);background:#fff6f0}
 .err{margin-top:9px;font-size:13px;color:#b4341a;background:#fdeeea;border-left:3px solid #b4341a;
 border-radius:0 4px 4px 0;padding:9px 12px}
 .apres{margin-top:11px;font-size:12.5px;line-height:1.5;color:var(--t3);text-align:center}
