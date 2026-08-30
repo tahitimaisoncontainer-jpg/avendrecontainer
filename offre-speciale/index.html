@@ -96,6 +96,10 @@ select:focus,input:focus{outline:2px solid var(--or);outline-offset:1px;border-c
 .tot .v{font-family:'Bebas Neue',Impact,sans-serif;font-size:56px;line-height:1;color:var(--or);font-variant-numeric:tabular-nums}
 .tot .v small{font-size:23px;letter-spacing:.04em;margin-left:4px}
 .tot .fine{font-size:12.5px;color:var(--t3);margin-top:6px;max-width:46ch}
+.tot2{margin-top:16px}
+.tot2 .k{font-size:16px}
+.tot2 .v{font-size:40px}
+.tot2 .v small{font-size:17px}
 .resv{margin-top:16px;background:#fff6f0;border-left:4px solid var(--or);border-radius:0 5px 5px 0;padding:12px 16px;font-size:13px;color:var(--t2)}
 .resv b{color:var(--t)}
 .form{margin-top:20px;border-top:1px solid var(--l);padding-top:18px}
@@ -188,7 +192,7 @@ footer{margin-top:26px;font-size:12px;color:var(--t3);text-align:center;line-hei
     <h2>Une occasion, une seule unité</h2>
     <p>Un particulier de Tahiti nous confie la vente de son conteneur. Nous l'avons vu,
     photographié et décrit sans rien masquer, et nous prenons en charge le transport,
-    la livraison et les papiers — exactement comme pour un conteneur de notre catalogue.</p>
+    la livraison et les papiers.</p>
     <p style="margin-top:8px">La seule différence : celui-ci est unique. À ce prix-là il
     n'y en a qu'un, et il part au premier acheteur.</p>
   </div>
@@ -207,18 +211,12 @@ footer{margin-top:26px;font-size:12px;color:var(--t3);text-align:center;line-hei
     <div class="chips"><span class="chip">Étanche</span><span class="chip">Plancher sain</span><span class="chip">Portes fonctionnelles</span><span class="chip plain">Occasion · extérieur patiné</span></div>
     <p class="desc">Unité appartenant à un particulier, que nous vendons pour lui. Actuellement à Afaahiti. Structure saine, intérieur sec, aucune trace d&#x27;infiltration. L&#x27;extérieur porte la rouille de surface visible sur les photos — sans incidence sur l&#x27;étanchéité.</p>
 
-    <div class="f">
-      <label for="commune">Livraison</label>
-      <select id="commune"></select>
-      <div class="hint">Le transport est compris dans le prix. Le montant affiché correspond
-      à une livraison à Afaahiti, là où se trouve le conteneur : choisissez votre commune
-      pour voir votre prix.</div>
-    </div>
-
     <div class="tot">
       <div class="k">TOTAL NET À PAYER</div>
       <div class="v" id="total">— <small>XPF</small></div>
-      <div class="fine">Prix net, tout compris : conteneur, transport et mise à disposition. Aucun frais supplémentaire.</div>
+      <div class="fine">Prix net, tout compris : conteneur, transport et mise à disposition,
+      livré à <b id="lieu">Afaahiti</b>. Aucun frais supplémentaire — indiquez votre commune
+      dans le formulaire ci-dessous pour votre prix.</div>
     </div>
 
     <div class="resv"><b>Offre sous réserve de disponibilité.</b> L'unité proposée est unique.
@@ -243,6 +241,17 @@ footer{margin-top:26px;font-size:12px;color:var(--t3);text-align:center;line-hei
       </div>
       <div class="f"><input id="mail" type="email" placeholder="Adresse e-mail" autocomplete="email"></div>
       <div class="f"><input id="pose" type="text" placeholder="Lieu de pose et accès camion (ex : terrain plat, accès par piste)"></div>
+      <div class="f">
+        <label for="commune">Commune de livraison</label>
+        <select id="commune"></select>
+        <div class="hint">Le transport est compris dans le prix. Le conteneur se trouve à Afaahiti.</div>
+      </div>
+
+      <div class="tot tot2">
+        <div class="k">TOTAL NET À PAYER</div>
+        <div class="v" id="total2">— <small>XPF</small></div>
+      </div>
+
       <div class="f">
         <select id="quand">
           <option value="">Vous achetez ce conteneur…</option>
@@ -308,7 +317,12 @@ PHOTOS.slice(1).forEach(function(src){
 });
 
 function total(){ return PRIX + (+sel.value||0) + MARGE + TVA; }
-function maj(){ document.getElementById('total').innerHTML = fr(total()) + ' <small>XPF</small>'; }
+function maj(){
+  var h = fr(total()) + ' <small>XPF</small>';
+  document.getElementById('total').innerHTML = h;
+  document.getElementById('total2').innerHTML = h;
+  document.getElementById('lieu').textContent = sel.options[sel.selectedIndex].text;
+}
 sel.addEventListener('change', maj); maj();
 
 var U=['zéro','un','deux','trois','quatre','cinq','six','sept','huit','neuf','dix','onze','douze','treize','quatorze','quinze','seize','dix-sept','dix-huit','dix-neuf'];
