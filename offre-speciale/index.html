@@ -198,21 +198,37 @@ footer{margin-top:26px;font-size:12px;color:var(--t3);text-align:center;line-hei
 .sell p{margin:0 0 12px;color:#b9c4cf;font-size:14px;max-width:52ch}
 .sell .tel{font-family:'Bebas Neue',Impact,sans-serif;font-size:32px;letter-spacing:.05em;color:var(--or);text-decoration:none}
 .carrousel{margin-top:18px}
-.cbar{display:flex;align-items:center;gap:12px;margin-bottom:10px}
-.cnav{flex:0 0 auto;width:44px;height:44px;border-radius:50%;border:1px solid var(--l2);
-background:var(--s);color:var(--navy);font-size:26px;line-height:1;cursor:pointer}
-.cnav:hover:not(:disabled){background:var(--or);border-color:var(--or);color:#fff}
-.cnav:disabled{opacity:.3;cursor:default}
-.cinfo{flex:1 1 auto;text-align:center;font-size:13px;color:var(--t2)}
-.cinfo b{font-family:'Bebas Neue',Impact,sans-serif;font-size:19px;color:var(--or)}
-.cinfo span{display:block;font-size:11.5px;color:var(--t3);letter-spacing:.03em}
+.cbar{background:var(--navy);border-radius:10px;padding:13px 14px 12px;margin-bottom:14px}
+.ceyebrow{display:flex;align-items:center;justify-content:center;gap:8px;
+font-family:'Bebas Neue',Impact,sans-serif;font-size:19px;letter-spacing:.06em;
+color:#fff;text-transform:uppercase;margin-bottom:11px;text-align:center}
+.ceyebrow b{color:var(--or)}
+.cdot{width:9px;height:9px;border-radius:50%;background:var(--or);flex:0 0 auto;
+animation:cbat 1.6s ease-in-out infinite}
+@keyframes cbat{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.35;transform:scale(.7)}}
+.crow{display:flex;align-items:stretch;gap:10px}
+.cnav{flex:0 0 auto;width:46px;border-radius:8px;border:0;background:var(--or);color:#fff;
+font-size:28px;line-height:1;cursor:pointer}
+.cnav:hover:not(:disabled){background:#ff8f62}
+.cnav:disabled{background:#2b3947;color:#5d6b7a;cursor:default}
+.cnav.pulse:not(:disabled){animation:cpulse 1.8s ease-in-out infinite}
+@keyframes cpulse{0%,100%{box-shadow:0 0 0 0 rgba(229,101,53,.55)}70%{box-shadow:0 0 0 12px rgba(229,101,53,0)}}
+.cpills{flex:1 1 auto;display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px}
+.cpill{border:1px solid #2b3947;background:#1d2836;border-radius:8px;padding:8px 10px;
+cursor:pointer;text-align:left;font-family:inherit;color:#b9c4cf;min-width:0}
+.cpill b{display:block;font-family:'Bebas Neue',Impact,sans-serif;font-size:17px;
+letter-spacing:.04em;color:#fff;font-weight:400}
+.cpill span{display:block;font-size:11.5px;color:#8d9aa8;white-space:nowrap}
+.cpill:hover{border-color:var(--or)}
+.cpill[aria-current=true]{background:var(--or);border-color:var(--or)}
+.cpill[aria-current=true] b,.cpill[aria-current=true] span{color:#fff}
+.chint{margin-top:10px;text-align:center;font-size:12px;color:#8d9aa8}
 .piste{display:flex;gap:16px;overflow-x:auto;scroll-snap-type:x mandatory;
-scrollbar-width:none;-webkit-overflow-scrolling:touch}
+scrollbar-width:none;-webkit-overflow-scrolling:touch;padding-bottom:2px}
 .piste::-webkit-scrollbar{display:none}
-.slide{flex:0 0 100%;scroll-snap-align:start;min-width:0}
-.points{display:flex;justify-content:center;gap:8px;margin-top:14px}
-.pt{width:9px;height:9px;padding:0;border:0;border-radius:50%;background:var(--l2);cursor:pointer}
-.pt[aria-current=true]{background:var(--or);transform:scale(1.35)}
+.slide{flex:0 0 calc(100% - 38px);scroll-snap-align:start;min-width:0}
+.slide:last-child{flex-basis:100%}
+@media(max-width:600px){.slide{flex-basis:calc(100% - 26px)}.slide:last-child{flex-basis:100%}}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;margin-top:20px}
 .oc{background:var(--s);border:1px solid var(--l);border-radius:8px;overflow:hidden;text-decoration:none;color:inherit;display:block}
 .oc img{width:100%;aspect-ratio:4/3;object-fit:cover;display:block}
@@ -234,7 +250,7 @@ scrollbar-width:none;-webkit-overflow-scrolling:touch}
     qu'un de chaque, et il part au premier acheteur.</p>
   </div>
 </div>
-<div class="carrousel"><div class="cbar"><button class="cnav" id="cprev" aria-label="Annonce précédente">&#8249;</button><div class="cinfo"><b id="ccur">1</b> / 2 annonces<span>glissez ou utilisez les flèches</span></div><button class="cnav" id="cnext" aria-label="Annonce suivante">&#8250;</button></div><div class="piste" id="piste"><section class="slide" id="slide1"><div class="card">
+<div class="carrousel"><div class="cbar"><div class="ceyebrow"><span class="cdot"></span>2 offres spéciales en ce moment — annonce <b id="ccur">1</b> sur 2</div><div class="crow"><button class="cnav" id="cprev" aria-label="Annonce précédente">&#8249;</button><div class="cpills" id="cpills"><button class="cpill" data-i="0"><b>Conteneur 40 HC</b><span>dès 446 908 XPF</span></button><button class="cpill" data-i="1"><b>Conteneur 20 DRY</b><span>dès 561 200 XPF</span></button></div><button class="cnav pulse" id="cnext" aria-label="Annonce suivante">&#8250;</button></div><div class="chint">Faites glisser, ou touchez l’autre conteneur ci-dessus</div></div><div class="piste" id="piste"><section class="slide" id="slide1"><div class="card">
   <div class="gal">
     <div class="tot tot0">
       <div class="k">TOTAL NET À PAYER · CONTENEUR 40 HC</div>
@@ -888,11 +904,11 @@ document.getElementById('go-2').addEventListener('click', function(){
 
 })();
 </script>
-</section></div><div class="points" id="points"><button class="pt" data-i="0" aria-label="Annonce 1"></button><button class="pt" data-i="1" aria-label="Annonce 2"></button></div></div>
+</section></div></div>
 <script>
 (function(){
   var piste=document.getElementById('piste'),
-      pts=[].slice.call(document.querySelectorAll('#points .pt')),
+      pts=[].slice.call(document.querySelectorAll('#cpills .cpill')),
       cur=document.getElementById('ccur'),
       slides=[].slice.call(piste.children), i=0;
   function marquer(){
@@ -901,11 +917,16 @@ document.getElementById('go-2').addEventListener('click', function(){
     document.getElementById('cprev').disabled = (i===0);
     document.getElementById('cnext').disabled = (i===slides.length-1);
   }
+  // l'appel du bouton suivant s'arrete des que le visiteur a compris
+  function calmer(){ document.getElementById('cnext').classList.remove('pulse'); }
   function aller(k){
+    calmer();
     i=Math.max(0,Math.min(slides.length-1,k));
     piste.scrollTo({left:slides[i].offsetLeft-slides[0].offsetLeft,behavior:'smooth'});
     marquer();
   }
+  piste.addEventListener('touchstart',calmer,{passive:true});
+  setTimeout(calmer,14000);
   document.getElementById('cprev').onclick=function(){aller(i-1);};
   document.getElementById('cnext').onclick=function(){aller(i+1);};
   pts.forEach(function(p){ p.onclick=function(){ aller(+p.dataset.i); }; });
