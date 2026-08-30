@@ -86,6 +86,7 @@ h1{font-family:'Bebas Neue',Impact,sans-serif;font-size:36px;line-height:1.02;ma
 .f label{display:block;font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--t3);margin-bottom:6px}
 select,input{width:100%;font-family:inherit;font-size:15px;color:var(--t);background:var(--s);border:1px solid var(--l2);border-radius:5px;padding:10px 12px}
 select:focus,input:focus{outline:2px solid var(--or);outline-offset:1px;border-color:var(--or)}
+.hint{font-size:12.5px;color:var(--t3);margin-top:7px;max-width:52ch;line-height:1.5}
 .tot{margin-top:20px;border-top:2px solid var(--navy);padding-top:14px}
 .tot .k{font-family:'Bebas Neue',Impact,sans-serif;font-size:19px;letter-spacing:.1em;color:var(--t2)}
 .tot .v{font-family:'Bebas Neue',Impact,sans-serif;font-size:56px;line-height:1;color:var(--or);font-variant-numeric:tabular-nums}
@@ -168,6 +169,9 @@ footer{margin-top:26px;font-size:12px;color:var(--t3);text-align:center;line-hei
     <div class="f">
       <label for="commune">Livraison</label>
       <select id="commune"></select>
+      <div class="hint">Le transport est compris dans le prix. Le montant affiché correspond
+      à une livraison à Afaahiti, là où se trouve le conteneur : choisissez votre commune
+      pour voir votre prix.</div>
     </div>
 
     <div class="tot">
@@ -202,7 +206,6 @@ footer{margin-top:26px;font-size:12px;color:var(--t3);text-align:center;line-hei
         <select id="quand">
           <option value="">Vous achetez ce conteneur…</option>
           <option value="Achat immédiat">Oui, je l'achète maintenant</option>
-          <option value="Achat sous quinzaine">Oui, sous quinzaine</option>
           <option value="Renseignement">Je me renseigne seulement</option>
         </select>
       </div>
@@ -278,7 +281,7 @@ document.getElementById('go').addEventListener('click', function(){
   var quand=document.getElementById('quand').value||'';
   document.getElementById('info').classList.remove('on');
   if(!quand){ document.getElementById('quand').focus(); return; }
-  if(quand === 'Renseignement'){
+  if(quand !== 'Achat immédiat'){
     document.getElementById('msg').classList.remove('on');
     document.getElementById('info').classList.add('on');
     document.getElementById('info').scrollIntoView({block:'center'});
