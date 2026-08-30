@@ -450,6 +450,9 @@ document.getElementById('go').addEventListener('click', function(){
     var BR = B + 'text-align:right;font-weight:700;';
     var BC = B + 'text-align:center;font-weight:900;color:#e56535;font-size:13px;';
     var BM = B + 'color:#94a3b8;font-size:10px;';
+    var ACCEPT = "POUR ACCEPTER : imprimez ce devis, signez-le et datez-le avec la mention " +
+      "« bon pour accord », puis renvoyez-le à tahitimaisoncontainer@gmail.com ou au 87 22 65 55 " +
+      "par WhatsApp. Le premier devis signé reçu emporte le conteneur.";
     var rows =
       '<tr><td style="' + B + '">' + TITRE +
       '<br><span style="color:#94a3b8;font-size:10px">Réf. ' + REF +
@@ -470,8 +473,8 @@ document.getElementById('go').addEventListener('click', function(){
       detail_html: '<tr><td style="' + B + '">TVA acquittée sur la marge</td>' +
                    '<td style="' + BR + '">incluse</td></tr>',
       lettres_html: lettres(T) + ' francs (XPF ' + fr(T) + ' net)',
-      msg_row: pose ? 'Lieu de pose et accès camion : ' + pose : '',
-      message: pose ? 'Lieu de pose et accès camion : ' + pose : '',
+      msg_row: (pose ? 'Lieu de pose et accès camion : ' + pose + ' — ' : '') + ACCEPT,
+      message: (pose ? 'Lieu de pose et accès camion : ' + pose + ' — ' : '') + ACCEPT,
       total: fr(T) + ' XPF net',
       total_ttc: fr(T) + ' XPF net',
       total_ht: '—', total_tva: 'incluse',
