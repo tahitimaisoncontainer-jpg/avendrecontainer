@@ -87,6 +87,9 @@ h1{font-family:'Bebas Neue',Impact,sans-serif;font-size:36px;line-height:1.02;ma
 select,input{width:100%;font-family:inherit;font-size:15px;color:var(--t);background:var(--s);border:1px solid var(--l2);border-radius:5px;padding:10px 12px}
 select:focus,input:focus{outline:2px solid var(--or);outline-offset:1px;border-color:var(--or)}
 .hint{font-size:12.5px;color:var(--t3);margin-top:7px;max-width:52ch;line-height:1.5}
+.suite{display:flex;flex-direction:column;gap:8px;margin-top:8px}
+.suite img{width:100%;display:block;border-radius:6px;cursor:zoom-in;background:var(--s2)}
+@media(max-width:860px){.suite{display:none}}
 .tot{margin-top:20px;border-top:2px solid var(--navy);padding-top:14px}
 .tot .k{font-family:'Bebas Neue',Impact,sans-serif;font-size:19px;letter-spacing:.1em;color:var(--t2)}
 .tot .v{font-family:'Bebas Neue',Impact,sans-serif;font-size:56px;line-height:1;color:var(--or);font-variant-numeric:tabular-nums}
@@ -158,6 +161,7 @@ footer{margin-top:26px;font-size:12px;color:var(--t3);text-align:center;line-hei
     <div class="main"><span class="flag">OFFRE SPÉCIALE</span>
       <img id="mainImg" src="p01.jpg" alt="Conteneur 40 HC d&#x27;occasion, étanche"></div>
     <div class="th" id="thumbs"></div>
+    <div class="suite" id="suite"></div>
   </div>
   <div class="pan">
     <div class="eb">Une seule unité · premier arrivé</div>
@@ -201,7 +205,7 @@ footer{margin-top:26px;font-size:12px;color:var(--t3);text-align:center;line-hei
         <input id="tel" type="tel" placeholder="Téléphone" autocomplete="tel">
       </div>
       <div class="f"><input id="mail" type="email" placeholder="Adresse e-mail" autocomplete="email"></div>
-      <div class="f"><input id="pose" type="text" placeholder="Lieu de pose et accès camion (ex : terrain à Paopao, accès par piste)"></div>
+      <div class="f"><input id="pose" type="text" placeholder="Lieu de pose et accès camion (ex : terrain plat, accès par piste)"></div>
       <div class="f">
         <select id="quand">
           <option value="">Vous achetez ce conteneur…</option>
@@ -229,7 +233,9 @@ footer{margin-top:26px;font-size:12px;color:var(--t3);text-align:center;line-hei
 var PHOTOS = ["p01.jpg", "p02.jpg", "p03.jpg", "p04.jpg", "p05.jpg"];
 var COMMUNES = [["Afaahiti", 28908], ["Papeete", 115630], ["Pirae", 115630], ["Faa'a", 115630], ["Arue", 115630], ["Punaauia", 96778], ["Mahina", 96778], ["Paea", 71641], ["Tiarei", 71641], ["Papenoo", 71641], ["Papara", 52788], ["Hitiaa", 52788], ["Mahaena", 52788], ["Mataiea", 37706], ["Papeari", 35192], ["Faaone", 32678], ["Taravao", 31421], ["Toahotu", 28908], ["Vairao", 30166], ["Pueu", 30166], ["Teahupoo", 36449], ["Tautira", 36449], ["Moorea", 246722], ["Raiatea (au quai)", 210630], ["Bora-Bora (au quai)", 210630], ["Tahaa (au quai)", 210630]];
 var PRIX = 350000, MARGE = 50000, TVA = Math.round(50000 * 0.16);
-var REF = "OPP-2026-01", TITRE = "Conteneur 40 HC d&#x27;occasion, étanche", DATE = "29 août 2026";
+var REF = "OPP-2026-01", TITRE = "Conteneur 40 HC d'occasion, étanche";
+var MOIS_FR = ['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];
+var DATE = (function(){ var j = new Date(); return j.getDate() + ' ' + MOIS_FR[j.getMonth()] + ' ' + j.getFullYear(); })();
 
 function fr(n){ return n.toLocaleString('fr-FR').replace(/ | /g,' '); }
 
@@ -251,6 +257,17 @@ PHOTOS.forEach(function(src,i){
     b.setAttribute('aria-current','true');
   };
   th.appendChild(b);
+});
+
+// sur ordinateur, la colonne photo se prolonge avec les autres vues du conteneur
+var suite = document.getElementById('suite');
+PHOTOS.slice(1).forEach(function(src){
+  var i = document.createElement('img');
+  i.src = '' + src; i.alt = TITRE; i.loading = 'lazy';
+  i.onclick = function(){ mainImg.src = i.src;
+    Array.prototype.forEach.call(th.children, function(c){ c.setAttribute('aria-current','false'); });
+    window.scrollTo({top:0,behavior:'smooth'}); };
+  suite.appendChild(i);
 });
 
 function total(){ return PRIX + (+sel.value||0) + MARGE + TVA; }
@@ -294,7 +311,7 @@ document.getElementById('go').addEventListener('click', function(){
   var W=210, M=16;
   d.setFillColor(22,32,44); d.rect(0,0,W,34,'F');
   d.setTextColor(244,113,45); d.setFont('helvetica','bold'); d.setFontSize(22); d.text('TMC',M,17);
-  d.setTextColor(255,255,255); d.setFontSize(12); d.text('Tahiti Maison Container',M+16,17);
+  d.setTextColor(255,255,255); d.setFontSize(12); d.text('Tahiti Maison Container',M+21,17);
   d.setFont('helvetica','normal'); d.setFontSize(7.5); d.setTextColor(150,163,177);
   d.text('Conteneurs maritimes · livraison · aménagement',M,23);
   d.setFont('helvetica','bold'); d.setFontSize(20); d.setTextColor(255,255,255); d.text('DEVIS',W-M,16,{align:'right'});
