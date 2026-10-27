@@ -158,6 +158,16 @@ var ETUDE = [
 
 /* ============ ETAT ============ */
 var S = {besoin:"Aménager un conteneur"}, idx = 0, ordre = [];
+var ENVOI_EN_COURS = false, ENVOI_RESULTAT = null;
+function referenceDemande(){
+  if(!S.reference){
+    var date = new Date().toLocaleDateString("fr-CA", {timeZone:"Pacific/Tahiti",year:"numeric",month:"2-digit",day:"2-digit"}).replace(/-/g, "");
+    var id = window.crypto && typeof window.crypto.randomUUID === "function"
+      ? window.crypto.randomUUID() : Date.now().toString(36) + Math.random().toString(36).slice(2);
+    S.reference = "TMC-AM-" + date + "-" + id;
+  }
+  return S.reference;
+}
 
 function fmt(n){ return String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g," "); }
 function comInfo(nom){ for(var i=0;i<COM.length;i++) if(COM[i][0]===nom) return COM[i]; return null; }
@@ -209,6 +219,24 @@ E.usage = {k:"Votre projet", q:"Quel usage prévoyez-vous ?", ch:"usage", o:[
   ["Atelier ou stockage aménagé","Atelier, stockage, local isolé ou électrifié"],
   ["Sanitaire ou local spécialisé","Sanitaires, vestiaires, chambre froide, laboratoire, local technique"],
   ["Autre projet"]]};
+
+E.prestations = {k:"Votre aménagement", q:"Quelles prestations souhaitez-vous ?", ch:"prestations", multi:1, prestations:1,
+  sub:"Plusieurs choix possibles. Sélectionnez les travaux à confier à TMC ; les autres pourront être précisés lors de notre échange.", o:[
+  ["Isolation et habillage intérieur"],
+  ["Électricité et éclairage"],
+  ["Plomberie et sanitaires"],
+  ["Cuisine"],
+  ["Portes, fenêtres et baies vitrées"],
+  ["Ventilation ou climatisation"],
+  ["Toiture de protection"],
+  ["Terrasse et accès"],
+  ["Fondations ou plots"],
+  ["Assainissement et raccordements"],
+  ["Autres prestations"],
+  ["À définir ensemble", "Nous préciserons les travaux avec vous.", 1]]};
+
+E.destination = {k:"La livraison", q:"Jusqu’où souhaitez-vous la livraison ?", destination:1,
+  sub:"Le transport jusqu’au quai et l’acheminement jusqu’au terrain sont deux prestations distinctes. Leur faisabilité et leur prix seront étudiés avant le devis."};
 
 E.modules = {k:"Votre projet", q:"Quelle surface envisagez-vous ?", mod:1, gabarit:1, num:"surface",
   sub:"Voici les deux formats, à l'échelle, avec une personne d'1,80 m pour vous repérer. Indiquez ensuite combien de modules de chaque format : je calcule la surface, vous la corrigez si besoin. Tout ce qui suit — surface, plans, budget — portera sur <b>l'ensemble</b> du projet, jamais sur un module isolé."};
@@ -307,7 +335,7 @@ E.fini = {k:"", q:"", fini:1};
 /* ============ ETAPES AFFICHEES ============ */
 var PHASE = {
   profil:"Votre projet", besoin:"Votre projet", usage:"Votre projet",
-  modules:"Votre projet", implantation:"Votre projet", surface:"Votre projet",
+  prestations:"Votre projet", destination:"Le terrain", modules:"Votre projet", implantation:"Votre projet", surface:"Votre projet",
   commune:"Le terrain", terrain:"Le terrain", indivision:"Le terrain", parcelle:"Le terrain", acces:"Le terrain",
   plan:"Votre plan", delai:"Votre plan",
   enveloppe:"Budget et décision", financement:"Budget et décision",
@@ -431,9 +459,9 @@ function modInconnu(){
 
 /* ============ PARCOURS ============ */
 function parcours(){
-  var p = ["usage","profil","modules"];
+  var p = ["usage","profil","modules","prestations"];
   if(totalMod() >= 2 || S.modules === "À définir") p.push("implantation");
-  p = p.concat(["commune","terrain"]);
+  p = p.concat(["commune","destination","terrain"]);
   if(S.terrain === "Il m'appartient ou je le loue" || S.terrain === "Achat ou bail en cours de signature") p.push("indivision");
   return p.concat(["parcelle","acces","plan","delai","enveloppe","financement","decision","etape","contact","recap","fini"]);
 }
@@ -675,16 +703,19 @@ function rendre(){
   document.getElementById("bar").style.width = (pcb === null ? 0 : pcb) + "%";
 
   if(e.fini){
-    var r = noter();
     h = '<div class="step on"><div class="fin"><div class="ok">✓</div>'
-      + '<h2>C\'est envoyé, merci.</h2>'
-      + '<p class="sub">Votre demande est bien arrivée.'
-      + (r.niveau >= 4 ? ' Votre projet est prêt : je vous appelle dans les 24 heures.' : ' Je vous réponds sous 48 heures.')
-      + (S.mail ? '<br>Ma réponse partira sur ' + esc(S.mail) + '.' : '') + '</p></div>';
-    h += '<div class="note">Si votre projet est urgent, appelez-moi directement au <b>87 22 65 55</b>.</div>';
-    if(S.besoin === "Aménager un conteneur" && tarifEtude())
-      h += '<div class="note">Pour aller jusqu\'au chiffrage poste par poste et au planning de travaux, l\'étude de votre projet est facturée <b>' + tarifEtude() + '</b>, déduite de votre commande. Je ne vous la propose qu\'après notre premier échange.</div>';
-    h += '</div>';
+      + '<h2>Votre demande est transmise.</h2>'
+      + '<p class="sub">Le service d’envoi a confirmé la prise en charge de votre demande. TMC l’examinera avant de vous répondre.</p>'
+      + '<p><b>Référence : ' + esc(referenceDemande()) + '</b></p></div>';
+    if(ENVOI_RESULTAT && ENVOI_RESULTAT.pj !== "none"){
+      h += '<div class="note"><b>Pièces jointes : réception non confirmée.</b><br>'
+        + (ENVOI_RESULTAT.pj === "failed" ? 'Le transfert des fichiers a échoué ou a pris trop de temps. ' : 'La demande a été transmise, mais le service ne permet pas à cette page de confirmer la réception des fichiers. ')
+        + 'Pour nous les faire parvenir, envoyez-les par email en rappelant votre référence. Votre demande principale reste enregistrée par le service d’envoi.</div>'
+        + '<a class="btn p" style="display:block;text-align:center;text-decoration:none" href="mailto:tahitimaisoncontainer@gmail.com?subject='
+        + encodeURIComponent('Pièces jointes — ' + referenceDemande()) + '">Envoyer mes fichiers par email</a>'
+        + '<p class="pja">Votre messagerie s’ouvrira. Ajoutez vous-même les fichiers avant d’envoyer le mail.</p>';
+    }
+    h += '<div class="note">Pour toute précision, rappelez votre référence ou appelez Jean-Baptiste au <b>87 22 65 55</b>.</div></div>';
     document.getElementById("main").innerHTML = h;
     document.getElementById("back").style.display = "none";
     document.getElementById("next").style.display = "none";
@@ -734,11 +765,29 @@ function rendre(){
     h += '</div>';
   }
   if(e.sel){
-    h += '<label class="f"><span>Île et commune</span><select id="i_' + e.sel + '" onchange="maj(\'' + e.sel + '\',this.value)">'
+    h += '<label class="f"><span>Île et commune</span><select id="i_' + e.sel + '" onchange="maj(\'' + e.sel + '\',this.value);rendre()">'
        + '<option value="">— choisissez —</option>';
     for(var j=0;j<COM.length;j++)
       h += '<option' + (S[e.sel] === COM[j][0] ? ' selected' : '') + '>' + esc(COM[j][0]) + '</option>';
     h += '</select></label>';
+    if(S.commune === "Autre île")
+      h += '<label class="f"><span>Nom de l’île et commune</span><input id="i_ile" type="text" maxlength="160" placeholder="Par exemple Fakarava, village de Rotoava" value="' + esc(S.ile||"") + '" oninput="maj(\'ile\',this.value)"></label>';
+
+  }
+  if(e.prestations){
+    h += '<label class="f" style="margin-top:16px"><span>Précisions sur les travaux (facultatif, sauf autres prestations)</span>'
+      + '<textarea id="i_prestationsDetails" maxlength="3000" placeholder="Par exemple : une baie vitrée en façade, deux prises, une douche ; toiture réalisée par mes soins…" oninput="maj(\'prestationsDetails\',this.value)">' + esc(S.prestationsDetails||"") + '</textarea></label>';
+  }
+  if(e.destination){
+    h += '<label class="f"><span>Périmètre de livraison souhaité</span><select id="i_livraison" onchange="maj(\'livraison\',this.value);rendre()">'
+      + '<option value="">— choisissez —</option>';
+    ["Au quai uniquement", "Jusqu’au terrain, avec déchargement et pose", "À définir ensemble"].forEach(function(v){
+      h += '<option' + (S.livraison === v ? ' selected' : '') + '>' + esc(v) + '</option>';
+    });
+    h += '</select></label>';
+    if(S.livraison && S.livraison !== "À définir ensemble")
+      h += '<label class="f"><span>Lieu final : quai, quartier ou repère</span><input id="i_emplacement" type="text" maxlength="240" placeholder="Précisez le lieu, ou écrivez « à préciser »" value="' + esc(S.emplacement||"") + '" oninput="maj(\'emplacement\',this.value)"></label>';
+    h += '<p class="pja">Si le lieu n’est pas encore arrêté, indiquez-le : aucune livraison ni aucun tarif de transport n’est confirmé à ce stade.</p>';
   }
   if(e.gabarit) h += '<div class="gab">' + GABARIT + '<div class="sep"></div>' + PLONGEE + LEGENDE + '</div>';
 
@@ -776,8 +825,7 @@ function rendre(){
        + 'sensiblement supérieure à celle d\'un chantier chez un particulier. Prévoyez-la en conséquence — '
        + 'ou signalez-moi qu\'un acompte au bon de commande est possible, cela change tout.</div>';
   if(e.confid)
-    h += '<div class="note"><b>Vos informations restent confidentielles.</b> Elles servent uniquement à traiter votre demande, '
-       + 'et ne sont ni revendues ni transmises à qui que ce soit.</div>';
+    h += '<div class="note"><b>Vos informations servent à traiter votre demande auprès de TMC.</b> Elles sont transmises via FormSubmit pour l’acheminement des emails et des fichiers. Elles ne sont pas publiées sur le site.</div>';
 
   if(e.contact){
     h += '<label class="f"><span>Nom et prénom</span><input id="i_nom" type="text" autocomplete="name" value="' + esc(S.nom||"") + '" oninput="maj(\'nom\',this.value)"></label>'
@@ -802,7 +850,8 @@ function rendre(){
       return '<div class="r"><b>' + esc(l[0]) + '</b><span>' + esc(l[1]) + '</span></div>';
     }).join("") + '</div>';
     h += blocPrix();
-    h += '<div class="note">En envoyant, vous acceptez que ces informations servent uniquement à traiter votre demande. Elles ne sont ni revendues ni transmises.</div>';
+    h += '<p class="pja">Référence : ' + esc(referenceDemande()) + '</p>';
+    h += '<div class="note">En envoyant, vous demandez à TMC de traiter votre projet. Les informations et fichiers sont transmis via FormSubmit pour leur acheminement. Aucun devis ni engagement de travaux n’est accepté par cet envoi.</div>';
   } else {
     h += blocPrix();
   }
@@ -810,7 +859,7 @@ function rendre(){
   if(e.etudeNote && tarifEtude())
     h += '<div class="note">Pour une surface de ' + esc(S.surface) + ' m², l\'étude détaillée — chiffrage poste par poste et planning de travaux — est facturée <b>'
        + tarifEtude() + '</b>, intégralement déduite de votre commande. Je ne vous la propose qu\'après notre premier échange.</div>';
-  h += '<div id="err"></div></div>';
+  h += '<div id="err" role="alert" tabindex="-1"></div></div>';
   document.getElementById("main").innerHTML = h;
   document.getElementById("back").style.display = idx === 0 ? "none" : "block";
   document.getElementById("next").style.display = "block";
@@ -879,20 +928,22 @@ function ajoutPJ(input){
   }).catch(function(){ PJMSG = "Un fichier n'a pas pu être lu."; rafraichirPJ(); });
 }
 
-function envoiPJ(sujet){
-  if(!PJ.length) return;
+async function envoiPJ(sujet){
+  if(!PJ.length) return "none";
+  var ctl = new AbortController(), timer = setTimeout(function(){ ctl.abort(); }, 30000);
   try{
     var fd = new FormData();
     fd.append("_subject", "Pièces jointes — " + sujet);
-    fd.append("_template", "box");
-    fd.append("_captcha", "false");
-    fd.append("Rappel", "Ces fichiers accompagnent la demande de " + (S.nom||"sans nom")
-      + (S.tel ? " — " + S.tel : "") + (S.mail ? " — " + S.mail : "") + ".");
-    fd.append("Nombre", PJ.length + (PJ.length>1 ? " fichiers" : " fichier"));
-    /* un nom de champ distinct par fichier : le relais n en garde qu un seul si les noms sont identiques */
+    fd.append("_template", "box"); fd.append("_captcha", "false");
+    fd.append("Reference", referenceDemande());
+    fd.append("_replyto", S.mail || "");
+    fd.append("Rappel", "Ces fichiers accompagnent la demande " + referenceDemande() + " de " + (S.nom||"sans nom") + ". Réception des fichiers à vérifier.");
     for(var i=0;i<PJ.length;i++) fd.append(i ? "attachment" + (i+1) : "attachment", PJ[i].blob, PJ[i].nom);
-    fetch(RELAIS_PJ, {method:"POST", mode:"no-cors", body:fd});
-  }catch(e){}
+    await fetch(RELAIS_PJ, {method:"POST", mode:"no-cors", body:fd, signal:ctl.signal});
+    // Une réponse opaque ne prouve pas la réception des fichiers.
+    return "unconfirmed";
+  }catch(e){ return "failed"; }
+  finally{ clearTimeout(timer); }
 }
 
 /* ============ INTERACTIONS ============ */
@@ -931,6 +982,8 @@ function coche(champ, i){
 function effaceErr(){ var d = document.getElementById("err"); if(d) d.innerHTML = ""; }
 function maj(champ, val){
   S[champ] = val;
+  if(champ === "commune" && val !== "Autre île") delete S.ile;
+  if(champ === "livraison" && val === "À définir ensemble") delete S.emplacement;
   effaceErr();
   /* des que le client corrige la surface lui-meme, on cesse de la recalculer */
   if(champ === "surface") S.surfaceManuelle = 1;
@@ -952,7 +1005,24 @@ function valide(){
   if(e.o && !S[e.ch]) return "Choisissez une réponse pour continuer.";
   if(e.sel && !S[e.sel]) return "Indiquez la commune de livraison.";
   if(e.mod && !S.modules) return "Indiquez le nombre de conteneurs, ou choisissez « Je ne sais pas encore ».";
-  if(e.num && !S[e.num]) return "Indiquez une surface approximative.";
+  if(e.num){
+    var surface = Number(String(S[e.num]||"").replace(",", "."));
+    if(!Number.isFinite(surface) || surface <= 0) return "Indiquez une surface numérique supérieure à zéro.";
+  }
+  if(e.mod && S.modules !== "À définir"){
+    var a = Number(S.n20||0), b = Number(S.n40||0);
+    if(!Number.isInteger(a) || !Number.isInteger(b) || a < 0 || b < 0 || a > 60 || b > 60 || a + b < 1)
+      return "Indiquez un nombre entier de modules entre 0 et 60 pour chaque format.";
+  }
+  if(e.sel && S.commune === "Autre île" && String(S.ile||"").trim().length < 2)
+    return "Précisez le nom de l’île et, si possible, la commune.";
+  if(e.prestations && String(S.prestations||"").indexOf("Autres prestations") > -1 && String(S.prestationsDetails||"").trim().length < 3)
+    return "Précisez les autres prestations souhaitées.";
+  if(e.destination){
+    if(!S.livraison) return "Choisissez le périmètre de livraison souhaité.";
+    if(S.livraison !== "À définir ensemble" && String(S.emplacement||"").trim().length < 3)
+      return "Précisez le lieu final, ou indiquez « à préciser ».";
+  }
   if(e.txt && !e.opt && !S[e.txt]) return "Ce champ est nécessaire.";
   if(e.contact){
     if(!S.nom || S.nom.trim().length < 2) return "Merci d'indiquer votre nom.";
@@ -963,22 +1033,23 @@ function valide(){
   return null;
 }
 function suiv(){
+  if(ENVOI_EN_COURS) return;
   var m = valide();
   if(m){ var d = document.getElementById("err"); if(d) d.innerHTML = '<div class="err">' + m + '</div>'; return; }
   if(E[ordre[idx]].recap){ envoyer(); return; }
   ordre = parcours();
   if(idx < ordre.length - 1){ idx++; rendre(); }
 }
-function prec(){ if(idx > 0){ idx--; rendre(); } }
+function prec(){ if(ENVOI_EN_COURS) return; if(idx > 0){ idx--; rendre(); } }
 
 /* ============ RECAPITULATIF ============ */
-var LIB = {profil:"Vous êtes", besoin:"Besoin", format:"Format", commune:"Commune", quantite:"Quantité",
+var LIB = {reference:"Référence", prestations:"Prestations demandées", prestationsDetails:"Détail des prestations", ile:"Île et commune précisées", livraison:"Livraison souhaitée", emplacement:"Lieu final / repère", profil:"Vous êtes", besoin:"Besoin", format:"Format", commune:"Commune", quantite:"Quantité",
   acces:"Accès camion-grue", delai:"Échéance", budget:"Budget", usage:"Usage",
   modules:"Conteneurs", implantation:"Implantation", surface:"Surface totale (m²)",
   terrain:"Terrain", indivision:"Indivision", parcelle:"Parcelle", plan:"Plan", enveloppe:"Enveloppe",
   financement:"Financement", decision:"Décision", etape:"Prochaine étape", rdvlieu:"Lieu du rendez-vous",
   rdvquand:"Moment souhaité", nom:"Nom", structure:"Structure", tel:"Téléphone", mail:"Email", msg:"Message"};
-var ORDRE_R = ["profil","structure","besoin","usage","modules","implantation","surface","commune","acces","terrain",
+var ORDRE_R = ["reference","profil","structure","besoin","usage","modules","implantation","surface","prestations","prestationsDetails","commune","ile","livraison","emplacement","acces","terrain",
   "indivision","parcelle","plan","delai","enveloppe","financement","decision","etape","rdvlieu",
   "rdvquand","nom","tel","mail","msg"];
 
@@ -1082,6 +1153,7 @@ function topo(r){
   function bloc(t,ls){ ls=ls.filter(function(x){return x;}); if(!ls.length) return;
     L.push(""); L.push(t); L.push(tir(t.length)); for(var i=0;i<ls.length;i++) L.push(ls[i]); }
 
+  L.push("Référence : " + referenceDemande());
   L.push(N.n+"          "+r.score+"/100");
   L.push(""); L.push("CE QU'IL FAUT FAIRE"); L.push(tir(19));
   for(var i=0;i<N.a.length;i++) L.push("  "+(i+1)+". "+N.a[i]);
@@ -1098,11 +1170,13 @@ function topo(r){
   var pr=[lg("Besoin",S.besoin),lg("Usage",S.usage),
     lg("Conteneurs",S.modules?libelleMod():""),lg("Implantation",S.implantation),
     lg("Surface totale",S.surface?S.surface+" m² au sol":""),
-    lg("Format",S.format?S.format+(S.quantite?"  ×"+S.quantite:""):""),lg("Lieu",S.commune)];
+    lg("Prestations",S.prestations),lg("Précisions travaux",S.prestationsDetails),
+    lg("Format",S.format?S.format+(S.quantite?"  ×"+S.quantite:""):""),lg("Lieu",S.commune),
+    lg("Île précisée",S.ile),lg("Livraison souhaitée",S.livraison),lg("Lieu final / repère",S.emplacement)];
   var t=prixTotal(); if(t&&t!=="devis") pr.push(lg("Prix livré",fmt(t)+" XPF TTC"));
   pr=pr.concat([lg("Terrain",S.terrain),lg("Indivision",S.indivision),lg("Parcelle",S.parcelle),
     lg("Accès grue",S.acces),lg("Plan",S.plan),
-    lg("Fichiers joints",PJ.length?(PJ.length+(PJ.length>1?" fichiers envoyés dans un second mail":" fichier envoyé dans un second mail")):""),
+    lg("Fichiers joints",PJ.length?(PJ.length+(PJ.length>1?" fichiers à transférer séparément — réception à vérifier":" fichier à transférer séparément — réception à vérifier")):""),
     lg("Échéance",S.delai),
     lg("Lieu du RDV",S.rdvlieu),lg("Moment",S.rdvquand)]);
   bloc("LE PROJET",pr);
@@ -1131,7 +1205,7 @@ function topo(r){
 
   L.push(""); L.push(tir(64));
   L.push("Notation : "+r.detail);
-  L.push("Reçu le "+new Date().toLocaleString("fr-FR")+"  —  page de demande TMC");
+  L.push("Reçu le "+new Date().toLocaleString("fr-FR", {timeZone:"Pacific/Tahiti"}) + " (Tahiti)"+"  —  page de demande TMC");
   return L.join("\n");
 }
 
@@ -1170,39 +1244,47 @@ function objet(r){
   if(S.modules && S.modules!=="À définir") res+=" "+libelleMod().replace(/×/g,"x");
   if(S.surface) res+=" "+S.surface+" m2";
   if(S.commune) res+=" a "+S.commune;
-  return (N.e?N.e+" ":"")+N.t+" ("+r.score+"/100) — "+(S.nom||"sans nom")+" — "+res;
+  return "[" + referenceDemande() + "] " + (N.e?N.e+" ":"")+N.t+" ("+r.score+"/100) — "+(S.nom||"sans nom")+" — "+res;
 }
 
 /* ============ ENVOI ============ */
-function envoyer(){
-  var b = document.getElementById("next");
-  b.disabled = true; b.textContent = "Envoi…";
-  var r = noter();
-  var t = prixTotal();
-  var charge = {
-    _subject : objet(r),
-    _template: "box",
-    _captcha : "false",
-    _replyto : S.mail || "",
-    "Message pret a envoyer au client" : accuse(r),
-    "Topo"   : topo(r),
-    "Nom"    : S.nom || "",
-    "Telephone": S.tel || "",
-    "Email"  : S.mail || "",
-    "Niveau" : r.niveau + " — " + r.nom,
-    "Score"  : r.score + "/100",
-    "Besoin" : S.besoin || "",
-    "Lieu"   : S.commune || "",
-    "Prix"   : (t && t !== "devis") ? fmt(t) + " XPF" : ""
-  };
-  function fin(){ idx = ordre.length - 1; b.disabled = false; rendre(); }
-  envoiPJ(objet(r));
+async function envoyer(){
+  if(ENVOI_EN_COURS || ENVOI_RESULTAT) return;
+  ENVOI_EN_COURS = true;
+  var b = document.getElementById("next"), back = document.getElementById("back");
+  b.disabled = true; back.disabled = true; b.textContent = "Envoi…";
+  var err = document.getElementById("err"); if(err) err.textContent = "";
+  var ctl = new AbortController(), timer = setTimeout(function(){ ctl.abort(); }, 20000);
   try{
-    fetch(RELAIS, {method:"POST",
-      headers:{"Content-Type":"application/json","Accept":"application/json"},
-      body: JSON.stringify(charge)}).then(fin).catch(fin);
-    setTimeout(function(){ if(b.disabled) fin(); }, 6000);
-  }catch(e){ fin(); }
+    var ref = referenceDemande(), r = noter(), t = prixTotal();
+    var charge = {
+      _subject: objet(r), _template:"box", _captcha:"false", _replyto:S.mail||"",
+      "Reference":ref, "Message pret a envoyer au client":accuse(r), "Topo":topo(r),
+      "Nom":S.nom||"", "Telephone":S.tel||"", "Email":S.mail||"",
+      "Niveau":r.niveau+" — "+r.nom, "Score":r.score+"/100", "Besoin":S.besoin||"",
+      "Prestations":S.prestations||"", "Details travaux":S.prestationsDetails||"",
+      "Lieu":S.commune||"", "Ile precisee":S.ile||"", "Livraison souhaitee":S.livraison||"",
+      "Lieu final":S.emplacement||"", "Prix":(t&&t!=="devis")?fmt(t)+" XPF":"",
+      "Fichiers attendus":PJ.length ? PJ.map(function(f){return f.nom;}).join(" ; ") + " — transfert séparé, réception à vérifier" : "Aucun"
+    };
+    var response = await fetch(RELAIS, {method:"POST", headers:{"Content-Type":"application/json","Accept":"application/json"}, body:JSON.stringify(charge), signal:ctl.signal});
+    if(!response.ok) throw new Error("http");
+    var result = await response.json();
+    if(!result || (result.success !== true && result.success !== "true")) throw new Error("refused");
+    clearTimeout(timer);
+    // La demande principale est prise en charge. Ne jamais la renvoyer pour une erreur de pièces jointes.
+    ENVOI_RESULTAT = {reference:ref,pj:"none"};
+    if(PJ.length){ b.textContent = "Transfert des fichiers…"; ENVOI_RESULTAT.pj = await envoiPJ(objet(r)); }
+    idx = ordre.length - 1; rendre();
+  }catch(e){
+    if(err){
+      err.innerHTML = '<div class="err">L’envoi n’a pas pu être confirmé. Vos réponses sont conservées tant que cette page reste ouverte. Vérifiez votre connexion puis réessayez avec la même référence : ' + esc(referenceDemande()) + '. Si le problème persiste, contactez TMC au 87 22 65 55.</div>';
+      err.focus();
+    }
+  }finally{
+    clearTimeout(timer); ENVOI_EN_COURS = false; b.disabled = false; back.disabled = false;
+    if(!ENVOI_RESULTAT) b.textContent = "Réessayer l’envoi";
+  }
 }
 
 /* ============ DEMARRAGE ============ */
@@ -1211,3 +1293,4 @@ rendre();
 </script>
 </body>
 </html>
+
