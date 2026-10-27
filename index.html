@@ -7,7 +7,7 @@
 <meta name="msvalidate.01" content="8EB4B6373CE8FE2420AEF058932D3EBC" />
 
 <!-- ═══ SEO PRINCIPAL ═══ -->
-<title>Tahiti Maison Container — Vente conteneurs maritimes 20 DRY & 40 HC en Polynésie</title>
+<title>TMC — Conteneurs &amp; projets d’aménagement en Polynésie</title>
 <meta name="description" content="Vente et livraison de conteneurs maritimes d'occasion en Polynésie française. Conteneur 20 DRY à 623 451 XPF, 40 HC à 832 451 XPF. Livraison Tahiti et îles, aménagement sur mesure. Devis gratuit."/>
 <meta name="keywords" content="conteneur Tahiti, container maritime Polynésie, 20 DRY, 40 HC, vente conteneur Papeete, livraison conteneur îles, aménagement conteneur, stockage Tahiti, TMC"/>
 <meta name="author" content="Tahiti Maison Container"/>
@@ -435,7 +435,46 @@
 
 /* 3. Compteurs animés — tabular-nums pour éviter le tremblement visuel */
 .trust-num{ font-variant-numeric: tabular-nums; }
-</style>
+
+/* Proposition TMC : deux parcours dès l'accueil */
+.project-intro{padding:64px 0 34px;background:radial-gradient(ellipse at 85% 0,rgba(229,101,53,.15),transparent 58%)}
+.project-topline{font-size:.75rem;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);font-weight:700;margin:0 0 18px}
+.project-intro h1{font-size:clamp(3.1rem,6.8vw,6rem);line-height:.98;margin:0 0 20px;max-width:1000px}
+.project-intro h1 span{color:var(--accent)}
+.project-intro .intro-lead{max-width:720px;color:var(--muted);font-size:1.08rem;line-height:1.7;margin-bottom:32px}
+.project-choices{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.project-choice{position:relative;display:flex;flex-direction:column;align-items:flex-start;padding:28px;border:1px solid var(--line,#35404b);border-radius:20px;background:rgba(255,255,255,.025);color:var(--text);text-decoration:none;transition:transform .2s,border-color .2s}
+.project-choice:hover{transform:translateY(-4px);border-color:var(--accent)}
+.project-choice:focus-visible,.am-link:focus-visible{outline:3px solid var(--accent);outline-offset:5px}
+.project-choice.accent-choice{background:linear-gradient(130deg,rgba(229,101,53,.17),rgba(229,101,53,.035));border-color:rgba(229,101,53,.55)}
+.project-choice .choice-num{font-size:.72rem;letter-spacing:.15em;color:var(--accent);font-weight:700;margin-bottom:20px}
+.project-choice h2{font-size:2.2rem;line-height:1.08;margin:0 0 12px}
+.project-choice p{color:var(--muted);font-size:.95rem;line-height:1.6;max-width:430px;margin:0 0 24px}
+.project-choice .choice-cta{margin-top:auto;font-size:.92rem;font-weight:700;display:flex;align-items:center;justify-content:space-between;gap:20px;width:100%}
+.project-choice .arrow{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;background:rgba(229,101,53,.15);color:var(--accent);font-size:1.3rem}
+.project-footnote{color:var(--muted);font-size:.82rem;margin:18px 0 0}
+.project-amenagement{padding:60px 0}
+.am-panel{display:grid;grid-template-columns:1.15fr 1fr;gap:40px;border:1px solid rgba(229,101,53,.3);border-radius:24px;padding:42px;background:linear-gradient(120deg,#242b34,#181d24)}
+.am-panel h2{font-size:clamp(2.3rem,4vw,3.5rem);line-height:1.04;margin:14px 0 18px}
+.am-panel p{color:var(--muted);line-height:1.7}
+.am-tags{display:flex;flex-wrap:wrap;gap:8px;margin:22px 0}
+.am-tags span{border:1px solid rgba(255,255,255,.15);padding:7px 12px;border-radius:30px;font-size:.8rem}
+.am-steps{display:flex;flex-direction:column;justify-content:center;gap:22px}
+.am-step{display:grid;grid-template-columns:34px 1fr;gap:12px}
+.am-step b{border:1px solid rgba(229,101,53,.5);border-radius:50%;width:32px;height:32px;display:grid;place-items:center;color:var(--accent);font-size:.85rem}
+.am-step strong{font-size:.95rem}.am-step p{margin:5px 0 0;font-size:.85rem;line-height:1.55}
+.am-link{color:var(--accent);text-decoration:none;font-size:.86rem;font-weight:700}
+.hero-actions .am-link{flex-basis:100%;padding:6px 0}
+.proposal-note{padding:9px 16px;background:#e56535;color:#fff;text-align:center;font-size:.78rem;line-height:1.4}
+.nav-right{flex-wrap:wrap;justify-content:center}
+#catalogue,#amenagement{scroll-margin-top:170px}
+.project-intro .project-choice h2{letter-spacing:.01em}
+@media(max-width:700px){.project-intro{padding:36px 0 24px}.project-choices{grid-template-columns:1fr;gap:12px}.project-choice{padding:22px}.project-choice .choice-num{margin-bottom:12px}.project-choice h2{font-size:1.9rem}.project-choice p{margin-bottom:18px;font-size:.9rem}.am-panel{grid-template-columns:1fr;padding:25px;gap:28px}.project-amenagement{padding:35px 0}.nav-right .btn{padding:.6rem .7rem;font-size:.78rem}.nav-right{gap:.4rem}.project-intro .intro-lead{font-size:.97rem;margin-bottom:22px}}
+@media(prefers-reduced-motion:reduce){.project-choice{transition:none}.project-choice:hover{transform:none}}
+
+
+@media(max-width:700px){.project-intro h1{font-size:clamp(2rem,10.5vw,2.65rem);overflow-wrap:normal}.nav-right{flex-wrap:nowrap!important;width:100%;justify-content:center}.nav-right .btn{font-size:.72rem!important;padding:.6rem .7rem!important;white-space:nowrap}.project-choice h2{overflow-wrap:break-word}}
+@media(max-width:700px){html,body{overflow-x:clip}.nav-right .btn{flex:1;min-width:0;font-size:11px!important;padding:12px 8px!important}.nav-inner{width:calc(100% - 32px)}.hero-grid>*{min-width:0}.hero-title{font-size:2.4rem!important;overflow-wrap:anywhere}.section-head{display:block}.section-head>*{min-width:0;max-width:100%}.section-head h2{overflow-wrap:anywhere}.project-intro{padding-top:38px}}</style>
 <!-- Google tag (gtag.js) --><script async src="https://www.googletagmanager.com/gtag/js?id=G-HZBRXYJB9B"></script><script>window.dataLayer = window.dataLayer || [];function gtag(){dataLayer.push(arguments);}gtag('js', new Date());gtag('config', 'G-HZBRXYJB9B');</script></head>
 <body>
 
@@ -443,14 +482,24 @@
   <div class="container nav-inner">
     <a class="brand" href="#top"><span>TMC</span><span class="brand-full"> — Tahiti Maison Container</span></a>
     <div class="nav-right">
-      <a class="btn btn-secondary" href="#qui-sommes-nous">Qui sommes-nous</a>
-      <a class="btn btn-primary" href="#devis">Demander un devis</a>
+      <a class="btn btn-secondary" href="#catalogue">Conteneurs bruts</a>
+      <a class="btn btn-primary" href="demande/">Projet d’aménagement</a>
     </div>
   </div>
 </nav>
 
 <div class="nav-spacer"></div>
-<div class="ptabs-wrap">
+<main id="top">
+<section class="project-intro" aria-labelledby="project-title"><div class="container">
+<p class="project-topline">Tahiti Maison Container · Tahiti &amp; les îles</p>
+<h1 id="project-title">UN CONTENEUR.<br><span>VOTRE PROJET.</span></h1>
+<p class="intro-lead">Un espace pour stocker, travailler ou habiter. Choisissez votre besoin : un conteneur brut à livrer ou un aménagement à concevoir ensemble.</p>
+<div class="project-choices">
+<a class="project-choice" href="#catalogue"><span class="choice-num">01 / ACHAT DE CONTENEUR</span><h2>J’ACHÈTE UN CONTENEUR</h2><p>20 pieds DRY ou 40 pieds High Cube : consultez les modèles et demandez votre devis de fourniture et livraison.</p><span class="choice-cta">Voir les conteneurs <span class="arrow" aria-hidden="true">↓</span></span></a>
+<a class="project-choice accent-choice" href="demande/"><span class="choice-num">02 / AMÉNAGEMENT SUR MESURE</span><h2>JE CRÉE MON ESPACE</h2><p>Logement, bureau, boutique ou atelier : présentez votre idée, votre terrain et vos besoins dans notre formulaire dédié.</p><span class="choice-cta">Décrire mon projet <span class="arrow" aria-hidden="true">→</span></span></a>
+</div><p class="project-footnote">Besoin d’un conseil ? <a class="am-link" href="tel:+68987226555">Appelez JB au 87 22 65 55</a></p>
+</div></section>
+<div id="catalogue"></div><div class="ptabs-wrap">
   <div class="ptabs">
     <button class="ptab active" id="tab-20" onclick="switchProduct('20')">
       <span class="ptab-long">Conteneur 20 DRY</span><span class="ptab-short">20 DRY</span><span class="ptab-badge">623 451 XPF</span>
@@ -464,7 +513,7 @@
   </div>
 </div>
 
-<main id="top">
+
 
 <!-- ═══ SECTION 20 DRY ═══ -->
 <div class="psec active" id="sec-20">
@@ -472,7 +521,7 @@
     <div class="container hero-grid">
       <div class="hero-copy">
         <div class="kicker">Conteneur maritime d'occasion</div>
-        <h1>CONTENEUR <span class="accent">20 DRY</span><br>PRÊT À LIVRER</h1>
+        <h2 class="hero-title">CONTENEUR <span class="accent">20 DRY</span><br>PRÊT À LIVRER</h2>
         <p class="hero-lead">Conteneur maritime 20 pieds DRY d'occasion, en bon état général. Idéal pour le stockage sécurisé, atelier, chantier ou tout projet d'aménagement.</p>
         <div class="hero-metrics">
           <div class="metric"><div class="metric-label">État</div><div class="metric-value">Bon état</div></div>
@@ -484,9 +533,10 @@
           <div class="free-tag">Livraison incluse sur Papeete</div>
         </div>
         <div class="hero-actions">
-          <a class="btn btn-primary" href="#devis" onclick="switchProduct('20')">Recevoir mon devis gratuit</a>
+          <a class="btn btn-primary" href="#devis" onclick="switchProduct('20')">Devis conteneur brut</a>
           <a class="btn btn-secondary" href="tel:+68987226555">Appeler</a>
           <a class="btn btn-secondary" href="mailto:tahitimaisoncontainer@gmail.com">Email</a>
+          <a class="am-link" href="demande/">Vous souhaitez un conteneur aménagé ? Décrivez votre projet →</a>
         </div>
       </div>
       <div class="hero-visual-wrap">
@@ -597,9 +647,10 @@
           <div class="free-tag">Livraison gratuite sur Papeete</div>
         </div>
         <div class="hero-actions">
-          <a class="btn btn-primary" href="#devis" onclick="switchProduct('40')">Recevoir mon devis gratuit</a>
+          <a class="btn btn-primary" href="#devis" onclick="switchProduct('40')">Devis conteneur brut</a>
           <a class="btn btn-secondary" href="tel:+68987226555">Appeler</a>
           <a class="btn btn-secondary" href="mailto:tahitimaisoncontainer@gmail.com">Email</a>
+          <a class="am-link" href="demande/">Vous souhaitez un conteneur aménagé ? Décrivez votre projet →</a>
         </div>
       </div>
       <div class="hero-visual-wrap">
@@ -756,10 +807,16 @@
   </div>
 </div></section>
 
+
+<section class="project-amenagement" id="amenagement" aria-labelledby="am-title"><div class="container"><div class="am-panel">
+<div><span class="project-topline">DE L’IDÉE À L’AMÉNAGEMENT</span><h2 id="am-title">UN ESPACE PENSÉ<br>POUR VOTRE USAGE.</h2><p>Vous cherchez plus qu’un conteneur brut ? TMC étudie aussi vos projets de transformation et d’aménagement.</p><div class="am-tags"><span>Logement</span><span>Bureau</span><span>Boutique</span><span>Atelier</span><span>Local technique</span></div><a class="btn btn-primary" href="demande/">Décrire mon projet d’aménagement →</a><p style="font-size:.8rem;margin-bottom:0">Votre demande permet de préparer un premier échange. Le chiffrage dépend des prestations et des contraintes du projet.</p></div>
+<div class="am-steps"><div class="am-step"><b>1</b><div><strong>Présentez votre idée</strong><p>Usage, surface, lieu et calendrier : expliquez ce que vous souhaitez réaliser.</p></div></div><div class="am-step"><b>2</b><div><strong>Partagez les éléments utiles</strong><p>Un croquis, un plan ou des photos du terrain peuvent aider à préciser le besoin.</p></div></div><div class="am-step"><b>3</b><div><strong>Faisons le point ensemble</strong><p>Nous examinons votre demande pour définir la suite et les éventuelles études nécessaires.</p></div></div></div>
+</div></div></section>
+
 <!-- ═══ FORMULAIRE DEVIS ═══ -->
 <section id="devis"><div class="container">
   <div class="section-head"><div>
-    <div class="eyebrow">Gratuit &amp; sans engagement</div>
+    <div class="eyebrow">Achat de conteneur brut · Gratuit &amp; sans engagement</div>
     <h2>DEMANDE DE DEVIS — <span id="devis-titre" style="color:var(--accent)">20 DRY</span></h2>
   </div></div>
   <div class="quote-box">
@@ -2664,3 +2721,4 @@ function generatePDF40(d){
 </script>
 </body>
 </html>
+
