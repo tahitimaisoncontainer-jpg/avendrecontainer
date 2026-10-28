@@ -870,7 +870,7 @@ function rendre(){
     });
     h += '</select></label>';
     if(S.livraison && S.livraison !== "À définir ensemble")
-      h += '<label class="f"><span>Lieu final : quai, quartier ou repère</span><input id="i_emplacement" type="text" maxlength="240" placeholder="Précisez le lieu, ou écrivez « à préciser »" value="' + esc(S.emplacement||"") + '" oninput="maj(\'emplacement\',this.value)"></label>';
+      h += '<label class="f"><span>Quartier ou repère du lieu de livraison</span><input id="i_emplacement" type="text" maxlength="240" placeholder="Précisez le lieu, ou écrivez « à préciser »" value="' + esc(S.emplacement||"") + '" oninput="maj(\'emplacement\',this.value)"></label>';
     h += '<p class="pja">Si le lieu n’est pas encore arrêté, indiquez-le : aucune livraison ni aucun tarif de transport n’est confirmé à ce stade.</p>';
   }
   if(e.gabarit) h += '<div class="gab">' + GABARIT + '<div class="sep"></div>' + PLONGEE + LEGENDE + '</div>';
@@ -1328,7 +1328,7 @@ function perimetreTechnique(){
 }
 
 function suiteEtudeTexte(){
- return "Pour votre devis sur mesure, l’étude couvre les matériaux, la logistique, la main-d’œuvre et les contraintes administratives. Étude et plan 2D à réaliser : règlement avant démarrage, après accord avec TMC. Un plan existant exploitable évite de facturer un nouveau plan. Seule l’étude sera déduite de la commande de travaux.";
+ return "L’étude sert à calculer le prix précis de votre projet et à préparer votre devis personnalisé. Elle est payante et doit être réglée avant de commencer. Si vous faites ensuite les travaux avec TMC, son prix sera déduit de votre commande.";
 }
 
 function accuse(){
@@ -1401,13 +1401,12 @@ function ficheEmail(){
    "Téléphone":S.tel||"",
    "Conteneurs":S.modules?libelleMod():"À définir avec TMC",
    "Aménagement":[S.usage,S.prestationsDetails||S.prestations].filter(Boolean).join(" — "),
-   "Lieu":[S.commune==="Autre île"?S.ile:S.commune,S.emplacement].filter(Boolean).join(" — "),
-   "Emplacement":S.implantation||"À définir avec TMC",
+   "Commune / quartier":[S.commune==="Autre île"?S.ile:S.commune,S.emplacement].filter(Boolean).join(" — "),
    "Pour quand":S.delai||"À définir",
    "Budget approximatif du projet":estimationTexte(),
    "Étude pour le devis sur mesure":tarifEtude()||"Tarif à confirmer après définition de la surface",
-   "Plan 2D":plan?fmt(plan[0])+" XPF si TMC doit le réaliser ; pas de nouveau plan facturé si votre plan est exploitable.":"Tarif à confirmer après définition des conteneurs",
-   "Pour poursuivre":"Répondez à tahitimaisoncontainer@gmail.com : « Oui, je souhaite poursuivre avec l’étude — "+referenceDemande()+". » Cet accord ne vaut ni paiement ni commande de travaux.",
+   "Plan 2D":plan?fmt(plan[0])+" XPF pour dessiner votre projet vu de dessus, avec ses dimensions. Si vous avez déjà un plan utilisable, inutile d’en payer un nouveau. Le plan à réaliser est réglé avant de commencer.":"Tarif à confirmer après définition des conteneurs",
+   "Votre réponse":"Choisissez : Oui, poursuivre / J’ai une question / Plus tard / Non merci : https://tahitimaisoncontainer-jpg.github.io/avendrecontainer/demande/reponse.html?ref="+encodeURIComponent(referenceDemande())+" — puis envoyez l’email préparé. Aucun paiement ni travaux ne sont engagés par cette réponse.",
    "Conditions de l’étude":suiteEtudeTexte(),
    "Contact TMC":"Jean-Baptiste HAUATA — 87 22 65 55 — tahitimaisoncontainer@gmail.com"
  };
