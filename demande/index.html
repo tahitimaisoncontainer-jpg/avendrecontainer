@@ -1219,6 +1219,45 @@ function objet(r){
 }
 
 /* ============ ENVOI ============ */
+/* Qualification commerciale interne. Le prix reste à valider : cette note
+   mesure la maturité de la demande et ne confirme pas sa faisabilité. */
+function evaluerDemande(){
+  var terrain = 0, budget = 0, financement = 0, projet = 0, decision = 0, delai = 0;
+  var terrainDisponible = S.terrain === "Il m'appartient ou je le loue";
+  var indivisionClaire = S.indivision === "Non, je suis seul propriétaire ou titulaire du bail" || S.indivision === "Oui, et l'indivision est réglée";
+  if(terrainDisponible) terrain = indivisionClaire ? 30 : 20;
+  else if(S.terrain === "Achat ou bail en cours de signature") terrain = 15;
+  else if(S.terrain === "Je l'ai repéré, il n'est pas encore à moi") terrain = 5;
+
+  var budgetAnnonce = plafondEnveloppe() !== null;
+  if(budgetAnnonce) budget = 20;
+
+  var f = String(S.financement||"");
+  var disponible = /Fonds propres disponibles|Prêt bancaire déjà accordé|Aide ou subvention notifiée|Bon de commande ou marché signé/.test(f);
+  var enAttente = /Prêt en cours d'instruction|Crédits votés, bon de commande à venir|Le financement reste à monter/.test(f);
+  if(disponible && !enAttente) financement = 25;
+  else if(disponible) financement = 15;
+  else if(/Prêt en cours d'instruction|Crédits votés/.test(f)) financement = 10;
+  else if(f === "Le financement reste à monter") financement = 5;
+
+  if(S.usage && S.usage !== "Autre projet") projet += 5;
+  if(S.modules && S.modules !== "À définir" && totalMod() > 0) projet += 5;
+  var surface = Number(String(S.surface||"").replace(",", "."));
+  if(Number.isFinite(surface) && surface > 0) projet += 5;
+  if(S.decision === "Je décide seul" || S.decision === "Nous décidons en couple ou en famille" || S.decision === "Je décide avec un associé ou ma hiérarchie") decision = 5;
+  if(S.delai && S.delai !== "Pas de date, je me renseigne") delai = 5;
+
+  var score = terrain + budget + financement + projet + decision + delai;
+  var statut;
+  if(!terrainDisponible || !indivisionClaire) statut = "TERRAIN À SÉCURISER";
+  else if(!budgetAnnonce) statut = "BUDGET À PRÉCISER";
+  else if(financement < 25) statut = "FINANCEMENT À CONFIRMER";
+  else if(projet < 15) statut = "PROJET À PRÉCISER";
+  else statut = "À ÉTUDIER — PRIX À VALIDER";
+  // Un score élevé ne suffit jamais à valider un prix ni à identifier un concurrent.
+  return {score:score,statut:statut,detail:{terrain:terrain,budget:budget,financement:financement,projet:projet,decision:decision,delai:delai}};
+}
+
 function ficheEmail(){
   var lieu = S.commune === "Autre île" ? S.ile : S.commune;
   var fiche = {
@@ -1262,7 +1301,10 @@ function envoyer(){
       input.name = nom; input.value = valeur; form.appendChild(input);
     }
     var lieu = S.commune === "Autre île" ? S.ile : S.commune;
-    champ("_subject", "Aménagement — " + (S.nom||"Nouveau client") + " — " + (S.usage||"Projet") + (lieu ? " — " + lieu : ""));
+    var evaluation = evaluerDemande();
+    // _subject sert au mail TMC ; aucun champ d'évaluation n'est ajouté à la
+    // fiche que FormSubmit recopie dans l'accusé de réception du client.
+    champ("_subject", "[" + evaluation.score + "/100 · " + evaluation.statut + "] Aménagement — " + (S.nom||"Nouveau client") + (lieu ? " — " + lieu : ""));
     champ("_template", "table");
     champ("_replyto", S.mail||"");
     champ("_autoresponse", accuse());
@@ -1313,5 +1355,6 @@ rendre();
 </script>
 </body>
 </html>
+
 
 
