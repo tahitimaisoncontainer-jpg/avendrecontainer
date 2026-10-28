@@ -555,8 +555,14 @@ function signatureEstimation(){
 function accordEstimation(ok){ S.estimationLue=ok?signatureEstimation():""; }
 function estimationTexte(){
  var e=estimationProjet();
- if(e.bas===null)return "Estimation impossible : surface à préciser.";
- return (e.complet?"Fourchette indicative":"Sous-total indicatif INCOMPLET")+" : "+fmt(e.bas)+" à "+fmt(e.haut)+" XPF.\n"+e.lignes.map(function(l){return l.poste+" : "+fmt(l.bas)+(l.haut!==l.bas?" à "+fmt(l.haut):"")+" XPF";}).join("\n")+(e.manquants.length?"\nÀ chiffrer / vérifier : "+e.manquants.join(" ; "):"")+"\n"+texteBudget()+"\nEstimation consultée par le client : "+(S.estimationLue===signatureEstimation()?"oui":"non")+". Repères non contractuels, hors étude et plans, mobilier et équipements. Version "+BAREME.version+".";
+ if(e.bas===null)return "La fourchette globale ne peut pas encore être calculée : surface à préciser.";
+ return (e.complet?"BUDGET GLOBAL INDICATIF":"BUDGET GLOBAL PROVISOIRE — À COMPLÉTER")
+   +"\nMinimum estimé : "+fmt(e.bas)+" XPF."
+   +"\nMaximum estimé : "+fmt(e.haut)+" XPF."
+   +"\nCette fourchette comprend l’achat des conteneurs, leurs frais opérationnels, l’aménagement et les prestations chiffrées dans votre demande, sans détail de prix par poste."
+   +(e.manquants.length?"\nAttention : ce montant n’est pas encore tout compris. Restent à chiffrer ou à vérifier : "+e.manquants.join(" ; ")+".":"\nEnsemble du périmètre chiffré compris.")
+   +"\nEstimation non contractuelle, à confirmer après étude du projet. Hors étude et plans, mobilier et équipements non chiffrés."
+   +(S.estimationLue===signatureEstimation()?"\nVous avez consulté cette estimation avant l’envoi.":"\nCette estimation reste à consulter et à confirmer.");
 }
 function blocEstimation(){
  var e=estimationProjet();
@@ -1277,6 +1283,8 @@ function accuse(){
     "",
     "Merci pour votre demande d’aménagement auprès de Tahiti Maison Container.",
     "Référence : " + referenceDemande(),
+    "",
+    estimationTexte(),
     "",
     "Nous allons examiner votre projet et reviendrons vers vous pour préciser les prestations, la faisabilité et la suite à donner.",
     "Cet accusé confirme la transmission de votre demande ; il ne constitue ni un devis ni une confirmation de délai ou de réalisation.",
