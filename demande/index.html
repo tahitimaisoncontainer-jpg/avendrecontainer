@@ -1323,7 +1323,7 @@ function perimetreTechnique(){
 }
 
 function suiteEtudeTexte(){
- return "L’étude sert à calculer le prix précis de votre projet et à préparer votre devis personnalisé. Elle est payante et doit être réglée avant de commencer. Si vous faites ensuite les travaux avec TMC, son prix sera déduit de votre commande.";
+ return "L’étude sert à calculer le prix précis de votre projet et à préparer votre devis personnalisé. Elle est payante et doit être réglée avant de commencer. Si vous faites ensuite les travaux avec TMC, son prix sera déduit de votre commande. Le plan 2D est le dessin de votre projet vu de dessus, avec les pièces et leurs dimensions. Il sert de base au devis. Si vous avez déjà un plan utilisable, nous le reprenons ; sinon, sa réalisation est facturée séparément et réglée avant de commencer. Seul le prix de l’étude est déduit des travaux, pas celui du plan 2D.";
 }
 
 function accuse(){
@@ -1402,9 +1402,9 @@ function ficheEmail(){
    "Financement":S.financement||"À préciser",
    "Budget approximatif du projet":estimationTexte(),
    "Étude pour le devis sur mesure":tarifEtude()||"Tarif à confirmer après définition de la surface",
-   "Plan 2D":plan?fmt(plan[0])+" XPF pour dessiner votre projet vu de dessus, avec ses dimensions. Si vous avez déjà un plan utilisable, inutile d’en payer un nouveau. Le plan à réaliser est réglé avant de commencer.":"Tarif à confirmer après définition des conteneurs",
+   "Plan 2D":plan?fmt(plan[0])+" XPF en supplément de l’étude, uniquement si un plan doit être réalisé.":"Tarif à confirmer après définition des conteneurs",
+   "Si vous souhaitez poursuivre":suiteEtudeTexte(),
    "Votre réponse":"Choisissez : Oui, poursuivre / J’ai une question / Non merci : https://tahitimaisoncontainer-jpg.github.io/avendrecontainer/demande/reponse.html?ref="+encodeURIComponent(referenceDemande())+" — puis envoyez l’email préparé. Aucun paiement ni travaux ne sont engagés par cette réponse.",
-   "Conditions de l’étude":suiteEtudeTexte(),
    "Contact TMC":"Jean-Baptiste HAUATA — 87 22 65 55 — tahitimaisoncontainer@gmail.com"
  };
  return fiche;
