@@ -315,15 +315,21 @@ E.rdvquand = {k:"Rendez-vous", q:"Quel moment vous arrange ?", ch:"rdvquand", o:
   ["En semaine, le matin"],["En semaine, l'après-midi"],["Le samedi"],["Peu importe, appelez-moi"]]};
 
 /* ---- commun fin ---- */
+var DECISION_STRUCTURE = {q:"Le projet est-il déjà validé en interne ?",o:[
+ ["Oui","Le projet est validé"],
+ ["Validation en cours","La décision reste à confirmer"],
+ ["Je me renseigne seulement","Aucun projet validé pour le moment"]
+]};
 var DECISIONS = {
  "Un particulier":{q:"Qui décide du projet avec vous ?",o:[
-  ["Je décide seul"],["Nous décidons en couple ou en famille"],["Nous n'en avons pas encore parlé"],["Je fais la demande pour quelqu'un d'autre"]]},
- "Une entreprise":{q:"Qui valide ce projet dans votre entreprise ?",o:[
-  ["Je peux valider le projet pour l’entreprise"],["Ma direction ou un associé doit valider"],["Je prépare la demande pour le décideur"]]},
- "Une administration ou une commune":{q:"Comment ce projet sera-t-il validé ?",o:[
-  ["Je peux valider le projet pour la structure"],["Ma hiérarchie doit valider"],["Une décision officielle reste à obtenir"],["Je prépare uniquement la demande"]]},
- "Une association":{q:"Qui valide ce projet dans votre association ?",o:[
-  ["Je peux valider le projet pour l’association"],["Le bureau ou le conseil d’administration doit valider"],["L’assemblée générale doit valider"],["Je prépare uniquement la demande"]]}
+  ["Je décide seul","Décision personnelle"],
+  ["Nous décidons en couple ou en famille","Le principe est déjà validé entre nous"],
+  ["Nous n'en avons pas encore parlé","Discussion à venir"],
+  ["Je décide avec un associé ou ma hiérarchie","Validation interne à obtenir"],
+  ["Je fais la demande pour quelqu'un d'autre","Je ne suis pas le décideur"]]},
+ "Une entreprise":DECISION_STRUCTURE,
+ "Une administration ou une commune":DECISION_STRUCTURE,
+ "Une association":DECISION_STRUCTURE
 };
 function adapterDecision(){
  var config=DECISIONS[S.profil]||DECISIONS["Un particulier"];
