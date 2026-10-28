@@ -568,17 +568,17 @@ function coherenceBudget(){
  var e=estimationProjet(),pl=plafondEnveloppe(),minimum=minimumEnveloppe();
  if(e.bas===null || pl===null)return "inconnue";
  if(!e.standard)return "incomplete";
- if(pl<e.bas)return "incompatible";
+ if(pl<e.haut)return "incompatible";
  if(!e.complet)return "incomplete";
  return minimum>=e.haut?"coherente":"juste";
 }
 function texteBudget(){
  var c=coherenceBudget();
- return c==="incompatible"?"Budget inférieur au repère calculé : réduire le périmètre ou revoir l’enveloppe.":c==="incomplete"?"Comparaison à confirmer : des postes restent à chiffrer.":c==="juste"?"Le budget recoupe la fourchette, mais le montant réellement disponible doit être confirmé.":c==="coherente"?"Le budget déclaré couvre la borne haute calculée, sous réserve de l’étude technique.":"Budget à préciser pour comparer.";
+ return c==="incompatible"?"Budget inférieur au repère calculé : réduire le périmètre ou revoir l’enveloppe.":c==="incomplete"?"Comparaison à confirmer : des postes restent à chiffrer.":c==="juste"?"Le budget annoncé peut couvrir le montant indicatif affiché ; le montant mobilisable reste à confirmer.":c==="coherente"?"Le budget déclaré couvre le montant indicatif affiché, sous réserve de l’étude technique.":"Budget à préciser pour comparer.";
 }
 function signatureEstimation(){
  var e=estimationProjet();
- return JSON.stringify([BAREME.version,e.lignes,e.manquants,S.enveloppe,S.usage,S.prestations,S.implantation,S.commune,S.ile,S.livraison,S.acces,prestation("Assainissement et raccordements")?S.reseaux:null]);
+ return JSON.stringify(["a-partir-haut-v1",BAREME.version,e.lignes,e.manquants,S.enveloppe,S.usage,S.prestations,S.implantation,S.commune,S.ile,S.livraison,S.acces,prestation("Assainissement et raccordements")?S.reseaux:null]);
 }
 function accordEstimation(ok){ S.estimationLue=ok?signatureEstimation():""; }
 function messageEstimation(e){
@@ -590,18 +590,18 @@ function messageEstimation(e){
 function estimationTexte(){
  var e=estimationProjet();
  if(e.bas===null || !e.standard || !S.modules || S.modules==="À définir")return messageEstimation(e);
- return fmt(e.bas)+" à "+fmt(e.haut)+" XPF"
+ return "À partir de "+fmt(e.haut)+" XPF"
    +"\nConteneurs, aménagement et prestations chiffrées compris."
    +"\nEstimatif non contractuel, hors étude et plan 2D."
-   +(e.manquants.length?"\nMontant à compléter : certains travaux ou frais restent à chiffrer lors de l’étude. Le maximum indiqué n’est pas un plafond final.":"");
+   +(e.manquants.length?"\nMontant à compléter : certains travaux ou frais restent à chiffrer lors de l’étude. Le montant indiqué n’est pas un prix final.":"");
 }
 
 function blocEstimation(){
  var e=estimationProjet();
  if(e.bas===null || !e.standard || !S.modules || S.modules==="À définir")return '<div class="note"><b>Prix à préciser.</b> '+esc(messageEstimation(e))+' Vous pouvez transmettre votre demande.</div>';
- var h='<div class="prix"><div class="lb">'+(e.complet?'Budget global indicatif':'Budget global provisoire')+'</div><div class="val" style="font-size:23px"><span style="white-space:nowrap">'+fmt(e.bas)+' XPF</span><br>à <span style="white-space:nowrap">'+fmt(e.haut)+' XPF</span></div></div>';
+ var h='<div class="prix"><div class="lb">'+(e.complet?'Budget global indicatif':'Budget global provisoire')+'</div><div class="val" style="font-size:23px">À partir de<br><span style="white-space:nowrap">'+fmt(e.haut)+' XPF</span></div></div>';
  h+='<p class="pja">Conteneurs et prestations chiffrées compris. Estimatif non contractuel, hors étude, plans, mobilier et équipements.</p>';
- if(e.manquants.length)h+='<p class="pja">Des éléments restent à chiffrer : cette fourchette ne constitue pas un plafond du coût final.'+(e.manquants.some(function(v){return v.indexOf("Main-d’œuvre de toiture")>-1;})?' La pose de la toiture sera ajoutée.':'')+'</p>';
+ if(e.manquants.length)h+='<p class="pja">Des éléments restent à chiffrer et s’ajouteront au montant indiqué.'+(e.manquants.some(function(v){return v.indexOf("Main-d’œuvre de toiture")>-1;})?' La pose de la toiture sera ajoutée.':'')+'</p>';
  return h+'<div class="note">'+esc(texteBudget())+'</div>';
 }
 function majEstimation(champ,val){
