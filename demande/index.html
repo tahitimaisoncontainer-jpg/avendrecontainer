@@ -479,7 +479,7 @@ function parcours(){
    Fourchettes construites à partir des postes détaillés TMC 2021/2024/2026.
    Ce sont des provisions de préqualification, pas les extrema de devis identiques.
    Pas de coefficient automatique selon le profil du client. */
-var BAREME = {version:"2026-10-28", amenagement:[180000,220000], toiture:[6200,6200], plot:32000, assainissement:{petit:1000000,intermediaire:2500000,grand:3000000}};
+var BAREME = {version:"2026-10-28", amenagement:[180000,220000], toiture:[6200,6200], plot:32000, assainissement:{petit:1000000,intermediaire:2500000,grand:3000000,surfaceReference:26}};
 function estPublic(){ return S.profil === "Une administration ou une commune"; }
 function arrondiHaut(v,pas){ return Math.ceil(v/(pas||10000))*(pas||10000); }
 function nombre(v){ return Number(String(v||"").replace(",",".")); }
@@ -498,11 +498,12 @@ function toitureCalculee(){
   return {surface:Math.round(surface*100)/100,hypothese:separes?"toitures séparées, débord de 1 m sur chaque côté":n>1?"modules côte à côte sous une toiture rectangulaire, débord extérieur de 1 m sur chaque côté":"débord de 1 m sur chaque côté"};
 }
 function provisionAssainissement(){
- if(!S.modules || S.modules==="À définir" || totalMod()<1)return null;
- var a=nMod("n20"), b=nMod("n40");
- if(b===0 && a>=1 && a<=2)return {bas:BAREME.assainissement.petit,haut:BAREME.assainissement.petit,regle:"1 ou 2 conteneurs 20 DRY"};
- // Sans programme de pièces, garder une provision plutôt que prétendre dimensionner l'installation.
- return {bas:BAREME.assainissement.intermediaire,haut:BAREME.assainissement.grand,regle:"provision selon le projet, dimensionnement à confirmer pendant l’étude"};
+ var surface=nombre(S.surface);
+ if(!Number.isFinite(surface)||surface<=0)return null;
+ // Base TMC : 1 000 000 XPF pour 2 x 20 DRY (environ 26 m²).
+ // Plancher petit projet ; pas de plafond artificiel pour les grandes surfaces.
+ var montant=arrondiHaut(Math.max(BAREME.assainissement.petit,surface*BAREME.assainissement.petit/BAREME.assainissement.surfaceReference),10000);
+ return {bas:montant,haut:montant,regle:"calcul automatique selon la surface intérieure du projet, dimensionnement à confirmer pendant l’étude"};
 }
 function estimationProjet(){
   var m=nombre(S.surface), lignes=[], manquants=[], standard=true;
@@ -595,12 +596,11 @@ function estimationTexte(){
 }
 function blocEstimation(){
  var e=estimationProjet();
- if(e.bas===null || !e.standard || !S.modules || S.modules==="À définir")return '<div class="note"><b>Estimatif à préciser.</b> Nous devons définir la surface, les modules et les prestations avant de vous donner une fourchette globale. Vous pouvez transmettre votre demande dès maintenant.</div>';
- var h='<div class="prix"><div class="lb">'+(e.complet?'Fourchette indicative':'Sous-total indicatif — postes à compléter')+'</div><div class="val" style="font-size:23px"><span style="white-space:nowrap">'+fmt(e.bas)+' XPF</span><br>à <span style="white-space:nowrap">'+fmt(e.haut)+' XPF</span></div></div><div class="recap">';
- e.lignes.forEach(function(l){h+='<div class="r"><b>'+esc(l.poste)+'</b><span>'+fmt(l.bas)+(l.bas!==l.haut?' à '+fmt(l.haut):'')+' XPF</span></div>';});
- h+='</div>';
- if(e.manquants.length)h+='<div class="note"><b>À ajouter ou vérifier avant un prix global :</b><ul>'+e.manquants.map(function(v){return '<li>'+esc(v)+'</li>';}).join('')+'</ul></div>';
- return h+'<div class="note">'+esc(texteBudget())+'</div><p class="pja">Repères non contractuels pour un aménagement standard (isolation, habillage et finitions, ouvertures, électricité et plomberie intérieure courante). Hors mobilier, équipements, étude et plans. Toiture : surface de couverture réelle, pas la surface habitable. Plots : mise à niveau basse sur sol adapté, hors pilotis structurels. Les prix définitifs dépendent des plans, du sol, des accès et des équipements retenus.</p>';
+ if(e.bas===null || !e.standard || !S.modules || S.modules==="À définir")return '<div class="note"><b>Estimatif à préciser.</b> TMC précisera votre projet avec vous. Vous pouvez transmettre votre demande.</div>';
+ var h='<div class="prix"><div class="lb">'+(e.complet?'Budget global indicatif':'Budget global provisoire')+'</div><div class="val" style="font-size:23px"><span style="white-space:nowrap">'+fmt(e.bas)+' XPF</span><br>à <span style="white-space:nowrap">'+fmt(e.haut)+' XPF</span></div></div>';
+ h+='<p class="pja">Conteneurs et prestations chiffrées compris. Estimatif non contractuel, hors étude, plans, mobilier et équipements.</p>';
+ if(e.manquants.length)h+='<p class="pja">Des éléments restent à chiffrer : cette fourchette ne constitue pas un plafond du coût final.'+(e.manquants.some(function(v){return v.indexOf("Main-d’œuvre de toiture")>-1;})?' La pose de la toiture sera ajoutée.':'')+'</p>';
+ return h+'<div class="note">'+esc(texteBudget())+'</div>';
 }
 function majEstimation(champ,val){
  S[champ]=val; S.estimationLue="";
@@ -935,7 +935,7 @@ function rendre(){
   }
 
   if(e.estimation){
-    h+='<p class="sub">Ce repère sert à vérifier votre budget avant une étude détaillée. Aucun travail n’est commandé. La toiture et le nombre d’appuis sont calculés à partir des conteneurs indiqués au début. TMC vérifiera les hypothèses d’implantation pendant l’étude.</p>';
+    h+='<p class="sub">Votre budget estimatif est calculé à partir de vos réponses. Aucun travail n’est commandé.</p>';
     if(prestation("Assainissement et raccordements")) h+='<label class="f"><span>Raccordements extérieurs eau / électricité</span><select onchange="majEstimation(\'reseaux\',this.value)"><option value="">À chiffrer avec TMC</option><option '+(S.reseaux==="Raccordements extérieurs pris en charge séparément"?'selected':'')+'>Raccordements extérieurs pris en charge séparément</option></select></label>';
     if(!prestation("Assainissement et raccordements") && (prestation("Plomberie et sanitaires")||prestation("Cuisine")||S.usage==="Logement"||S.usage==="Hébergement ou tourisme")) h+='<label class="f"><span>Assainissement déjà disponible pour le projet ?</span><select onchange="majEstimation(\'assainExistant\',this.value)"><option value="">À vérifier / à créer</option><option value="oui" '+(S.assainExistant==="oui"?'selected':'')+'>Oui, installation existante annoncée (à vérifier lors de l’étude)</option></select></label>';
     h+='<label class="f"><span>Budget réellement disponible en XPF (facultatif)</span><input type="number" inputmode="numeric" min="1" step="1" value="'+esc(S.budgetExact||"")+'" oninput="majEstimation(\'budgetExact\',this.value)"></label>';
