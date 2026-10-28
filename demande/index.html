@@ -467,7 +467,7 @@ function modInconnu(){
 /* ============ PARCOURS ============ */
 function parcours(){
   var p = ["usage","profil","modules"];
-  if(S.usage==="Logement" || S.usage==="Hébergement ou tourisme")p.push("chambres");
+  if(S.usage==="Logement")p.push("chambres");
   p.push("prestations");
   if(totalMod() >= 2 || S.modules === "À définir") p.push("implantation");
   p = p.concat(["commune","destination","terrain"]);
@@ -499,7 +499,7 @@ function toitureCalculee(){
   return {surface:Math.round(surface*100)/100,hypothese:separes?"toitures séparées, débord de 1 m sur chaque côté":n>1?"modules côte à côte sous une toiture rectangulaire, débord extérieur de 1 m sur chaque côté":"débord de 1 m sur chaque côté"};
 }
 function nombreChambres(){
- if(S.usage!=="Logement" && S.usage!=="Hébergement ou tourisme")return null;
+ if(S.usage!=="Logement")return null;
  if(S.chambres==="Studio / sans chambre séparée")return 0;
  var n={"1 chambre":1,"2 chambres":2,"3 chambres":3,"4 chambres ou plus":4}[S.chambres];
  return n===undefined?null:n;
@@ -549,7 +549,7 @@ function estimationProjet(){
   if(prestation("Assainissement et raccordements")) {
     var ass=provisionAssainissement();
     if(ass)ajoute("Provision d’assainissement — "+ass.regle,ass.montant);
-    else manquants.push("Provision d’assainissement à préciser par TMC selon les chambres et la configuration");
+    else manquants.push("Provision d’assainissement à préciser par TMC selon l’usage et la configuration");
     if(S.reseaux!=="Raccordements extérieurs pris en charge séparément") manquants.push("Raccordements extérieurs eau/électricité à chiffrer");
   } else if(eau && S.assainExistant!=="oui") manquants.push("Assainissement existant ou nouveau à vérifier");
   if(prestation("Cuisine")) manquants.push("Mobilier de cuisine et électroménager non chiffrés");
@@ -1050,6 +1050,7 @@ function ajoutPJ(input){
 function choix(champ, i){
   var e = E[ordre[idx]];
   S[champ] = e.o[i][0];
+  if(champ==="usage" && S.usage!=="Logement")delete S.chambres;
   ordre = parcours();
   rendre();
   /* sur un ecran qui accepte des pieces jointes on n avance pas tout seul :
@@ -1163,6 +1164,7 @@ var ORDRE_R = ["reference","profil","structure","besoin","usage","modules","impl
 function lignesRecap(){
   var out = [];
   for(var i=0;i<ORDRE_R.length;i++){ var k = ORDRE_R[i];
+    if(k==="chambres" && S.usage!=="Logement")continue;
     if(S[k]) out.push([LIB[k] || k, S[k]]); }
   var t = prixTotal();
   if(t && t !== "devis") out.push(["Prix livré", fmt(t) + " XPF TTC"]);
@@ -1319,7 +1321,7 @@ function topo(r){
 function intentionEtude(){return S.etape==="Je souhaite poursuivre avec l’étude"||S.etape==="Je commande";}
 function pointsAClarifier(){
  var client=[], technique=[], e=estimationProjet();
- if((S.usage==="Logement"||S.usage==="Hébergement ou tourisme") && nombreChambres()===null)client.push("Préciser le nombre de chambres souhaitées pour ajuster l’assainissement et vérifier la surface disponible.");
+ if(S.usage==="Logement" && nombreChambres()===null)client.push("Préciser le nombre de chambres souhaitées pour ajuster l’assainissement et vérifier la surface disponible.");
  if(!S.usage||S.usage==="Autre projet")client.push("Préciser l’usage et les pièces ou équipements souhaités.");
  if(!(nombre(S.surface)>0))client.push("Indiquer une surface approximative souhaitée en m² ; TMC pourra ensuite proposer les modules.");
  if(S.terrain!=="Il m'appartient ou je le loue")client.push("Préciser à quelle étape le terrain ou le droit d’usage sera disponible, sans engager l’étude avant clarification.");
@@ -1455,7 +1457,7 @@ function ficheEmail(){
     "Client": [S.nom, S.profil, S.structure].filter(Boolean).join(" — "),
     "email": S.mail || "",
     "Téléphone": S.tel || "",
-    "Projet": [S.usage, (S.usage==="Logement"||S.usage==="Hébergement ou tourisme")?S.chambres:"", S.modules ? libelleMod() : "", S.surface ? S.surface + " m² au total" : "", S.implantation].filter(Boolean).join(" ; "),
+    "Projet": [S.usage, S.usage==="Logement"?S.chambres:"", S.modules ? libelleMod() : "", S.surface ? S.surface + " m² au total" : "", S.implantation].filter(Boolean).join(" ; "),
     "Travaux souhaités": S.prestations || "À préciser"
   };
   if(S.prestationsDetails) fiche["Précisions sur les travaux"] = S.prestationsDetails;
