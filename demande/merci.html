@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#14181e">
+<meta name="robots" content="noindex,nofollow">
+<title>Votre demande — Tahiti Maison Container</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#14181e;color:#f3eee5;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;line-height:1.6}.app{max-width:560px;margin:auto;min-height:100vh}header{padding:20px;background:#1b2129;border-bottom:1px solid #364252;display:flex;align-items:center;gap:12px}.logo{background:#e56535;color:white;padding:9px;border-radius:9px;font-weight:800}header strong{font-size:16px}main{padding:32px 20px}.tag{font-size:12px;text-transform:uppercase;letter-spacing:1px;color:#ff9d77}h1{font-size:29px;line-height:1.2;margin:12px 0 22px}.card{background:#202833;border:1px solid #364252;border-radius:16px;padding:20px;margin:20px 0}.reference{overflow-wrap:anywhere;color:#ff9d77;font-weight:700;font-size:14px}.muted{color:#a8b3c2;font-size:14px}.btn{display:block;padding:14px 18px;margin:12px 0;border-radius:11px;text-align:center;text-decoration:none;background:#e56535;color:#14181e;font-weight:750}.secondary{background:#202833;color:#ff9d77;border:1px solid #364252}a:focus-visible{outline:3px solid #ff9d77;outline-offset:4px}footer{padding:20px;color:#a8b3c2;font-size:13px;text-align:center}footer a{color:#ff9d77}
+</style>
+</head>
+<body><div class="app">
+<header><span class="logo">TMC</span><strong>Tahiti Maison Container</strong></header>
+<main><div class="tag">Votre projet d’aménagement</div>
+<h1>Merci pour votre demande.</h1>
+<p>Après la validation antispam, FormSubmit prend en charge l’envoi à TMC et l’accusé de réception à votre adresse email.</p>
+<div class="card"><strong>Votre référence</strong><p class="reference" id="reference">Elle figure dans le mail de votre demande.</p><p class="muted">Conservez-la pour compléter ou suivre votre dossier.</p></div>
+<p>Consultez votre boîte mail et vos courriers indésirables. Si aucun accusé ne vous parvient, contactez TMC en rappelant votre référence.</p>
+<p class="muted">Jean-Baptiste examinera votre projet avant de vous répondre sur les prestations, la faisabilité et la suite à donner.</p>
+<a class="btn" id="contact" href="mailto:tahitimaisoncontainer@gmail.com">Contacter TMC par email</a>
+<a class="btn secondary" href="../">Retour au site TMC</a>
+</main>
+<footer><a href="tel:+68987226555">87 22 65 55</a> · Tahiti Maison Container</footer>
+</div>
+<script>
+(function(){
+ var ref=new URLSearchParams(location.search).get('ref')||'';
+ if(/^TMC-AM-\d{8}-[a-zA-Z0-9-]{8,80}$/.test(ref)){
+   document.getElementById('reference').textContent=ref;
+   document.getElementById('contact').href='mailto:tahitimaisoncontainer@gmail.com?subject='+encodeURIComponent('Suivi de ma demande '+ref);
+   try{var d=JSON.parse(sessionStorage.getItem('tmc-amenagement-envoi-v2')||'null');if(d&&d.state&&d.state.reference===ref)sessionStorage.removeItem('tmc-amenagement-envoi-v2');}catch(e){}
+ }
+})();
+</script>
+</body></html>

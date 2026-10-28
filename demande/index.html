@@ -137,8 +137,8 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,button:focus-vis
 <script>
 /* ============ PARAMETRES A AJUSTER ============ */
 var SITE_ACHAT = "https://tahitimaisoncontainer-jpg.github.io/avendrecontainer/";
-var RELAIS = "https://formsubmit.co/ajax/f86aed3fe4300aa72852f47498da914a";
-var RELAIS_PJ = "https://formsubmit.co/f86aed3fe4300aa72852f47498da914a"; /* les pieces jointes ne passent que par ce point d entree */ /* identifiant chiffre : votre adresse mail n'apparait pas dans la page */
+var RELAIS = "https://formsubmit.co/f86aed3fe4300aa72852f47498da914a";
+
 
 /* ============ TARIFS (identiques a la page de vente) ============ */
 var BASE20 = 623451, BASE40 = 832451;
@@ -158,7 +158,8 @@ var ETUDE = [
 
 /* ============ ETAT ============ */
 var S = {besoin:"Aménager un conteneur"}, idx = 0, ordre = [];
-var ENVOI_EN_COURS = false, ENVOI_RESULTAT = null;
+var ENVOI_EN_COURS = false;
+var BROUILLON_ENVOI = "tmc-amenagement-envoi-v2";
 function referenceDemande(){
   if(!S.reference){
     var date = new Date().toLocaleDateString("fr-CA", {timeZone:"Pacific/Tahiti",year:"numeric",month:"2-digit",day:"2-digit"}).replace(/-/g, "");
@@ -703,23 +704,8 @@ function rendre(){
   document.getElementById("bar").style.width = (pcb === null ? 0 : pcb) + "%";
 
   if(e.fini){
-    h = '<div class="step on"><div class="fin"><div class="ok">✓</div>'
-      + '<h2>Votre demande est transmise.</h2>'
-      + '<p class="sub">Le service d’envoi a confirmé la prise en charge de votre demande. TMC l’examinera avant de vous répondre.</p>'
-      + '<p><b>Référence : ' + esc(referenceDemande()) + '</b></p></div>';
-    if(ENVOI_RESULTAT && ENVOI_RESULTAT.pj !== "none"){
-      h += '<div class="note"><b>Pièces jointes : réception non confirmée.</b><br>'
-        + (ENVOI_RESULTAT.pj === "failed" ? 'Le transfert des fichiers a échoué ou a pris trop de temps. ' : 'La demande a été transmise, mais le service ne permet pas à cette page de confirmer la réception des fichiers. ')
-        + 'Pour nous les faire parvenir, envoyez-les par email en rappelant votre référence. Votre demande principale reste enregistrée par le service d’envoi.</div>'
-        + '<a class="btn p" style="display:block;text-align:center;text-decoration:none" href="mailto:tahitimaisoncontainer@gmail.com?subject='
-        + encodeURIComponent('Pièces jointes — ' + referenceDemande()) + '">Envoyer mes fichiers par email</a>'
-        + '<p class="pja">Votre messagerie s’ouvrira. Ajoutez vous-même les fichiers avant d’envoyer le mail.</p>';
-    }
-    h += '<div class="note">Pour toute précision, rappelez votre référence ou appelez Jean-Baptiste au <b>87 22 65 55</b>.</div></div>';
-    document.getElementById("main").innerHTML = h;
-    document.getElementById("back").style.display = "none";
+    document.getElementById("main").innerHTML = '<div class="step on"><h2>Votre demande</h2><p class="sub">Revenez au formulaire pour préparer une nouvelle demande.</p></div>';
     document.getElementById("next").style.display = "none";
-    window.scrollTo(0,0);
     return;
   }
 
@@ -851,7 +837,12 @@ function rendre(){
     }).join("") + '</div>';
     h += blocPrix();
     h += '<p class="pja">Référence : ' + esc(referenceDemande()) + '</p>';
-    h += '<div class="note">En envoyant, vous demandez à TMC de traiter votre projet. Les informations et fichiers sont transmis via FormSubmit pour leur acheminement. Aucun devis ni engagement de travaux n’est accepté par cet envoi.</div>';
+    h += '<div class="note"><b>Dernière étape : vérifier et envoyer.</b><br>Une vérification antispam s’ouvrira sur FormSubmit. Terminez-la pour transmettre votre demande et activer l’accusé de réception automatique à votre adresse email.</div>';
+    h += '<div class="note">Vos informations et fichiers sont transmis à FormSubmit pour traiter l’envoi à TMC et l’accusé de réception. Aucun devis ni engagement de travaux n’est accepté par cet envoi.</div>';
+    var manquants = (window.FICHIERS_A_REJOINDRE||[]).filter(function(nom){return !PJ.some(function(f){return f.nom===nom;});});
+    if(manquants.length)
+      h += '<div class="note"><b>Fichiers à joindre à nouveau :</b> ' + esc(manquants.join(", ")) + '. Revenez à l’étape des plans pour les ajouter, ou envoyez-les par email après votre demande.</div>';
+
   } else {
     h += blocPrix();
   }
@@ -868,7 +859,7 @@ function rendre(){
 }
 
 /* ============ PIECES JOINTES ============ */
-var PJ = [], PJMAX = 6, PJUN = 4 * 1024 * 1024, PJTOT = 9 * 1024 * 1024;
+var PJ = [], PJMAX = 6, PJUN = 4 * 1024 * 1024, PJTOT = 9 * 1024 * 1024, PJ_EN_PREPARATION = 0;
 
 function poids(o){ return o < 1048576 ? Math.max(1, Math.round(o/1024)) + " Ko" : (o/1048576).toFixed(1).replace(".",",") + " Mo"; }
 function totalPJ(){ var t=0; for(var i=0;i<PJ.length;i++) t += PJ[i].blob.size; return t; }
@@ -914,6 +905,7 @@ function ajoutPJ(input){
   input.value = "";
   if(!fs.length) return;
   PJMSG = "";
+  PJ_EN_PREPARATION++;
   var z = document.getElementById("pjliste");
   if(z) z.innerHTML = '<p class="pja">Préparation des fichiers…</p>';
   Promise.all(fs.map(compresse)).then(function(prets){
@@ -925,26 +917,9 @@ function ajoutPJ(input){
       PJ.push(f);
     }
     rafraichirPJ();
-  }).catch(function(){ PJMSG = "Un fichier n'a pas pu être lu."; rafraichirPJ(); });
+  }).catch(function(){ PJMSG = "Un fichier n'a pas pu être lu."; rafraichirPJ(); }).finally(function(){ PJ_EN_PREPARATION--; });
 }
 
-async function envoiPJ(sujet){
-  if(!PJ.length) return "none";
-  var ctl = new AbortController(), timer = setTimeout(function(){ ctl.abort(); }, 30000);
-  try{
-    var fd = new FormData();
-    fd.append("_subject", "Pièces jointes — " + sujet);
-    fd.append("_template", "box"); fd.append("_captcha", "false");
-    fd.append("Reference", referenceDemande());
-    fd.append("_replyto", S.mail || "");
-    fd.append("Rappel", "Ces fichiers accompagnent la demande " + referenceDemande() + " de " + (S.nom||"sans nom") + ". Réception des fichiers à vérifier.");
-    for(var i=0;i<PJ.length;i++) fd.append(i ? "attachment" + (i+1) : "attachment", PJ[i].blob, PJ[i].nom);
-    await fetch(RELAIS_PJ, {method:"POST", mode:"no-cors", body:fd, signal:ctl.signal});
-    // Une réponse opaque ne prouve pas la réception des fichiers.
-    return "unconfirmed";
-  }catch(e){ return "failed"; }
-  finally{ clearTimeout(timer); }
-}
 
 /* ============ INTERACTIONS ============ */
 function choix(champ, i){
@@ -1209,34 +1184,22 @@ function topo(r){
   return L.join("\n");
 }
 
-function accuse(r){
-  var p = String(S.nom||"").trim().split(" ")[0] || "";
-  var L = ["Bonjour " + p + ",", "", "J'ai bien reçu votre demande, merci d'avoir pris le temps de la détailler."];
-  var terrainOK = (S.terrain === "Il m'appartient ou je le loue" || S.terrain === "Achat ou bail en cours de signature"
-                   || S.besoin !== "Aménager un conteneur");
-  var budgetOK = (S.enveloppe && S.enveloppe !== "Je ne sais pas encore, j'ai besoin d'être conseillé")
-                 || (S.budget && S.budget.indexOf("Oui") === 0)
-                 || (S.budget && S.budget.indexOf("ajuster") > -1);
-  if(r.niveau >= 4 && terrainOK && budgetOK)
-    L.push("Votre projet est complet : je vous appelle dans les 24 heures, et vous recevrez une proposition chiffrée dans la foulée.");
-  else if(r.niveau >= 3 && terrainOK && budgetOK)
-    L.push("Je vous prépare une estimation chiffrée que vous recevrez sous 48 heures, puis je vous appelle pour caler les derniers points.");
-  else
-    L.push("Je reviens vers vous sous 48 heures. Pour vous répondre avec un chiffre juste plutôt qu'une moyenne, il me manquera sans doute quelques précisions : je vous dirai lesquelles.");
-  L.push(""); L.push("Voici ce que vous m'avez transmis :");
-  var a = lignesRecap();
-  for(var i=0;i<a.length;i++) L.push("   " + a[i][0] + " : " + a[i][1]);
-  var et = tarifEtude();
-  if(et){ L.push("");
-    L.push("Pour votre information : pour aller jusqu'au chiffrage poste par poste et au planning de travaux, l'étude de votre projet est facturée " + et + ", intégralement déduite de votre commande si vous donnez suite. Je ne vous la proposerai qu'après notre premier échange, jamais avant.");
-  }
-  L.push(""); L.push("Si votre projet est urgent, appelez-moi directement au 87 22 65 55.");
-  L.push(""); L.push("Bien cordialement,");
-  L.push("Jean-Baptiste HAUATA");
-  L.push("Tahiti Maison Container — N° Tahiti 710194");
-  L.push("87 22 65 55 — tahitimaisoncontainer@gmail.com");
-  L.push("Domaine Vaitarua, Afaahiti, Taiarapu-Est");
-  return L.join("\n");
+function accuse(){
+  return [
+    "Ia ora na " + String(S.nom||"").trim() + ",",
+    "",
+    "Merci pour votre demande d’aménagement auprès de Tahiti Maison Container.",
+    "Référence : " + referenceDemande(),
+    "",
+    "Nous allons examiner votre projet et reviendrons vers vous pour préciser les prestations, la faisabilité et la suite à donner.",
+    "Cet accusé confirme la transmission de votre demande ; il ne constitue ni un devis ni une confirmation de délai ou de réalisation.",
+    "",
+    "Pour compléter votre dossier, vous pouvez écrire à tahitimaisoncontainer@gmail.com en rappelant votre référence.",
+    "",
+    "Mauruuru,",
+    "Jean-Baptiste HAUATA — Tahiti Maison Container",
+    "87 22 65 55 — tahitimaisoncontainer@gmail.com"
+  ].join("\n");
 }
 
 function objet(r){
@@ -1248,49 +1211,99 @@ function objet(r){
 }
 
 /* ============ ENVOI ============ */
-async function envoyer(){
-  if(ENVOI_EN_COURS || ENVOI_RESULTAT) return;
-  ENVOI_EN_COURS = true;
+function ficheEmail(){
+  var lieu = S.commune === "Autre île" ? S.ile : S.commune;
+  var fiche = {
+    "Client": [S.nom, S.profil, S.structure].filter(Boolean).join(" — "),
+    "email": S.mail || "",
+    "Téléphone": S.tel || "",
+    "Projet": [S.usage, S.modules ? libelleMod() : "", S.surface ? S.surface + " m² au total" : "", S.implantation].filter(Boolean).join(" ; "),
+    "Travaux souhaités": S.prestations || "À préciser"
+  };
+  if(S.prestationsDetails) fiche["Précisions sur les travaux"] = S.prestationsDetails;
+  fiche["Lieu et livraison"] = [lieu, S.livraison, S.emplacement].filter(Boolean).join(" ; ");
+  fiche["Terrain et accès"] = [S.terrain, S.indivision, S.parcelle ? "Parcelle " + S.parcelle : "", S.acces ? "Accès grue : " + S.acces : ""].filter(Boolean).join(" ; ");
+  fiche["Plans et documents"] = [S.plan, PJ.length ? PJ.length + " fichier(s) joint(s) : " + PJ.map(function(f){return f.nom;}).join(", ") : "Aucun fichier joint"].filter(Boolean).join(" ; ");
+  fiche["Budget"] = S.enveloppe || "À préciser";
+  fiche["Financement"] = S.financement || "À préciser";
+  fiche["Échéance souhaitée"] = S.delai || "À préciser";
+  fiche["Décision et suite souhaitée"] = [S.decision, S.etape].filter(Boolean).join(" ; ");
+  if(S.msg) fiche["Message du client"] = S.msg;
+  fiche["Référence du dossier"] = referenceDemande();
+  return fiche;
+}
+
+function envoyer(){
+  if(ENVOI_EN_COURS) return;
+  var err = document.getElementById("err");
+  if(PJ_EN_PREPARATION){
+    if(err) err.innerHTML = '<div class="err">Les fichiers sont encore en préparation. Patientez un instant puis réessayez.</div>';
+    return;
+  }
   var b = document.getElementById("next"), back = document.getElementById("back");
-  b.disabled = true; back.disabled = true; b.textContent = "Envoi…";
-  var err = document.getElementById("err"); if(err) err.textContent = "";
-  var ctl = new AbortController(), timer = setTimeout(function(){ ctl.abort(); }, 20000);
+  var form;
   try{
-    var ref = referenceDemande(), r = noter(), t = prixTotal();
-    var charge = {
-      _subject: objet(r), _template:"box", _captcha:"false", _replyto:S.mail||"",
-      "Reference":ref, "Message pret a envoyer au client":accuse(r), "Topo":topo(r),
-      "Nom":S.nom||"", "Telephone":S.tel||"", "Email":S.mail||"",
-      "Niveau":r.niveau+" — "+r.nom, "Score":r.score+"/100", "Besoin":S.besoin||"",
-      "Prestations":S.prestations||"", "Details travaux":S.prestationsDetails||"",
-      "Lieu":S.commune||"", "Ile precisee":S.ile||"", "Livraison souhaitee":S.livraison||"",
-      "Lieu final":S.emplacement||"", "Prix":(t&&t!=="devis")?fmt(t)+" XPF":"",
-      "Fichiers attendus":PJ.length ? PJ.map(function(f){return f.nom;}).join(" ; ") + " — transfert séparé, réception à vérifier" : "Aucun"
-    };
-    var response = await fetch(RELAIS, {method:"POST", headers:{"Content-Type":"application/json","Accept":"application/json"}, body:JSON.stringify(charge), signal:ctl.signal});
-    if(!response.ok) throw new Error("http");
-    var result = await response.json();
-    if(!result || (result.success !== true && result.success !== "true")) throw new Error("refused");
-    clearTimeout(timer);
-    // La demande principale est prise en charge. Ne jamais la renvoyer pour une erreur de pièces jointes.
-    ENVOI_RESULTAT = {reference:ref,pj:"none"};
-    if(PJ.length){ b.textContent = "Transfert des fichiers…"; ENVOI_RESULTAT.pj = await envoiPJ(objet(r)); }
-    idx = ordre.length - 1; rendre();
-  }catch(e){
-    if(err){
-      err.innerHTML = '<div class="err">L’envoi n’a pas pu être confirmé. Vos réponses sont conservées tant que cette page reste ouverte. Vérifiez votre connexion puis réessayez avec la même référence : ' + esc(referenceDemande()) + '. Si le problème persiste, contactez TMC au 87 22 65 55.</div>';
-      err.focus();
+    referenceDemande();
+    // Conserver les réponses dans cet onglet pour un retour après une erreur du service.
+    try{ sessionStorage.setItem(BROUILLON_ENVOI, JSON.stringify({state:S,multi:MULTI,files:PJ.map(function(f){return f.nom;}),date:Date.now()})); }catch(storageError){}
+    form = document.createElement("form");
+    form.id = "tmc-envoi"; form.method = "POST"; form.action = RELAIS;
+    form.enctype = "multipart/form-data"; form.style.display = "none";
+    function champ(nom,valeur){
+      var input = document.createElement("input"); input.type = "hidden";
+      input.name = nom; input.value = valeur; form.appendChild(input);
     }
-  }finally{
-    clearTimeout(timer); ENVOI_EN_COURS = false; b.disabled = false; back.disabled = false;
-    if(!ENVOI_RESULTAT) b.textContent = "Réessayer l’envoi";
+    var lieu = S.commune === "Autre île" ? S.ile : S.commune;
+    champ("_subject", "Aménagement — " + (S.nom||"Nouveau client") + " — " + (S.usage||"Projet") + (lieu ? " — " + lieu : ""));
+    champ("_template", "table");
+    champ("_replyto", S.mail||"");
+    champ("_autoresponse", accuse());
+    // FormSubmit exige son antispam et un envoi natif pour l’accusé automatique.
+    champ("_captcha", "true");
+    champ("_next", "https://tahitimaisoncontainer-jpg.github.io/avendrecontainer/demande/merci.html?ref=" + encodeURIComponent(referenceDemande()));
+    var fiche = ficheEmail();
+    Object.keys(fiche).forEach(function(k){ if(fiche[k]) champ(k,fiche[k]); });
+    for(var i=0;i<PJ.length;i++){
+      var input = document.createElement("input"), transfer = new DataTransfer();
+      input.type = "file"; input.name = i ? "attachment"+(i+1) : "attachment";
+      transfer.items.add(new File([PJ[i].blob],PJ[i].nom,{type:PJ[i].blob.type || "application/octet-stream"}));
+      input.files = transfer.files; form.appendChild(input);
+    }
+    var ancien = document.getElementById("tmc-envoi"); if(ancien) ancien.remove();
+    document.body.appendChild(form);
+    ENVOI_EN_COURS = true; b.disabled = true; back.disabled = true;
+    b.textContent = "Ouverture de la vérification…";
+    form.submit();
+  }catch(e){
+    ENVOI_EN_COURS = false; b.disabled = false; back.disabled = false; b.textContent = "Réessayer l’envoi";
+    if(form) form.remove();
+    if(err){err.innerHTML = '<div class="err">L’envoi n’a pas démarré. Vos réponses restent sur cette page. Réessayez ou contactez TMC au 87 22 65 55 en rappelant ' + esc(referenceDemande()) + '.</div>';err.focus();}
   }
 }
 
+// Le bouton Retour du navigateur doit permettre un nouvel essai après une interruption.
+window.addEventListener("pageshow",function(event){
+  if(event.persisted){
+    ENVOI_EN_COURS = false;
+    document.getElementById("next").disabled = false;
+    document.getElementById("back").disabled = false;
+    rendre();
+  }
+});
+
 /* ============ DEMARRAGE ============ */
+try{
+  var sauvegarde = JSON.parse(sessionStorage.getItem(BROUILLON_ENVOI)||"null");
+  if(sauvegarde && sauvegarde.state && Date.now()-sauvegarde.date < 24*60*60*1000){
+    S = sauvegarde.state; MULTI = sauvegarde.multi||{};
+    if(sauvegarde.files && sauvegarde.files.length) window.FICHIERS_A_REJOINDRE = sauvegarde.files;
+    ordre = parcours(); idx = ordre.indexOf("recap");
+  }else{sessionStorage.removeItem(BROUILLON_ENVOI);}
+}catch(storageError){}
 ordre = parcours();
 rendre();
 </script>
 </body>
 </html>
+
 
