@@ -331,6 +331,7 @@ E.contact = {k:"Vos coordonnées", q:"Vos coordonnées pour recevoir votre propo
   sub:"Je réponds sous 48 heures, et sous 24 heures si votre projet est urgent. Profitez du dernier champ pour me poser vos questions : j'y réponds une par une.",
   confid:1};
 
+E.estimation = {k:"Budget et décision", q:"Votre estimation indicative", estimation:1};
 E.recap = {k:"C'est prêt", q:"Vérifiez avant d'envoyer", recap:1};
 E.fini = {k:"", q:"", fini:1};
 
@@ -340,7 +341,7 @@ var PHASE = {
   prestations:"Votre projet", destination:"Le terrain", modules:"Votre projet", implantation:"Votre projet", surface:"Votre projet",
   commune:"Le terrain", terrain:"Le terrain", indivision:"Le terrain", parcelle:"Le terrain", acces:"Le terrain",
   plan:"Votre plan", delai:"Votre plan",
-  enveloppe:"Budget et décision", financement:"Budget et décision",
+  enveloppe:"Budget et décision", estimation:"Budget et décision", financement:"Budget et décision",
   decision:"Budget et décision", etape:"Budget et décision",
   rdvlieu:"Le rendez-vous", rdvquand:"Le rendez-vous",
   contact:"Vos coordonnées", recap:"Vos coordonnées"
@@ -465,33 +466,64 @@ function parcours(){
   if(totalMod() >= 2 || S.modules === "À définir") p.push("implantation");
   p = p.concat(["commune","destination","terrain"]);
   if(S.terrain === "Il m'appartient ou je le loue" || S.terrain === "Achat ou bail en cours de signature") p.push("indivision");
-  return p.concat(["parcelle","acces","plan","delai","enveloppe","financement","decision","etape","contact","recap","fini"]);
+  return p.concat(["parcelle","acces","plan","delai","enveloppe","estimation","financement","decision","etape","contact","recap","fini"]);
 }
 
 /* ============ COHERENCE BUDGET ============ */
-/* Plancher etabli sur les devis reels 2020-2022 : sert uniquement a reperer une
-   enveloppe manifestement incompatible. Jamais affiche au client, jamais un prix. */
-function tauxPlancher(){
-  if(S.usage === "Atelier ou stockage aménagé") return 120000;
-  if(S.usage === "Sanitaire ou local spécialisé") return 160000;
-  return 180000;
-}
-/* Marche public : reglement a 60-90 jours apres service fait, avance de
-   tresorerie sur toute la duree du chantier, garanties et penalites. A
-   prestation identique l enveloppe a prevoir n est pas celle d un particulier.
-   Coefficient applique au seul plancher de coherence, jamais affiche comme un
-   prix. C est le curseur a bouger si le reglage parait trop dur ou trop mou. */
-var COEF_PUBLIC = 2;
+/* Barème de provision standard, version 2026-10-28.
+   Fourchettes construites à partir des postes détaillés TMC 2021/2024/2026.
+   Ce sont des provisions de préqualification, pas les extrema de devis identiques.
+   Pas de coefficient automatique selon le profil du client. */
+var BAREME = {version:"2026-10-28", amenagement:[180000,220000], toiture:[6000,21000], plot:32000, assainissement:[1000000,2500000]};
 function estPublic(){ return S.profil === "Une administration ou une commune"; }
-
-function estimPlancher(){
-  var m = parseFloat(String(S.surface||"").replace(",","."));
-  if(!m || m <= 0) return null;
-  /* l enveloppe annoncee par le client couvre l ensemble : les conteneurs
-     eux-memes plus leur amenagement. Prix conteneurs = tarifs publics de la
-     page de vente, hors supplement de commune. */
-  return Math.round((m * tauxPlancher() + plancherConteneurs()) * (estPublic() ? COEF_PUBLIC : 1));
+function arrondiHaut(v,pas){ return Math.ceil(v/(pas||10000))*(pas||10000); }
+function nombre(v){ return Number(String(v||"").replace(",",".")); }
+function prestation(v){ return String(S.prestations||"").indexOf(v)>-1; }
+function estimationProjet(){
+  var m=nombre(S.surface), lignes=[], manquants=[], standard=true;
+  function ajoute(n,bas,haut){ lignes.push({poste:n,bas:arrondiHaut(bas),haut:arrondiHaut(haut==null?bas:haut)}); }
+  if(!Number.isFinite(m)||m<=0) return {lignes:[],manquants:["Surface à préciser"],bas:null,haut:null,complet:false};
+  if(!S.modules || S.modules==="À définir" || totalMod()<1) manquants.push("Nombre de conteneurs à préciser");
+  else ajoute("Conteneurs et frais opérationnels (hors livraison)",plancherConteneurs());
+  if(totalMod()>0 && m>nMod("n20")*15+nMod("n40")*30) manquants.push("Surface supérieure à celle des modules : extension ou surface à vérifier");
+  var special=S.usage!=="Logement" && S.usage!=="Hébergement ou tourisme" && S.usage!=="Bureau ou activité professionnelle";
+  if(special) {standard=false; manquants.push("Usage spécialisé : aménagement sur étude, aucun forfait standard appliqué");}
+  var core=prestation("Isolation et habillage intérieur")&&prestation("Électricité et éclairage")&&prestation("Portes, fenêtres et baies vitrées");
+  var eau=S.usage==="Logement"||S.usage==="Hébergement ou tourisme"||prestation("Plomberie et sanitaires")||prestation("Cuisine");
+  if(!special && (!core || (eau&&!prestation("Plomberie et sanitaires")))) {standard=false;manquants.push("Travaux partiels ou à définir : le repère standard doit être adapté");}
+  if(!special) ajoute((standard?"Aménagement standard":"Repère d’aménagement standard, à adapter")+" — "+m+" m² × 180 000 à 220 000 XPF",m*BAREME.amenagement[0],m*BAREME.amenagement[1]);
+  var c=COM.find(function(c){return c[0]===S.commune;});
+  if(totalMod()>0 && S.modules!=="À définir" && c && COM.indexOf(c)<=21 && S.livraison==="Jusqu’au terrain, avec déchargement et pose" && S.acces==="Oui, l'accès est dégagé") {
+    // Grille Tahiti : supplément HT, TVA transport 13 %, arrondi supérieur par module.
+    ajoute("Transport Tahiti, accès standard",nMod("n20")*arrondiHaut(c[1]*1.13)+nMod("n40")*arrondiHaut(c[2]*1.13));
+  } else manquants.push("Transport, grutage et livraison finale à chiffrer selon destination et accès");
+  if(prestation("Toiture de protection")) {
+    var toit=nombre(S.surfaceToiture);
+    if(Number.isFinite(toit)&&toit>0) ajoute("Toiture — "+toit+" m² de couverture, débords compris",toit*BAREME.toiture[0],toit*BAREME.toiture[1]);
+    else manquants.push("Surface réelle de toiture à préciser, débords compris");
+  }
+  if(prestation("Fondations ou plots")) {
+    var plots=nombre(S.nombrePlots);
+    if(Number.isInteger(plots)&&plots>0) ajoute("Provision pour "+plots+" plots bas de mise à niveau",plots*BAREME.plot);
+    else manquants.push("Nombre et type d’appuis à vérifier sur le terrain");
+  }
+  if(prestation("Assainissement et raccordements")) {
+    if(m>60) manquants.push("Assainissement au-delà du petit projet : dimensionnement et prix à reprendre");
+    ajoute("Assainissement petit projet avec point d’eau",BAREME.assainissement[0],BAREME.assainissement[1]);
+    if(S.reseaux!=="Raccordements extérieurs pris en charge séparément") manquants.push("Raccordements extérieurs eau/électricité à chiffrer");
+  } else if(eau && S.assainExistant!=="oui") manquants.push("Assainissement existant ou nouveau à vérifier");
+  if(prestation("Cuisine")) manquants.push("Mobilier de cuisine et électroménager non chiffrés");
+  if(prestation("Ventilation ou climatisation")) manquants.push("Climatisation et ventilation à dimensionner");
+  if(prestation("Terrasse et accès")) manquants.push("Terrasse, escalier et accès à chiffrer");
+  if(prestation("Autres prestations")||prestation("À définir ensemble")) manquants.push("Prestations complémentaires à définir");
+  if(S.implantation && S.implantation!=="Assemblés en un seul bâtiment" && S.implantation!=="Séparés, posés indépendamment") manquants.push("Implantation ou superposition à valider techniquement");
+  if(S.profil==="Une administration ou une commune") manquants.push("Conditions du marché et financement à vérifier par TMC");
+  var bas=lignes.reduce(function(a,l){return a+l.bas;},0),haut=lignes.reduce(function(a,l){return a+l.haut;},0);
+  return {lignes:lignes,manquants:manquants,bas:lignes.length?arrondiHaut(bas,100000):null,haut:lignes.length?arrondiHaut(haut,100000):null,standard:standard,complet:standard&&manquants.length===0};
 }
+function estimPlancher(){return estimationProjet().bas;}
+function tauxPlancher(){return BAREME.amenagement[0];}
+var COEF_PUBLIC=1; // Compatibilité avec l’ancien topo interne, aucun multiplicateur public.
 function plafondEnveloppe(){
   if(S.enveloppe === "2 à 3 millions XPF") return 3000000;
   if(S.enveloppe === "3 à 5 millions XPF") return 5000000;
@@ -503,11 +535,43 @@ function plafondEnveloppe(){
   return null;
 }
 function coherenceBudget(){
-  var e = estimPlancher(), pl = plafondEnveloppe();
-  if(e === null || pl === null) return "inconnue";
-  if(pl < e * 0.8) return "incompatible";
-  if(pl < e) return "juste";
+  var e=estimationProjet(), pl=plafondEnveloppe(), exact=nombre(S.budgetExact);
+  if(exact>0) pl=exact;
+  if(e.bas===null || pl===null) return "inconnue";
+  if(!e.standard) return "incomplete";
+  if(pl<e.bas) return "incompatible";
+  if(!e.complet) return "incomplete";
+  if(pl<e.haut || !(exact>0)) return "juste";
   return "coherente";
+}
+function texteBudget(){
+ var c=coherenceBudget();
+ return c==="incompatible"?"Budget inférieur au repère calculé : réduire le périmètre ou revoir l’enveloppe.":c==="incomplete"?"Comparaison à confirmer : des postes restent à chiffrer.":c==="juste"?"Le budget recoupe la fourchette, mais le montant réellement disponible doit être confirmé.":c==="coherente"?"Le budget déclaré couvre la borne haute calculée, sous réserve de l’étude technique.":"Budget à préciser pour comparer.";
+}
+function signatureEstimation(){
+ var e=estimationProjet();
+ return JSON.stringify([BAREME.version,e.lignes,e.manquants,S.enveloppe,S.budgetExact,S.usage,S.prestations,S.implantation,S.commune,S.ile,S.livraison,S.acces,S.reseaux,S.assainExistant]);
+}
+function accordEstimation(ok){ S.estimationLue=ok?signatureEstimation():""; }
+function estimationTexte(){
+ var e=estimationProjet();
+ if(e.bas===null)return "Estimation impossible : surface à préciser.";
+ return (e.complet?"Fourchette indicative":"Sous-total indicatif INCOMPLET")+" : "+fmt(e.bas)+" à "+fmt(e.haut)+" XPF.\n"+e.lignes.map(function(l){return l.poste+" : "+fmt(l.bas)+(l.haut!==l.bas?" à "+fmt(l.haut):"")+" XPF";}).join("\n")+(e.manquants.length?"\nÀ chiffrer / vérifier : "+e.manquants.join(" ; "):"")+"\n"+texteBudget()+"\nEstimation consultée par le client : "+(S.estimationLue===signatureEstimation()?"oui":"non")+". Repères non contractuels, hors étude et plans, mobilier et équipements. Version "+BAREME.version+".";
+}
+function blocEstimation(){
+ var e=estimationProjet();
+ if(e.bas===null)return '<div class="note">La surface doit être précisée pour calculer un repère.</div>';
+ var h='<div class="prix"><div class="lb">'+(e.complet?'Fourchette indicative':'Sous-total indicatif — postes à compléter')+'</div><div class="val" style="font-size:23px"><span style="white-space:nowrap">'+fmt(e.bas)+' XPF</span><br>à <span style="white-space:nowrap">'+fmt(e.haut)+' XPF</span></div></div><div class="recap">';
+ e.lignes.forEach(function(l){h+='<div class="r"><b>'+esc(l.poste)+'</b><span>'+fmt(l.bas)+(l.bas!==l.haut?' à '+fmt(l.haut):'')+' XPF</span></div>';});
+ h+='</div>';
+ if(e.manquants.length)h+='<div class="note"><b>À ajouter ou vérifier avant un prix global :</b><ul>'+e.manquants.map(function(v){return '<li>'+esc(v)+'</li>';}).join('')+'</ul></div>';
+ return h+'<div class="note">'+esc(texteBudget())+'</div><p class="pja">Repères non contractuels pour un aménagement standard (isolation, habillage et finitions, ouvertures, électricité et plomberie intérieure courante). Hors mobilier, équipements, étude et plans. Toiture : surface de couverture réelle, pas la surface habitable. Plots : mise à niveau basse sur sol adapté, hors pilotis structurels. Les prix définitifs dépendent des plans, du sol, des accès et des équipements retenus.</p>';
+}
+function majEstimation(champ,val){
+ S[champ]=val; S.estimationLue="";
+ var z=document.getElementById("estimation-live"); if(z)z.innerHTML=blocEstimation();
+ var c=document.getElementById("estimation-lue");if(c)c.checked=false;
+ effaceErr();
 }
 
 /* ============ NOTATION ============ */
@@ -814,6 +878,11 @@ function rendre(){
   if(e.confid)
     h += '<div class="note"><b>Vos informations servent à traiter votre demande auprès de TMC.</b> Elles sont transmises via FormSubmit pour l’acheminement des emails et des fichiers. Elles ne sont pas publiées sur le site.</div>';
 
+  if(e.estimation){
+    if(S.surfaceToiture && (!Number.isFinite(nombre(S.surfaceToiture)) || nombre(S.surfaceToiture)<=0)) return "La surface de toiture doit être positive.";
+    if(S.nombrePlots && (!Number.isInteger(nombre(S.nombrePlots)) || nombre(S.nombrePlots)<1)) return "Indiquez un nombre entier positif de plots.";
+    if(S.budgetExact && (!Number.isFinite(nombre(S.budgetExact)) || nombre(S.budgetExact)<=0)) return "Le budget doit être positif.";
+  }
   if(e.contact){
     h += '<label class="f"><span>Nom et prénom</span><input id="i_nom" type="text" autocomplete="name" value="' + esc(S.nom||"") + '" oninput="maj(\'nom\',this.value)"></label>'
        + '<label class="f"><span>Téléphone</span><input id="i_tel" type="tel" inputmode="tel" autocomplete="tel" placeholder="87 12 34 56" value="' + esc(S.tel||"") + '" oninput="maj(\'tel\',this.value)"></label>'
@@ -832,10 +901,20 @@ function rendre(){
        + '<div id="pjliste">' + listePJ() + '</div></div>';
   }
 
+  if(e.estimation){
+    h+='<p class="sub">Ce repère sert à vérifier votre budget avant une étude détaillée. Aucun travail n’est commandé.</p>';
+    if(prestation("Toiture de protection")) h+='<label class="f"><span>Surface de toiture prévue en m², débords compris (si connue)</span><input type="number" inputmode="decimal" min="0.1" step="any" value="'+esc(S.surfaceToiture||"")+'" oninput="majEstimation(\'surfaceToiture\',this.value)"></label>';
+    if(prestation("Fondations ou plots")) h+='<label class="f"><span>Nombre de plots bas prévu (si connu)</span><input type="number" inputmode="numeric" min="1" step="1" value="'+esc(S.nombrePlots||"")+'" oninput="majEstimation(\'nombrePlots\',this.value)"></label>';
+    if(prestation("Assainissement et raccordements")) h+='<label class="f"><span>Raccordements extérieurs eau / électricité</span><select onchange="majEstimation(\'reseaux\',this.value)"><option value="">À chiffrer avec TMC</option><option '+(S.reseaux==="Raccordements extérieurs pris en charge séparément"?'selected':'')+'>Raccordements extérieurs pris en charge séparément</option></select></label>';
+    if(!prestation("Assainissement et raccordements") && (prestation("Plomberie et sanitaires")||prestation("Cuisine")||S.usage==="Logement"||S.usage==="Hébergement ou tourisme")) h+='<label class="f"><span>Assainissement déjà disponible pour le projet ?</span><select onchange="majEstimation(\'assainExistant\',this.value)"><option value="">À vérifier / à créer</option><option value="oui" '+(S.assainExistant==="oui"?'selected':'')+'>Oui, installation existante annoncée (à vérifier lors de l’étude)</option></select></label>';
+    h+='<label class="f"><span>Budget réellement disponible en XPF (facultatif)</span><input type="number" inputmode="numeric" min="1" step="1" value="'+esc(S.budgetExact||"")+'" oninput="majEstimation(\'budgetExact\',this.value)"></label>';
+    h+='<div id="estimation-live">'+blocEstimation()+'</div><label style="display:flex;gap:12px;align-items:flex-start;margin:24px 0"><input id="estimation-lue" type="checkbox" style="width:24px;height:24px;flex-shrink:0" '+(S.estimationLue===signatureEstimation()?'checked':'')+' onchange="accordEstimation(this.checked)"><span>J’ai pris connaissance de la fourchette et des postes restant à chiffrer. Cela ne vaut pas acceptation d’un devis.</span></label>';
+  }
   if(e.recap){
     h += '<div class="recap">' + lignesRecap().map(function(l){
       return '<div class="r"><b>' + esc(l[0]) + '</b><span>' + esc(l[1]) + '</span></div>';
     }).join("") + '</div>';
+    h += blocEstimation();
     h += blocPrix();
     h += '<p class="pja">Référence : ' + esc(referenceDemande()) + '</p>';
     h += '<div class="note"><b>Dernière étape : vérifier et envoyer.</b><br>Une vérification antispam s’ouvrira sur FormSubmit. Terminez-la pour transmettre votre demande et activer l’accusé de réception automatique à votre adresse email.</div>';
@@ -1230,7 +1309,8 @@ function evaluerDemande(){
   else if(S.terrain === "Je l'ai repéré, il n'est pas encore à moi") terrain = 5;
 
   var budgetAnnonce = plafondEnveloppe() !== null;
-  if(budgetAnnonce) budget = 20;
+  var coherence=coherenceBudget();
+  if(budgetAnnonce || nombre(S.budgetExact)>0) budget = coherence==="coherente"?20:coherence==="incompatible"?0:10;
 
   var f = String(S.financement||"");
   var disponible = /Fonds propres disponibles|Prêt bancaire déjà accordé|Aide ou subvention notifiée|Bon de commande ou marché signé/.test(f);
@@ -1250,10 +1330,13 @@ function evaluerDemande(){
   var score = terrain + budget + financement + projet + decision + delai;
   var statut;
   if(!terrainDisponible || !indivisionClaire) statut = "TERRAIN À SÉCURISER";
-  else if(!budgetAnnonce) statut = "BUDGET À PRÉCISER";
+  else if(!budgetAnnonce && !(nombre(S.budgetExact)>0)) statut = "BUDGET À PRÉCISER";
+  else if(coherence==="incompatible") statut = "BUDGET SOUS LE REPÈRE";
+  else if(coherence!=="coherente") statut = "ESTIMATION À COMPLÉTER / BUDGET À CONFIRMER";
   else if(financement < 25) statut = "FINANCEMENT À CONFIRMER";
   else if(projet < 15) statut = "PROJET À PRÉCISER";
-  else statut = "À ÉTUDIER — PRIX À VALIDER";
+  else if(S.estimationLue!==signatureEstimation()) statut="ESTIMATION À CONSULTER";
+  else statut = "À ÉTUDIER — VALIDATION TMC";
   // Un score élevé ne suffit jamais à valider un prix ni à identifier un concurrent.
   return {score:score,statut:statut,detail:{terrain:terrain,budget:budget,financement:financement,projet:projet,decision:decision,delai:delai}};
 }
@@ -1272,6 +1355,8 @@ function ficheEmail(){
   fiche["Terrain et accès"] = [S.terrain, S.indivision, S.parcelle ? "Parcelle " + S.parcelle : "", S.acces ? "Accès grue : " + S.acces : ""].filter(Boolean).join(" ; ");
   fiche["Plans et documents"] = [S.plan, PJ.length ? PJ.length + " fichier(s) joint(s) : " + PJ.map(function(f){return f.nom;}).join(", ") : "Aucun fichier joint"].filter(Boolean).join(" ; ");
   fiche["Budget"] = S.enveloppe || "À préciser";
+  fiche["Estimation indicative"] = estimationTexte();
+  if(S.budgetExact) fiche["Budget disponible précisé"] = fmt(nombre(S.budgetExact))+" XPF";
   fiche["Financement"] = S.financement || "À préciser";
   fiche["Échéance souhaitée"] = S.delai || "À préciser";
   fiche["Décision et suite souhaitée"] = [S.decision, S.etape].filter(Boolean).join(" ; ");
@@ -1355,6 +1440,7 @@ rendre();
 </script>
 </body>
 </html>
+
 
 
 
