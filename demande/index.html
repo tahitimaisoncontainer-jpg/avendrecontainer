@@ -240,12 +240,12 @@ E.prestations = {k:"Votre aménagement", q:"Quelles prestations souhaitez-vous ?
 E.destination = {k:"La livraison", q:"Jusqu’où souhaitez-vous la livraison ?", destination:1,
   sub:"Le transport jusqu’au quai et l’acheminement jusqu’au terrain sont deux prestations distinctes. Leur faisabilité et leur prix seront étudiés avant le devis."};
 
-E.chambres = {k:"Votre projet", q:"Combien de chambres séparées souhaitez-vous ?", ch:"chambres",
-  sub:"Une réponse simple suffit : nous nous en servons pour estimer votre projet et vérifier la place disponible.", o:[
+E.chambres = {k:"Votre projet", q:"Combien de chambres souhaitez-vous ?", ch:"chambres",
+  sub:"Choisissez votre besoin. Si la surface est trop petite, nous vous proposerons comment l’agrandir.", o:[
   ["Studio / sans chambre séparée"],["1 chambre"],["2 chambres"],["3 chambres"],["4 chambres ou plus"],["À définir"]]};
 
-E.modules = {k:"Votre projet", q:"Quelle surface envisagez-vous ?", mod:1, gabarit:1, num:"surface",
-  sub:"Voici les deux formats, à l'échelle, avec une personne d'1,80 m pour vous repérer. Indiquez ensuite combien de modules de chaque format : je calcule la surface, vous la corrigez si besoin. Tout ce qui suit — surface, plans, budget — portera sur <b>l'ensemble</b> du projet, jamais sur un module isolé."};
+E.modules = {k:"Votre projet", q:"Quels conteneurs souhaitez-vous aménager ?", mod:1, gabarit:1, num:"surface",
+  sub:"Indiquez vos conteneurs. La surface intérieure est calculée automatiquement pour un logement ; nous vous guiderons ensuite selon le nombre de chambres souhaitées."};
 
 E.implantation = {k:"Votre projet", q:"Comment ces modules seront-ils implantés ?", ch:"implantation",
   sub:"Assembler des conteneurs et en poser plusieurs séparément ne coûtent pas la même chose : jonctions et reprises d'étanchéité d'un côté, équipements et raccordements dupliqués de l'autre.", o:[
@@ -422,6 +422,9 @@ function prixPlan(){
 /* La surface vit sur le meme ecran que le comptage : elle doit se rafraichir
    des que le client change le nombre de modules. */
 function blocSurface(champ){
+  if(S.usage==="Logement" && S.modules!=="À définir" && totalMod()>0){
+    return '<div class="note"><b>Environ '+surfaceMod()+' m² intérieurs</b>, calculés à partir de vos conteneurs. Vous choisissez les chambres ; nous vérifions la cohérence. La terrasse est comptée séparément.</div>';
+  }
   var h = "";
   if(champ === "surface" && totalMod())
     h += '<div class="note">Vous avez indiqu\u00e9 <b>' + esc(libelleMod()) + '</b>, soit environ <b>'
@@ -444,17 +447,19 @@ function blocModules(){
        + '. La surface, les plans et le budget demand\u00e9s ensuite portent sur cet ensemble.</div></div>';
 }
 function majMod(k, v){
+  delete S.guidageModules;
   S[k] = v;
   effaceErr();
   if(S.modules === "\u00c0 d\u00e9finir") delete S.modules;
   var t = totalMod();
   if(t) S.modules = libelleMod(); else delete S.modules;
   /* la surface suit le nombre de modules tant que le client ne l a pas corrigee lui meme */
-  if(!S.surfaceManuelle){ var q = surfaceMod(); if(q) S.surface = String(q); else delete S.surface; }
+  if(S.usage==="Logement" || !S.surfaceManuelle){ var q = surfaceMod(); if(q) S.surface = String(q); else delete S.surface; if(S.usage==="Logement")delete S.surfaceManuelle; }
   ordre = parcours();
   var z = document.getElementById("modres"); if(z) z.innerHTML = blocModules();
   var y = document.getElementById("surfzone"); if(y) y.innerHTML = blocSurface("surface");
   var b = document.getElementById("modx"); if(b) b.className = "opt";
+  rafraichirGuidage();
 }
 function modInconnu(){
   S.modules = "\u00c0 d\u00e9finir";
@@ -504,6 +509,61 @@ function nombreChambres(){
  var n={"1 chambre":1,"2 chambres":2,"3 chambres":3,"4 chambres ou plus":4}[S.chambres];
  return n===undefined?null:n;
 }
+
+function surfaceInterieureDisponible(){
+ if(!S.modules || S.modules==="À définir" || totalMod()<1)return null;
+ var cap=surfaceMod(), m=nombre(S.surface);
+ return Number.isFinite(m)&&m>0?Math.min(cap,m):cap;
+}
+function erreurLogement(){
+ if(S.usage!=="Logement")return "";
+ var cap=surfaceInterieureDisponible(), ch=nombreChambres();
+ if(cap===null)return "";
+ if(ch!==null && ch>0 && ch*9>=cap)return "Ces chambres ne tiennent pas dans la surface choisie : "+(ch===4?"au moins ":"")+(ch*9)+" m² sont nécessaires pour les chambres seules, pour environ "+cap+" m² disponibles. Il faut aussi prévoir les autres pièces du logement.";
+ if(nombre(S.surface)>surfaceMod()+0.01)return "La surface intérieure saisie dépasse celle de vos conteneurs. Une terrasse ne compte pas comme une pièce intérieure.";
+ return "";
+}
+function propositionPourChambres(){
+ if(!erreurLogement())return null;
+ var ch=nombreChambres();
+ if(ch===null||ch===0||ch*9<surfaceInterieureDisponible())return null;
+ // Marge de préestimation pour les autres pièces, pas une norme de conformité.
+ var cible=ch*9+9, cap=surfaceMod(), ajout=Math.max(1,Math.ceil((cible-cap)/S40));
+ if(nMod("n40")+ajout>60)return null;
+ return {n20:nMod("n20"),n40:nMod("n40")+ajout,surface:cap+ajout*S40};
+}
+function allerEtapeProjet(nom){
+ ordre=parcours();var i=ordre.indexOf(nom);
+ if(i>=0){idx=i;rendre();}
+}
+function agrandirPourChambres(){
+ var p=propositionPourChambres();if(!p)return;
+ S.n20=p.n20;S.n40=p.n40;S.modules=libelleMod();
+ S.surface=String(surfaceMod());delete S.surfaceManuelle;
+ S.guidageModules="Base de préestimation proposée et choisie : "+libelleMod()+", environ "+surfaceMod()+" m² intérieurs ; agencement à vérifier pendant l’étude.";
+ S.estimationLue="";ordre=parcours();rendre();
+}
+function utiliserSurfaceModules(){
+ S.surface=String(surfaceMod());delete S.surfaceManuelle;S.estimationLue="";rendre();
+}
+function revoirChoixChambres(){
+ if(ordre[idx]!=="chambres")allerEtapeProjet("chambres");
+ var z=document.querySelector("#main .opts");if(z)z.scrollIntoView({block:"start",behavior:"smooth"});
+}
+function blocGuidageLogement(){
+ if(S.usage!=="Logement")return "";
+ var msg=erreurLogement();
+ if(!msg)return S.guidageModules?`<div class="note">Votre base a été ajustée à environ <b>${surfaceMod()} m²</b>. L’estimatif utilisera les nouveaux conteneurs. Le plan sera vérifié pendant l’étude.</div>`:"";
+ var p=propositionPourChambres(), ch=nombreChambres();
+ var exp=p?"Avec environ "+surfaceInterieureDisponible()+" m², il n’y a pas assez de place pour "+(ch===4?"4 chambres ou plus":ch+" chambres")+" et les autres pièces.":msg;
+ var proposition=p?`<button type="button" class="btn p" style="width:100%;height:auto;white-space:normal" onclick="agrandirPourChambres()">Agrandir le projet à environ ${p.surface} m²</button><p class="pja">Base proposée : ${p.n20?p.n20+" conteneur(s) 20 pieds":""}${p.n20&&p.n40?" + ":""}${p.n40?p.n40+" conteneur(s) 40 pieds":""}. Le prix sera recalculé. Agencement à vérifier pendant l’étude.</p>`:nombre(S.surface)>surfaceMod()?`<button type="button" class="btn p" onclick="utiliserSurfaceModules()">Utiliser les ${surfaceMod()} m² des conteneurs</button>`:"";
+ return `<div class="note" role="alert"><b>Adaptons votre projet</b><p>${esc(exp)}</p>${proposition}<button type="button" class="btn" style="width:100%;height:auto;white-space:normal;margin-top:8px" onclick="revoirChoixChambres()">Choisir moins de chambres</button></div>`;
+}
+function rafraichirGuidage(){
+ var z=document.getElementById("guidage-logement");
+ if(z)z.innerHTML=blocGuidageLogement();
+}
+
 function provisionAssainissement(){
  var ch=nombreChambres(), a=nMod("n20"), b=nMod("n40");
  if(ch!==null && ch>=4)return {montant:BAREME.assainissement.grand,regle:"4 chambres ou plus"};
@@ -515,6 +575,8 @@ function provisionAssainissement(){
 }
 function estimationProjet(){
   var m=nombre(S.surface), lignes=[], manquants=[], standard=true;
+  var incoherence=erreurLogement();
+  if(incoherence)return {lignes:[],manquants:[incoherence],bas:null,haut:null,standard:false,complet:false};
   function ajoute(n,bas,haut){ lignes.push({poste:n,bas:arrondiHaut(bas),haut:arrondiHaut(haut==null?bas:haut)}); }
   if(!Number.isFinite(m)||m<=0) return {lignes:[],manquants:["Surface à préciser"],bas:null,haut:null,complet:false};
   if(!S.modules || S.modules==="À définir" || totalMod()<1) manquants.push("Nombre de conteneurs à préciser");
@@ -594,6 +656,7 @@ function signatureEstimation(){
 }
 function accordEstimation(ok){ S.estimationLue=ok?signatureEstimation():""; }
 function estimationTexte(){
+ if(erreurLogement())return "PROJET À AJUSTER\n"+erreurLogement()+"\nAucun prix global ne peut être confirmé pour cette combinaison.";
  var e=estimationProjet();
  if(e.bas===null || !e.standard || !S.modules || S.modules==="À définir")return "ESTIMATIF À PRÉCISER\nUne fourchette globale fiable nécessite de préciser la surface, les modules et les prestations. Aucun prix global ni plafond de budget n’est confirmé à ce stade.";
  return (e.complet?"BUDGET GLOBAL INDICATIF":"BUDGET GLOBAL PROVISOIRE — À COMPLÉTER")
@@ -848,6 +911,7 @@ function rendre(){
     h += '<div class="note">' + e.reperes + '</div>';
   }
 
+  if(e.mod || e.ch==="chambres")h+='<div id="guidage-logement">'+blocGuidageLogement()+'</div>';
   if(e.o){
     h += '<div class="opts">';
     for(var i=0;i<e.o.length;i++){
@@ -953,6 +1017,7 @@ function rendre(){
     h+='<div id="estimation-live">'+blocEstimation()+'</div><label style="display:flex;gap:12px;align-items:flex-start;margin:24px 0"><input id="estimation-lue" type="checkbox" style="width:24px;height:24px;flex-shrink:0" '+(S.estimationLue===signatureEstimation()?'checked':'')+' onchange="accordEstimation(this.checked)"><span>J’ai pris connaissance de la fourchette et des postes restant à chiffrer. Cela ne vaut pas acceptation d’un devis.</span></label>';
   }
   if(e.recap){
+    h+='<div id="guidage-logement">'+blocGuidageLogement()+'</div>';
     h += '<div class="recap">' + lignesRecap().map(function(l){
       return '<div class="r"><b>' + esc(l[0]) + '</b><span>' + esc(l[1]) + '</span></div>';
     }).join("") + '</div>';
@@ -1050,6 +1115,7 @@ function ajoutPJ(input){
 function choix(champ, i){
   var e = E[ordre[idx]];
   S[champ] = e.o[i][0];
+  if(champ==="chambres"||champ==="usage")delete S.guidageModules;
   if(champ==="usage" && S.usage!=="Logement")delete S.chambres;
   ordre = parcours();
   rendre();
@@ -1095,7 +1161,7 @@ function maj(champ, val){
   effaceErr();
   /* des que le client corrige la surface lui-meme, on cesse de la recalculer */
   if(champ === "surface") S.surfaceManuelle = 1;
-  ordre = parcours(); majPrixLive();
+  ordre = parcours(); majPrixLive(); rafraichirGuidage();
 }
 
 function majPrixLive(){
@@ -1113,6 +1179,8 @@ function valide(){
   if(e.o && !S[e.ch]) return "Choisissez une réponse pour continuer.";
   if(e.sel && !S[e.sel]) return "Indiquez la commune de livraison.";
   if(e.mod && !S.modules) return "Indiquez le nombre de conteneurs, ou choisissez « Je ne sais pas encore ».";
+  var incoherence=erreurLogement();
+  if(incoherence)return incoherence;
   if(e.num){
     var surface = Number(String(S[e.num]||"").replace(",", "."));
     if(!Number.isFinite(surface) || surface <= 0) return "Indiquez une surface numérique supérieure à zéro.";
@@ -1143,7 +1211,7 @@ function valide(){
 function suiv(){
   if(ENVOI_EN_COURS) return;
   var m = valide();
-  if(m){ var d = document.getElementById("err"); if(d) d.innerHTML = '<div class="err">' + m + '</div>'; return; }
+  if(m){ var d=document.getElementById("err"); if(erreurLogement() && document.getElementById("guidage-logement")){if(d)d.innerHTML="";return;} if(d)d.innerHTML='<div class="err">'+m+'</div>';return; }
   if(E[ordre[idx]].recap){ envoyer(); return; }
   ordre = parcours();
   if(idx < ordre.length - 1){ idx++; rendre(); }
@@ -1157,7 +1225,7 @@ var LIB = {chambres:"Chambres souhaitées",reference:"Référence", prestations:
   terrain:"Terrain", indivision:"Indivision", parcelle:"Parcelle", plan:"Plan", enveloppe:"Enveloppe",
   financement:"Financement", decision:"Décision", etape:"Prochaine étape", rdvlieu:"Lieu du rendez-vous",
   rdvquand:"Moment souhaité", nom:"Nom", structure:"Structure", tel:"Téléphone", mail:"Email", msg:"Message"};
-var ORDRE_R = ["reference","profil","structure","besoin","usage","modules","implantation","surface","prestations","prestationsDetails","commune","ile","livraison","emplacement","acces","terrain",
+var ORDRE_R = ["reference","profil","structure","besoin","usage","chambres","modules","implantation","surface","prestations","prestationsDetails","commune","ile","livraison","emplacement","acces","terrain",
   "indivision","parcelle","plan","delai","enveloppe","financement","decision","etape","rdvlieu",
   "rdvquand","nom","tel","mail","msg"];
 
@@ -1460,6 +1528,7 @@ function ficheEmail(){
     "Projet": [S.usage, S.usage==="Logement"?S.chambres:"", S.modules ? libelleMod() : "", S.surface ? S.surface + " m² au total" : "", S.implantation].filter(Boolean).join(" ; "),
     "Travaux souhaités": S.prestations || "À préciser"
   };
+  if(S.guidageModules)fiche["Base de préestimation choisie"]=S.guidageModules;
   if(S.prestationsDetails) fiche["Précisions sur les travaux"] = S.prestationsDetails;
   if(perimetreTechnique()) fiche["Hypothèses et périmètre"] = perimetreTechnique();
   var clarifications=pointsAClarifier();
@@ -1483,6 +1552,10 @@ function ficheEmail(){
 function envoyer(){
   if(ENVOI_EN_COURS) return;
   var err = document.getElementById("err");
+  if(erreurLogement()){
+    if(err)err.innerHTML=blocGuidageLogement();
+    return;
+  }
   if(PJ_EN_PREPARATION){
     if(err) err.innerHTML = '<div class="err">Les fichiers sont encore en préparation. Patientez un instant puis réessayez.</div>';
     return;
