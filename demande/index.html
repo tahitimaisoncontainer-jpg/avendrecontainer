@@ -242,7 +242,7 @@ E.destination = {k:"La livraison", q:"Jusqu’où souhaitez-vous la livraison ?"
   sub:"Le transport jusqu’au quai et l’acheminement jusqu’au terrain sont deux prestations distinctes. Leur faisabilité et leur prix seront étudiés avant le devis."};
 
 E.modules = {k:"Votre projet", q:"Quels conteneurs souhaitez-vous aménager ?", mod:1, gabarit:1, num:"surface",
-  sub:"Indiquez vos conteneurs. La surface intérieure est calculée automatiquement pour un logement ; vous retrouvez ensuite votre estimation globale."};
+  sub:"Indiquez vos conteneurs. La surface indicative est calculée automatiquement pour un logement ; vous retrouvez ensuite votre estimation globale."};
 
 E.implantation = {k:"Votre projet", q:"Comment ces modules seront-ils implantés ?", ch:"implantation",
   sub:"Assembler des conteneurs et en poser plusieurs séparément ne coûtent pas la même chose : jonctions et reprises d'étanchéité d'un côté, équipements et raccordements dupliqués de l'autre.", o:[
@@ -414,13 +414,13 @@ function prixPlan(){
    des que le client change le nombre de modules. */
 function blocSurface(champ){
   if(S.usage==="Logement" && S.modules!=="À définir" && totalMod()>0){
-    return '<div class="note"><b>Environ '+surfaceMod()+' m² intérieurs</b>, calculés à partir de vos conteneurs. La terrasse est comptée séparément.</div>';
+    return '<div class="note"><b>Environ '+surfaceMod()+' m² indicatifs</b>, calculés à partir de vos conteneurs. La terrasse est comptée séparément.</div>';
   }
   var h = "";
   if(champ === "surface" && totalMod())
     h += '<div class="note">Vous avez indiqu\u00e9 <b>' + esc(libelleMod()) + '</b>, soit environ <b>'
        + surfaceMod() + ' m\u00b2 au sol au total</b>' + (totalMod() > 1 ? ' pour l\'ensemble des ' + totalMod() + ' modules' : '')
-       + '. Le champ ci-dessous est pr\u00e9rempli avec ce total : corrigez-le si votre am\u00e9nagement diff\u00e8re \u2014 mezzanine, terrasse, modules ouverts les uns sur les autres, partie non am\u00e9nag\u00e9e.</div>';
+       + '. Le champ ci-dessous est pr\u00e9rempli avec ce total : corrigez-le si votre am\u00e9nagement diff\u00e8re \u2014 partie non am\u00e9nag\u00e9e. N’incluez pas la terrasse dans cette surface.</div>';
   return h + '<label class="f"><span>Surface au sol totale du projet, en m\u00b2</span>'
        + '<input id="i_' + champ + '" type="number" inputmode="decimal" min="1" placeholder="par exemple 26" value="'
        + esc(S[champ]||"") + '" oninput="maj(\'' + champ + '\',this.value)"></label>';
@@ -428,7 +428,7 @@ function blocSurface(champ){
 
 function blocModules(){
   if(S.modules === "\u00c0 d\u00e9finir")
-    return '<div class="note">Nombre de conteneurs \u00e0 d\u00e9finir. Indiquez tout de m\u00eame une surface approximative \u00e0 l\'\u00e9cran suivant : elle me suffit pour situer le projet.</div>';
+    return '<div class="note">Nombre de conteneurs \u00e0 d\u00e9finir. Indiquez une surface approximative ci-dessous : elle me suffit pour situer le projet.</div>';
   var t = totalMod();
   if(!t) return "";
   return '<div class="prix"><div class="lb">Votre projet</div>'
@@ -442,6 +442,7 @@ function majMod(k, v){
   effaceErr();
   if(S.modules === "\u00c0 d\u00e9finir") delete S.modules;
   var t = totalMod();
+  if(t<2)delete S.implantation;
   if(t) S.modules = libelleMod(); else delete S.modules;
   /* la surface suit le nombre de modules tant que le client ne l a pas corrigee lui meme */
   if(S.usage==="Logement" || !S.surfaceManuelle){ var q = surfaceMod(); if(q) S.surface = String(q); else delete S.surface; if(S.usage==="Logement")delete S.surfaceManuelle; }
@@ -465,7 +466,8 @@ function parcours(){
   if(totalMod() >= 2 || S.modules === "À définir") p.push("implantation");
   p = p.concat(["commune","destination","terrain"]);
   if(S.terrain === "Il m'appartient ou je le loue" || S.terrain === "Achat ou bail en cours de signature") p.push("indivision");
-  return p.concat(["parcelle","acces","plan","delai","enveloppe","estimation","financement","decision","contact","recap","fini"]);
+  if(S.terrain && S.terrain!=="Je n'ai pas encore de terrain") p=p.concat(["parcelle","acces"]);
+  return p.concat(["plan","delai","enveloppe","estimation","financement","decision","contact","recap","fini"]);
 }
 
 /* ============ COHERENCE BUDGET ============ */
@@ -535,7 +537,7 @@ function estimationProjet(){
     if(ass)ajoute("Provision d’assainissement — "+ass.regle,ass.bas,ass.haut);
     else manquants.push("Provision d’assainissement à préciser par TMC selon l’usage et la configuration");
     if(S.reseaux!=="Raccordements extérieurs pris en charge séparément") manquants.push("Raccordements extérieurs eau/électricité à chiffrer");
-  } else if(eau && S.assainExistant!=="oui") manquants.push("Assainissement existant ou nouveau à vérifier");
+  }
   if(prestation("Cuisine")) manquants.push("Mobilier de cuisine et électroménager non chiffrés");
   if(prestation("Ventilation ou climatisation")) manquants.push("Climatisation et ventilation à dimensionner");
   if(prestation("Terrasse et accès")) manquants.push("Terrasse, escalier et accès à chiffrer");
@@ -574,7 +576,7 @@ function texteBudget(){
 }
 function signatureEstimation(){
  var e=estimationProjet();
- return JSON.stringify([BAREME.version,e.lignes,e.manquants,S.enveloppe,S.budgetExact,S.usage,S.prestations,S.implantation,S.commune,S.ile,S.livraison,S.acces,S.reseaux,S.assainExistant]);
+ return JSON.stringify([BAREME.version,e.lignes,e.manquants,S.enveloppe,S.budgetExact,S.usage,S.prestations,S.implantation,S.commune,S.ile,S.livraison,S.acces,prestation("Assainissement et raccordements")?S.reseaux:null]);
 }
 function accordEstimation(ok){ S.estimationLue=ok?signatureEstimation():""; }
 function estimationTexte(){
@@ -824,7 +826,7 @@ function rendre(){
     var pp = (typeof prixPlan === "function") ? prixPlan() : null;
     if(pp)
       h += '<div class="prix"><div class="lb">Pour votre projet \u2014 ' + esc(libelleMod()) + '</div>'
-         + '<div class="val" style="font-size:22px;line-height:1.35">Plan 2D : ' + fmt(pp[0]) + ' XPF</div>'
+         + '<div class="val" style="font-size:22px;line-height:1.35">Plan 2D si à réaliser : ' + fmt(pp[0]) + ' XPF</div>'
          + '<div class="det">Visuel 3D en option : ' + fmt(pp[1]) + ' XPF. Ce sont les tarifs de l\'architecte, sans marge de ma part. Le d\u00e9tail du bar\u00e8me est ci-dessous.</div></div>';
     h += '<div class="note">' + e.reperes + '</div>';
   }
@@ -834,10 +836,10 @@ function rendre(){
     for(var i=0;i<e.o.length;i++){
       var v = e.o[i][0], d = e.o[i][1];
       if(e.o[i][3] === "pro" && S.profil === "Un particulier") continue;
-      if(e.descPublic && estPublic() && e.descPublic[i] != null) d = e.descPublic[i];
+
       var actif = e.multi ? (MULTI[e.ch] || []).indexOf(v) > -1 : S[e.ch] === v;
       h += '<button data-option-index="' + i + '"' + (e.multi ? ' aria-pressed="' + (actif ? 'true' : 'false') + '"' : '') + ' class="opt' + (actif ? ' sel' : '') + '" onclick="' + (e.multi ? 'coche' : 'choix') + '(\'' + e.ch + '\',' + i + ')">'
-         + '<span class="ic">✓</span><span class="tx">' + esc(v)
+         + '<span class="ic">' + (actif ? '✓' : '') + '</span><span class="tx">' + esc(v)
          + (d ? '<small>' + esc(d) + '</small>' : '') + '</span></button>';
     }
     h += '</div>';
@@ -895,19 +897,9 @@ function rendre(){
       h += '<div class="note"><b>Le budget porte sur l\'ensemble de votre projet.</b><br>Vous avez d\u00e9crit : '
          + esc(lb.join(" \u00b7 ")) + '.<br>Choisissez la tranche qui correspond \u00e0 ce total \u2014 conteneurs et am\u00e9nagement compris \u2014 et non au co\u00fbt d\'un seul module.</div>';
   }
-  if(e.echelle && estPublic())
-    h += '<div class="note"><b>Commande publique ou marché d\'une collectivité.</b><br>'
-       + 'Le règlement d\'une administration intervient plusieurs mois après le service fait : '
-       + 'l\'entreprise avance les conteneurs, les matériaux et la main-d\'œuvre pendant toute cette période, '
-       + 'et porte seule le risque de trésorerie. À prestation identique, l\'enveloppe à prévoir est donc '
-       + 'sensiblement supérieure à celle d\'un chantier chez un particulier. Prévoyez-la en conséquence — '
-       + 'ou signalez-moi qu\'un acompte au bon de commande est possible, cela change tout.</div>';
   if(e.confid)
     h += '<div class="note"><b>Vos informations servent à traiter votre demande auprès de TMC.</b> Elles sont transmises via FormSubmit pour l’acheminement des emails et des fichiers. Elles ne sont pas publiées sur le site.</div>';
 
-  if(e.estimation){
-    if(S.budgetExact && (!Number.isFinite(nombre(S.budgetExact)) || nombre(S.budgetExact)<=0)) return "Le budget doit être positif.";
-  }
   if(e.contact){
     h += '<label class="f"><span>Nom et prénom</span><input id="i_nom" type="text" autocomplete="name" value="' + esc(S.nom||"") + '" oninput="maj(\'nom\',this.value)"></label>'
        + '<label class="f"><span>Téléphone</span><input id="i_tel" type="tel" inputmode="tel" autocomplete="tel" placeholder="87 12 34 56" value="' + esc(S.tel||"") + '" oninput="maj(\'tel\',this.value)"></label>'
@@ -929,9 +921,8 @@ function rendre(){
   if(e.estimation){
     h+='<p class="sub">Votre budget estimatif est calculé à partir de vos réponses. Aucun travail n’est commandé.</p>';
     if(prestation("Assainissement et raccordements")) h+='<label class="f"><span>Raccordements extérieurs eau / électricité</span><select onchange="majEstimation(\'reseaux\',this.value)"><option value="">À chiffrer avec TMC</option><option '+(S.reseaux==="Raccordements extérieurs pris en charge séparément"?'selected':'')+'>Raccordements extérieurs pris en charge séparément</option></select></label>';
-    if(!prestation("Assainissement et raccordements") && (prestation("Plomberie et sanitaires")||prestation("Cuisine")||S.usage==="Logement"||S.usage==="Hébergement ou tourisme")) h+='<label class="f"><span>Assainissement déjà disponible pour le projet ?</span><select onchange="majEstimation(\'assainExistant\',this.value)"><option value="">À vérifier / à créer</option><option value="oui" '+(S.assainExistant==="oui"?'selected':'')+'>Oui, installation existante annoncée (à vérifier lors de l’étude)</option></select></label>';
     h+='<label class="f"><span>Budget réellement disponible en XPF (facultatif)</span><input type="number" inputmode="numeric" min="1" step="1" value="'+esc(S.budgetExact||"")+'" oninput="majEstimation(\'budgetExact\',this.value)"></label>';
-    h+='<div id="estimation-live">'+blocEstimation()+'</div><label style="display:flex;gap:12px;align-items:flex-start;margin:24px 0"><input id="estimation-lue" type="checkbox" style="width:24px;height:24px;flex-shrink:0" '+(S.estimationLue===signatureEstimation()?'checked':'')+' onchange="accordEstimation(this.checked)"><span>J’ai pris connaissance de la fourchette et des postes restant à chiffrer. Cela ne vaut pas acceptation d’un devis.</span></label>';
+    h+='<div id="estimation-live">'+blocEstimation()+'</div><label style="display:flex;gap:12px;align-items:flex-start;margin:24px 0"><input id="estimation-lue" type="checkbox" style="width:24px;height:24px;flex-shrink:0" '+(S.estimationLue===signatureEstimation()?'checked':'')+' onchange="accordEstimation(this.checked)"><span>J’ai pris connaissance de cette estimation et de ses limites. Cela ne vaut pas acceptation d’un devis.</span></label>';
   }
   if(e.recap){
     h += '<div class="recap">' + lignesRecap().map(function(l){
@@ -1024,6 +1015,18 @@ function ajoutPJ(input){
 function choix(champ, i){
   var e = E[ordre[idx]];
   S[champ] = e.o[i][0];
+  if(champ==="usage" && S.usage==="Logement" && totalMod()>0){S.surface=String(surfaceMod());delete S.surfaceManuelle;}
+  if(champ==="terrain"){
+    delete S.indivision;
+    if(S.terrain==="Je n'ai pas encore de terrain"){delete S.parcelle;delete S.acces;}
+  }
+  if(champ==="profil"){
+    if(S.profil==="Un particulier"){
+      delete S.structure;
+      MULTI.financement=(MULTI.financement||[]).filter(function(v){return v!=="Bon de commande ou marché signé" && v!=="Crédits votés, bon de commande à venir";});
+      S.financement=MULTI.financement.join(" · ");
+    }
+  }
   ordre = parcours();
   rendre();
   /* sur un ecran qui accepte des pieces jointes on n avance pas tout seul :
@@ -1049,6 +1052,7 @@ function coche(champ, i){
   for(var z = 0; z < e.o.length; z++) rang[e.o[z][0]] = z;
   a.sort(function(x, y){ return rang[x] - rang[y]; });
   S[champ] = a.join(" · ");
+  if(champ==="prestations" && !prestation("Assainissement et raccordements")){delete S.reseaux;delete S.assainExistant;}
   ordre = parcours();
   // Mettre les cases à jour sur place : ne pas reconstruire la page ni déplacer le défilement.
   document.querySelectorAll("#main .opts button[data-option-index]").forEach(function(button){
@@ -1056,6 +1060,7 @@ function coche(champ, i){
     var selected = !!option && a.indexOf(option[0]) > -1;
     button.classList.toggle("sel", selected);
     button.setAttribute("aria-pressed", selected ? "true" : "false");
+    var icon=button.querySelector(".ic");if(icon)icon.textContent=selected?"✓":"";
   });
   effaceErr();
 }
@@ -1105,6 +1110,10 @@ function valide(){
       return "Précisez le lieu final, ou indiquez « à préciser ».";
   }
   if(e.txt && !e.opt && !S[e.txt]) return "Ce champ est nécessaire.";
+  if(e.estimation){
+    if(S.budgetExact && (!Number.isFinite(nombre(S.budgetExact)) || nombre(S.budgetExact)<=0)) return "Indiquez un budget supérieur à zéro, ou laissez ce champ vide.";
+    if(S.estimationLue!==signatureEstimation()) return "Prenez connaissance de l’estimation, puis cochez la case pour continuer.";
+  }
   if(e.contact){
     if(!S.nom || S.nom.trim().length < 2) return "Merci d'indiquer votre nom.";
     var t = String(S.tel||"").replace(/[^0-9+]/g,"");
@@ -1318,7 +1327,6 @@ function perimetreTechnique(){
  if(prestation("Toiture de protection")){var t=toitureCalculee();p.push(t?"Toiture calculée : "+t.surface+" m² ; "+t.hypothese+" ; fournitures seules, main-d’œuvre à ajouter":"Toiture : implantation à préciser par TMC");}
  if(prestation("Fondations ou plots"))p.push(nombrePlotsCalcule()!==null?"Appuis calculés : "+nombrePlotsCalcule()+" plots (4 par 20 DRY, 10 par 40 HC), type à vérifier par TMC":"Appuis à calculer dès que les conteneurs seront définis");
  if(prestation("Assainissement et raccordements")){var ass=provisionAssainissement();p.push(ass?"Assainissement : "+ass.regle+" ; provision TMC":"Assainissement : configuration à préciser par TMC");p.push(S.reseaux||"Raccordements extérieurs : à chiffrer avec TMC");}
- else if(S.assainExistant==="oui")p.push("Assainissement existant déclaré, capacité à vérifier");
  return p.join(" ; ");
 }
 
@@ -1394,8 +1402,10 @@ function ficheEmail(){
    "email":S.mail||"",
    "Téléphone":S.tel||"",
    "Conteneurs":S.modules?libelleMod():"À définir avec TMC",
-   "Aménagement":[S.usage,S.prestationsDetails||S.prestations].filter(Boolean).join(" — "),
+   "Aménagement":[S.usage,S.prestations,S.prestationsDetails].filter(Boolean).join(" — "),
    "Commune / quartier":[S.commune==="Autre île"?S.ile:S.commune,S.emplacement].filter(Boolean).join(" — "),
+   "Livraison":S.livraison||"À préciser",
+   "Surface indicative":nombre(S.surface)>0?fmt(nombre(S.surface))+" m²":"À préciser",
    "Pour quand":S.delai||"À définir",
    "Budget déclaré":nombre(S.budgetExact)>0?fmt(nombre(S.budgetExact))+" XPF":S.enveloppe||"À préciser",
    "Terrain":S.terrain||"À préciser",
@@ -1405,13 +1415,26 @@ function ficheEmail(){
    "Plan 2D":plan?fmt(plan[0])+" XPF pour dessiner votre projet vu de dessus, avec ses dimensions. Si vous avez déjà un plan utilisable, inutile d’en payer un nouveau. Le plan à réaliser est réglé avant de commencer.":"Tarif à confirmer après définition des conteneurs",
    "Si vous souhaitez poursuivre":suiteEtudeTexte(),
    "Votre réponse":"Choisissez : Oui, poursuivre / J’ai une question / Non merci : https://tahitimaisoncontainer-jpg.github.io/avendrecontainer/demande/reponse.html?ref="+encodeURIComponent(referenceDemande())+" — puis envoyez l’email préparé. Aucun paiement ni travaux ne sont engagés par cette réponse.",
+   "Votre message":S.msg||"",
    "Contact TMC":"Jean-Baptiste HAUATA — 87 22 65 55 — tahitimaisoncontainer@gmail.com"
  };
  return fiche;
 }
 
+function verifierDossier(){
+ var avant=idx,etapes=parcours(),erreur=null;
+ for(var i=0;i<etapes.length;i++){
+   if(etapes[i]==="recap"||etapes[i]==="fini")continue;
+   idx=i;var message=valide();
+   if(message){erreur={index:i,message:message};break;}
+ }
+ idx=avant;return erreur;
+}
+
 function envoyer(){
   if(ENVOI_EN_COURS) return;
+  ordre=parcours();var controle=verifierDossier();
+  if(controle){idx=controle.index;rendre();var zone=document.getElementById("err");if(zone)zone.innerHTML='<div class="err">'+esc(controle.message)+'</div>';return;}
   var err = document.getElementById("err");
   if(PJ_EN_PREPARATION){
     if(err) err.innerHTML = '<div class="err">Les fichiers sont encore en préparation. Patientez un instant puis réessayez.</div>';
@@ -1475,8 +1498,11 @@ window.addEventListener("pageshow",function(event){
 try{
   var sauvegarde = JSON.parse(sessionStorage.getItem(BROUILLON_ENVOI)||"null");
   if(sauvegarde && sauvegarde.state && Date.now()-sauvegarde.date < 24*60*60*1000){
-    S = sauvegarde.state; delete S.etape; delete S.chambres; delete S.guidageModules; MULTI = sauvegarde.multi||{};
+    S = sauvegarde.state; delete S.assainExistant; delete S.etape; delete S.chambres; delete S.guidageModules; MULTI = sauvegarde.multi||{};
     if(sauvegarde.files && sauvegarde.files.length) window.FICHIERS_A_REJOINDRE = sauvegarde.files;
+    if(totalMod()<2)delete S.implantation;
+    if(S.terrain==="Je n'ai pas encore de terrain"){delete S.indivision;delete S.parcelle;delete S.acces;}
+    if(!prestation("Assainissement et raccordements"))delete S.reseaux;
     ordre = parcours(); idx = ordre.indexOf("recap");
   }else{sessionStorage.removeItem(BROUILLON_ENVOI);}
 }catch(storageError){}
