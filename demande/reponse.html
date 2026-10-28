@@ -10,8 +10,7 @@ document.getElementById('reference').textContent=ref?'Référence : '+ref:'Réf�
 const choices=[
  ['Oui, poursuivre','ETUDE CONFIRMEE','Oui, je souhaite poursuivre avec l’étude payante de mon projet. Merci de me préciser les modalités de règlement.'],
  ['J’ai une question','A PRECISER','Avant de me décider pour l’étude, j’ai une question :\n[Écrivez votre question ici]'],
- ['Plus tard','REPORTE','Je souhaite reporter mon projet. Je reprendrai contact avec TMC quand je serai prêt.'],
- ['Non merci','REFUSE','Je ne souhaite pas poursuivre avec l’étude de mon projet.']
+ ['Non merci','REFUSE','Je ne souhaite pas poursuivre avec l’étude de mon projet actuellement. Merci de clore ma demande, sans relance.']
 ];
 choices.forEach(([label,status,body])=>{
  const a=document.createElement('a');a.className='choice';a.textContent=label;
