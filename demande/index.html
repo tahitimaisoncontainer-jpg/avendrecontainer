@@ -267,7 +267,7 @@ E.parcelle = {k:"Le terrain", q:"Le numéro de votre parcelle", txt:"parcelle",
   sub:"Il se trouve en quelques secondes sur otia.gov.pf. Facultatif, mais il me fait gagner un aller-retour.", opt:1};
 
 E.plan = {k:"Votre projet", q:"Avez-vous un plan ou un croquis ?", ch:"plan", pj:1,
-  reperes:"Un croquis à main levée photographié me suffit pour démarrer : joignez-le ci-dessous.<br>Si vous n'avez rien, je fais établir le plan. Tarifs en XPF :<div class='grille'><em>Plan 2D coté</em><i>1 conteneur 20 pieds</i><b>35 800</b><i>1 conteneur 40 pieds</i><b>53 700</b><i>Par conteneur 20 pieds en plus</i><b>+ 17 900</b><i>Par conteneur 40 pieds en plus</i><b>+ 29 900</b><em>Visuel 3D &nbsp;·&nbsp; en option</em><i>1 conteneur 20 pieds</i><b>47 800</b><i>1 conteneur 40 pieds</i><b>65 700</b><i>Par conteneur 20 pieds en plus</i><b>+ 23 900</b><i>Par conteneur 40 pieds en plus</i><b>+ 35 800</b></div><b>Le plan 2D</b> me sert à chiffrer votre projet au poste près, et il constitue votre dossier de permis de construire ou de permis de travaux.<br><b>Le visuel 3D</b> vous montre le rendu final de votre projet avant que je commence.<br>Ces deux prestations sont facturées à part, avant le lancement des travaux.", o:[
+  reperes:"Un croquis à main levée photographié me suffit pour démarrer : joignez-le ci-dessous.<br>Si vous n'avez rien, je fais établir le plan. Tarifs en XPF :<div class='grille'><em>Plan 2D coté</em><i>1 conteneur 20 pieds</i><b>35 800</b><i>1 conteneur 40 pieds</i><b>53 700</b><i>Par conteneur 20 pieds en plus</i><b>+ 17 900</b><i>Par conteneur 40 pieds en plus</i><b>+ 29 900</b><em>Visuel 3D &nbsp;·&nbsp; en option</em><i>1 conteneur 20 pieds</i><b>47 800</b><i>1 conteneur 40 pieds</i><b>65 700</b><i>Par conteneur 20 pieds en plus</i><b>+ 23 900</b><i>Par conteneur 40 pieds en plus</i><b>+ 35 800</b></div><b>Le plan 2D</b> me sert à chiffrer votre projet au poste près, et sert de base à l’étude des démarches administratives nécessaires à votre projet.<br><b>Le visuel 3D</b> vous montre le rendu final de votre projet avant que je commence.<br>La réalisation du plan 2D et le visuel 3D sont facturés séparément, avant leur démarrage et après votre accord. Un plan 2D coté exploitable est nécessaire au devis sur mesure.", o:[
   ["Oui, un plan coté"],["Un croquis à main levée"],["Non, rien pour l'instant"]]};
 
 E.enveloppe = {k:"Budget", q:"Quel budget avez-vous prévu pour votre projet ?", ch:"enveloppe", etudeNote:1, echelle:1,
@@ -921,6 +921,7 @@ function rendre(){
       return '<div class="r"><b>' + esc(l[0]) + '</b><span>' + esc(l[1]) + '</span></div>';
     }).join("") + '</div>';
     h += blocEstimation();
+    h += '<div class="note">' + esc(suiteEtudeTexte()).replace(/\\n/g,'<br>') + '</div>';
     h += blocPrix();
     h += '<p class="pja">Référence : ' + esc(referenceDemande()) + '</p>';
     h += '<div class="note"><b>Dernière étape : vérifier et envoyer.</b><br>Une vérification antispam s’ouvrira sur FormSubmit. Terminez-la pour transmettre votre demande et activer l’accusé de réception automatique à votre adresse email.</div>';
@@ -934,8 +935,8 @@ function rendre(){
   }
 
   if(e.etudeNote && tarifEtude())
-    h += '<div class="note">Pour une surface de ' + esc(S.surface) + ' m², l\'étude détaillée — chiffrage poste par poste et planning de travaux — est facturée <b>'
-       + tarifEtude() + '</b>, intégralement déduite de votre commande. Je ne vous la propose qu\'après notre premier échange.</div>';
+    h += '<div class="note">Pour une surface de ' + esc(S.surface) + ' m², l\'étude détaillée — matériaux, logistique, moyens humains, contraintes administratives et planning — est facturée <b>'
+       + tarifEtude() + '</b>, intégralement déduite de votre commande. Elle est réglée avant son démarrage, après confirmation du périmètre. Un plan 2D coté exploitable est nécessaire ; sa réalisation, si besoin, est facturée séparément.</div>';
   h += '<div id="err" role="alert" tabindex="-1"></div></div>';
   document.getElementById("main").innerHTML = h;
   document.getElementById("back").style.display = idx === 0 ? "none" : "block";
@@ -1277,6 +1278,26 @@ function topo(r){
   return L.join("\n");
 }
 
+function suiteEtudeTexte(){
+ var etude=tarifEtude(), plan=prixPlan();
+ var t=[
+   "POUR OBTENIR UN DEVIS SUR MESURE",
+   "L’estimatif ci-dessus est non contractuel. Il sert uniquement à vous donner un ordre de grandeur du budget à prévoir ; ce n’est pas un devis personnalisé.",
+   "Si cette enveloppe vous convient et que vous souhaitez poursuivre, répondez à ce mail en rappelant votre référence.",
+   "L’établissement du devis sur mesure nécessite une étude payante : définition des matériaux et quantités, logistique et transport, moyens humains et main-d’œuvre, organisation du chantier et prise en compte des contraintes administratives du projet.",
+   etude ? "Étude détaillée pour la surface déclarée : "+etude+"." : "Le prix de l’étude sera confirmé après définition de la surface.",
+   "Un plan 2D coté exploitable est nécessaire pour établir ce devis."
+ ];
+ if(S.plan==="Oui, un plan coté"){
+   t.push("Transmettez votre plan 2D pour vérification. S’il est exploitable, il servira de base à l’étude ; aucun nouveau plan ne sera facturé sans votre accord.");
+ }else{
+   t.push(plan ? "Si le plan 2D doit être réalisé : "+fmt(plan[0])+" XPF, en supplément de l’étude. Tout document déjà disponible sera examiné avant de proposer cette prestation." : "Si le plan 2D doit être réalisé, son tarif sera confirmé une fois les modules définis, en supplément de l’étude.");
+ }
+ t.push("TMC vous confirme d’abord le périmètre des prestations et les modalités de règlement. Après votre accord et le règlement préalable de l’étude, ainsi que du plan 2D s’il est à réaliser, nous lançons les prestations convenues pour préparer votre devis sur mesure.");
+ t.push("Le règlement concerne l’étude et, si nécessaire, le plan 2D : il ne constitue pas une commande de travaux. Seule l’étude est déduite de la commande de travaux si vous donnez suite ; le plan 2D est une prestation distincte.");
+ return t.join("\n");
+}
+
 function accuse(){
   return [
     "Ia ora na " + String(S.nom||"").trim() + ",",
@@ -1286,7 +1307,8 @@ function accuse(){
     "",
     estimationTexte(),
     "",
-    "Nous allons examiner votre projet et reviendrons vers vous pour préciser les prestations, la faisabilité et la suite à donner.",
+    suiteEtudeTexte(),
+    "",
     "Cet accusé confirme la transmission de votre demande ; il ne constitue ni un devis ni une confirmation de délai ou de réalisation.",
     "",
     "Pour compléter votre dossier, vous pouvez écrire à tahitimaisoncontainer@gmail.com en rappelant votre référence.",
