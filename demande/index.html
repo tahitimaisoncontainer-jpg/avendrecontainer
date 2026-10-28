@@ -240,6 +240,10 @@ E.prestations = {k:"Votre aménagement", q:"Quelles prestations souhaitez-vous ?
 E.destination = {k:"La livraison", q:"Jusqu’où souhaitez-vous la livraison ?", destination:1,
   sub:"Le transport jusqu’au quai et l’acheminement jusqu’au terrain sont deux prestations distinctes. Leur faisabilité et leur prix seront étudiés avant le devis."};
 
+E.chambres = {k:"Votre projet", q:"Combien de chambres séparées souhaitez-vous ?", ch:"chambres",
+  sub:"Une réponse simple suffit : nous nous en servons pour estimer votre projet et vérifier la place disponible.", o:[
+  ["Studio / sans chambre séparée"],["1 chambre"],["2 chambres"],["3 chambres"],["4 chambres ou plus"],["À définir"]]};
+
 E.modules = {k:"Votre projet", q:"Quelle surface envisagez-vous ?", mod:1, gabarit:1, num:"surface",
   sub:"Voici les deux formats, à l'échelle, avec une personne d'1,80 m pour vous repérer. Indiquez ensuite combien de modules de chaque format : je calcule la surface, vous la corrigez si besoin. Tout ce qui suit — surface, plans, budget — portera sur <b>l'ensemble</b> du projet, jamais sur un module isolé."};
 
@@ -338,7 +342,7 @@ E.fini = {k:"", q:"", fini:1};
 /* ============ ETAPES AFFICHEES ============ */
 var PHASE = {
   profil:"Votre projet", besoin:"Votre projet", usage:"Votre projet",
-  prestations:"Votre projet", destination:"Le terrain", modules:"Votre projet", implantation:"Votre projet", surface:"Votre projet",
+  chambres:"Votre projet", prestations:"Votre projet", destination:"Le terrain", modules:"Votre projet", implantation:"Votre projet", surface:"Votre projet",
   commune:"Le terrain", terrain:"Le terrain", indivision:"Le terrain", parcelle:"Le terrain", acces:"Le terrain",
   plan:"Votre plan", delai:"Votre plan",
   enveloppe:"Budget et décision", estimation:"Budget et décision", financement:"Budget et décision",
@@ -462,7 +466,9 @@ function modInconnu(){
 
 /* ============ PARCOURS ============ */
 function parcours(){
-  var p = ["usage","profil","modules","prestations"];
+  var p = ["usage","profil","modules"];
+  if(S.usage==="Logement" || S.usage==="Hébergement ou tourisme")p.push("chambres");
+  p.push("prestations");
   if(totalMod() >= 2 || S.modules === "À définir") p.push("implantation");
   p = p.concat(["commune","destination","terrain"]);
   if(S.terrain === "Il m'appartient ou je le loue" || S.terrain === "Achat ou bail en cours de signature") p.push("indivision");
@@ -474,7 +480,7 @@ function parcours(){
    Fourchettes construites à partir des postes détaillés TMC 2021/2024/2026.
    Ce sont des provisions de préqualification, pas les extrema de devis identiques.
    Pas de coefficient automatique selon le profil du client. */
-var BAREME = {version:"2026-10-28", amenagement:[180000,220000], toiture:[6200,6200], plot:32000, assainissement:[1000000,2500000]};
+var BAREME = {version:"2026-10-28", amenagement:[180000,220000], toiture:[6200,6200], plot:32000, assainissement:{petit:1000000,intermediaire:2500000,grand:3000000}};
 function estPublic(){ return S.profil === "Une administration ou une commune"; }
 function arrondiHaut(v,pas){ return Math.ceil(v/(pas||10000))*(pas||10000); }
 function nombre(v){ return Number(String(v||"").replace(",",".")); }
@@ -492,6 +498,21 @@ function toitureCalculee(){
   var surface=separes?a*(6.058+2)*(largeur+2)+b*(12.192+2)*(largeur+2):((b?12.192:6.058)+2)*(largeur*n+2);
   return {surface:Math.round(surface*100)/100,hypothese:separes?"toitures séparées, débord de 1 m sur chaque côté":n>1?"modules côte à côte sous une toiture rectangulaire, débord extérieur de 1 m sur chaque côté":"débord de 1 m sur chaque côté"};
 }
+function nombreChambres(){
+ if(S.usage!=="Logement" && S.usage!=="Hébergement ou tourisme")return null;
+ if(S.chambres==="Studio / sans chambre séparée")return 0;
+ var n={"1 chambre":1,"2 chambres":2,"3 chambres":3,"4 chambres ou plus":4}[S.chambres];
+ return n===undefined?null:n;
+}
+function provisionAssainissement(){
+ var ch=nombreChambres(), a=nMod("n20"), b=nMod("n40");
+ if(ch!==null && ch>=4)return {montant:BAREME.assainissement.grand,regle:"4 chambres ou plus"};
+ if(S.modules && S.modules!=="À définir" && b===0 && a>=1 && a<=2)return {montant:BAREME.assainissement.petit,regle:"1 ou 2 conteneurs 20 DRY"};
+ if(ch!==null && ch>=2 && ch<=3)return {montant:BAREME.assainissement.intermediaire,regle:"projet de 2 à 3 chambres au-delà du petit format"};
+ if(S.usage!=="Logement" && S.usage!=="Hébergement ou tourisme")return null;
+ if(ch!==null && (a>2 || b>1 || (b>0 && a>0)))return {montant:BAREME.assainissement.intermediaire,regle:"au-delà de 2 conteneurs 20 DRY, avec moins de 4 chambres"};
+ return null;
+}
 function estimationProjet(){
   var m=nombre(S.surface), lignes=[], manquants=[], standard=true;
   function ajoute(n,bas,haut){ lignes.push({poste:n,bas:arrondiHaut(bas),haut:arrondiHaut(haut==null?bas:haut)}); }
@@ -499,6 +520,8 @@ function estimationProjet(){
   if(!S.modules || S.modules==="À définir" || totalMod()<1) manquants.push("Nombre de conteneurs à préciser");
   else ajoute("Conteneurs et frais opérationnels (hors livraison)",plancherConteneurs());
   if(totalMod()>0 && m>nMod("n20")*15+nMod("n40")*30) manquants.push("Surface supérieure à celle des modules : extension ou surface à vérifier");
+  var ch=nombreChambres();
+  if(ch!==null && ch>0 && m<ch*9)manquants.push("Surface à revoir : le repère TMC de 9 m² par chambre représente déjà "+(ch*9)+" m², hors autres pièces");
   var special=S.usage!=="Logement" && S.usage!=="Hébergement ou tourisme" && S.usage!=="Bureau ou activité professionnelle";
   if(special) {standard=false; manquants.push("Usage spécialisé : aménagement sur étude, aucun forfait standard appliqué");}
   var core=prestation("Isolation et habillage intérieur")&&prestation("Électricité et éclairage")&&prestation("Portes, fenêtres et baies vitrées");
@@ -524,8 +547,9 @@ function estimationProjet(){
     else manquants.push("Définir les conteneurs pour calculer automatiquement les appuis ; TMC vérifiera leur type sur le terrain");
   }
   if(prestation("Assainissement et raccordements")) {
-    if(m>60) manquants.push("Assainissement au-delà du petit projet : dimensionnement et prix à reprendre");
-    ajoute("Assainissement petit projet avec point d’eau",BAREME.assainissement[0],BAREME.assainissement[1]);
+    var ass=provisionAssainissement();
+    if(ass)ajoute("Provision d’assainissement — "+ass.regle,ass.montant);
+    else manquants.push("Provision d’assainissement à préciser par TMC selon les chambres et la configuration");
     if(S.reseaux!=="Raccordements extérieurs pris en charge séparément") manquants.push("Raccordements extérieurs eau/électricité à chiffrer");
   } else if(eau && S.assainExistant!=="oui") manquants.push("Assainissement existant ou nouveau à vérifier");
   if(prestation("Cuisine")) manquants.push("Mobilier de cuisine et électroménager non chiffrés");
@@ -566,7 +590,7 @@ function texteBudget(){
 }
 function signatureEstimation(){
  var e=estimationProjet();
- return JSON.stringify([BAREME.version,e.lignes,e.manquants,S.enveloppe,S.budgetExact,S.usage,S.prestations,S.implantation,S.commune,S.ile,S.livraison,S.acces,S.reseaux,S.assainExistant]);
+ return JSON.stringify([BAREME.version,e.lignes,e.manquants,S.enveloppe,S.budgetExact,S.usage,S.prestations,S.implantation,S.commune,S.ile,S.livraison,S.acces,S.reseaux,S.assainExistant,S.chambres]);
 }
 function accordEstimation(ok){ S.estimationLue=ok?signatureEstimation():""; }
 function estimationTexte(){
@@ -1126,7 +1150,7 @@ function suiv(){
 function prec(){ if(ENVOI_EN_COURS) return; if(idx > 0){ idx--; rendre(); } }
 
 /* ============ RECAPITULATIF ============ */
-var LIB = {reference:"Référence", prestations:"Prestations demandées", prestationsDetails:"Détail des prestations", ile:"Île et commune précisées", livraison:"Livraison souhaitée", emplacement:"Lieu final / repère", profil:"Vous êtes", besoin:"Besoin", format:"Format", commune:"Commune", quantite:"Quantité",
+var LIB = {chambres:"Chambres souhaitées",reference:"Référence", prestations:"Prestations demandées", prestationsDetails:"Détail des prestations", ile:"Île et commune précisées", livraison:"Livraison souhaitée", emplacement:"Lieu final / repère", profil:"Vous êtes", besoin:"Besoin", format:"Format", commune:"Commune", quantite:"Quantité",
   acces:"Accès camion-grue", delai:"Échéance", budget:"Budget", usage:"Usage",
   modules:"Conteneurs", implantation:"Implantation", surface:"Surface totale (m²)",
   terrain:"Terrain", indivision:"Indivision", parcelle:"Parcelle", plan:"Plan", enveloppe:"Enveloppe",
@@ -1295,6 +1319,7 @@ function topo(r){
 function intentionEtude(){return S.etape==="Je souhaite poursuivre avec l’étude"||S.etape==="Je commande";}
 function pointsAClarifier(){
  var client=[], technique=[], e=estimationProjet();
+ if((S.usage==="Logement"||S.usage==="Hébergement ou tourisme") && nombreChambres()===null)client.push("Préciser le nombre de chambres souhaitées pour ajuster l’assainissement et vérifier la surface disponible.");
  if(!S.usage||S.usage==="Autre projet")client.push("Préciser l’usage et les pièces ou équipements souhaités.");
  if(!(nombre(S.surface)>0))client.push("Indiquer une surface approximative souhaitée en m² ; TMC pourra ensuite proposer les modules.");
  if(S.terrain!=="Il m'appartient ou je le loue")client.push("Préciser à quelle étape le terrain ou le droit d’usage sera disponible, sans engager l’étude avant clarification.");
@@ -1322,7 +1347,7 @@ function perimetreTechnique(){
  var p=[];
  if(prestation("Toiture de protection")){var t=toitureCalculee();p.push(t?"Toiture calculée : "+t.surface+" m² ; "+t.hypothese+" ; fournitures seules, main-d’œuvre à ajouter":"Toiture : implantation à préciser par TMC");}
  if(prestation("Fondations ou plots"))p.push(nombrePlotsCalcule()!==null?"Appuis calculés : "+nombrePlotsCalcule()+" plots (4 par 20 DRY, 10 par 40 HC), type à vérifier par TMC":"Appuis à calculer dès que les conteneurs seront définis");
- if(prestation("Assainissement et raccordements"))p.push(S.reseaux||"Raccordements extérieurs : à chiffrer avec TMC");
+ if(prestation("Assainissement et raccordements")){var ass=provisionAssainissement();p.push(ass?"Assainissement : "+ass.regle+" ; provision TMC":"Assainissement : configuration à préciser par TMC");p.push(S.reseaux||"Raccordements extérieurs : à chiffrer avec TMC");}
  else if(S.assainExistant==="oui")p.push("Assainissement existant déclaré, capacité à vérifier");
  return p.join(" ; ");
 }
@@ -1430,7 +1455,7 @@ function ficheEmail(){
     "Client": [S.nom, S.profil, S.structure].filter(Boolean).join(" — "),
     "email": S.mail || "",
     "Téléphone": S.tel || "",
-    "Projet": [S.usage, S.modules ? libelleMod() : "", S.surface ? S.surface + " m² au total" : "", S.implantation].filter(Boolean).join(" ; "),
+    "Projet": [S.usage, (S.usage==="Logement"||S.usage==="Hébergement ou tourisme")?S.chambres:"", S.modules ? libelleMod() : "", S.surface ? S.surface + " m² au total" : "", S.implantation].filter(Boolean).join(" ; "),
     "Travaux souhaités": S.prestations || "À préciser"
   };
   if(S.prestationsDetails) fiche["Précisions sur les travaux"] = S.prestationsDetails;
