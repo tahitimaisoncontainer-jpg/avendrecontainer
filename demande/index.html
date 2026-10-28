@@ -584,16 +584,14 @@ function signatureEstimation(){
 }
 function accordEstimation(ok){ S.estimationLue=ok?signatureEstimation():""; }
 function estimationTexte(){
-  var e=estimationProjet();
- if(e.bas===null || !e.standard || !S.modules || S.modules==="À définir")return "ESTIMATIF À PRÉCISER\nUne fourchette globale fiable nécessite de préciser la surface, les modules et les prestations. Aucun prix global ni plafond de budget n’est confirmé à ce stade.";
- return (e.complet?"BUDGET GLOBAL INDICATIF":"BUDGET GLOBAL PROVISOIRE — À COMPLÉTER")
-   +"\nMinimum estimé : "+fmt(e.bas)+" XPF."
-   +"\nMaximum estimé : "+fmt(e.haut)+" XPF."
-   +"\nCette fourchette couvre l’achat des conteneurs, leurs frais opérationnels, l’aménagement et les prestations chiffrées dans votre demande."
-   +(e.manquants.length?"\nLa borne haute concerne uniquement le périmètre chiffré : ce n’est pas un plafond du coût final. Ce montant n’est pas encore tout compris. Restent à chiffrer ou à vérifier : "+e.manquants.join(" ; ")+".":"")
-   +"\nEstimation non contractuelle, à confirmer après étude du projet. Hors étude et plans, mobilier et équipements non chiffrés."
-   +(S.estimationLue===signatureEstimation()?"\nVous avez consulté cette estimation avant l’envoi.":"\nCette estimation reste à consulter et à confirmer.");
+ var e=estimationProjet();
+ if(e.bas===null || !e.standard || !S.modules || S.modules==="À définir")return "À préciser avec TMC après définition du projet.";
+ return fmt(e.bas)+" à "+fmt(e.haut)+" XPF"
+   +"\nConteneurs, aménagement et prestations chiffrées compris."
+   +"\nEstimatif non contractuel, hors étude et plan 2D."
+   +(e.manquants.length?"\nMontant à compléter : certains travaux ou frais restent à chiffrer lors de l’étude. Le maximum indiqué n’est pas un plafond final.":"");
 }
+
 function blocEstimation(){
  var e=estimationProjet();
  if(e.bas===null || !e.standard || !S.modules || S.modules==="À définir")return '<div class="note"><b>Estimatif à préciser.</b> TMC précisera votre projet avec vous. Vous pouvez transmettre votre demande.</div>';
@@ -945,14 +943,7 @@ function rendre(){
     h += '<div class="recap">' + lignesRecap().map(function(l){
       return '<div class="r"><b>' + esc(l[0]) + '</b><span>' + esc(l[1]) + '</span></div>';
     }).join("") + '</div>';
-    h += blocEstimation();
-    h += '<div class="note"><b>Prochaine étape</b><br>' + esc(prochaineAction()) + '</div>';
-    h += '<div class="note">' + esc(suiteEtudeTexte()).replace(/\n/g,'<br>') + '</div>';
-    h += '<div class="note">' + esc(confirmationEtudeTexte()).replace(/\n/g,'<br>') + '</div>';
-    h += blocPrix();
-    h += '<p class="pja">Référence : ' + esc(referenceDemande()) + '</p>';
-    h += '<div class="note"><b>Dernière étape : vérifier et envoyer.</b><br>Une vérification antispam s’ouvrira sur FormSubmit. Terminez-la pour transmettre votre demande et activer l’accusé de réception automatique à votre adresse email.</div>';
-    h += '<div class="note">Vos informations et fichiers sont transmis à FormSubmit pour traiter l’envoi à TMC et l’accusé de réception. Aucun devis ni engagement de travaux n’est accepté par cet envoi.</div>';
+    h += '<p class="pja">Une vérification antispam s’ouvrira pour terminer l’envoi via FormSubmit. Vos réponses et fichiers seront transmis à TMC.</p>';
     var manquants = (window.FICHIERS_A_REJOINDRE||[]).filter(function(nom){return !PJ.some(function(f){return f.nom===nom;});});
     if(manquants.length)
       h += '<div class="note"><b>Fichiers à joindre à nouveau :</b> ' + esc(manquants.join(", ")) + '. Revenez à l’étape des plans pour les ajouter, ou envoyez-les par email après votre demande.</div>';
@@ -1150,12 +1141,8 @@ var ORDRE_R = ["reference","profil","structure","besoin","usage","modules","impl
   "rdvquand","nom","tel","mail","msg"];
 
 function lignesRecap(){
-  var out = [];
-  for(var i=0;i<ORDRE_R.length;i++){ var k = ORDRE_R[i];
-    if(S[k]) out.push([LIB[k] || k, S[k]]); }
-  var t = prixTotal();
-  if(t && t !== "devis") out.push(["Prix livré", fmt(t) + " XPF TTC"]);
-  return out;
+ var fiche=ficheEmail();
+ return Object.keys(fiche).filter(function(k){return fiche[k] && k!=="Contact TMC";}).map(function(k){return [k==="email"?"Email":k,fiche[k]];});
 }
 /* ============ TOPO ET ENVOI PAR MAIL ============ */
 var NIV = {
@@ -1341,44 +1328,12 @@ function perimetreTechnique(){
 }
 
 function suiteEtudeTexte(){
- var etude=tarifEtude(), plan=prixPlan();
- var t=[
-   "POUR OBTENIR UN DEVIS SUR MESURE",
-   "L’estimatif sert uniquement à situer votre budget. Le devis personnalisé nécessite une étude payante : matériaux et quantités, logistique et transport, moyens humains, organisation du chantier et contraintes administratives.",
-   etude?"Étude détaillée : "+etude+".":"Le tarif de l’étude sera confirmé une fois la surface définie.",
-   "Un plan 2D coté exploitable est nécessaire au chiffrage."
- ];
- if(S.plan==="Oui, un plan coté")t.push("Envoyez votre plan pour vérification. S’il est exploitable, il sera utilisé sans vous facturer un nouveau plan.");
- else t.push(plan?"Plan 2D à réaliser si nécessaire : "+fmt(plan[0])+" XPF, en supplément de l’étude. Vos croquis et documents seront examinés avant toute proposition.":"Si le plan 2D est à réaliser, son tarif sera confirmé après définition des modules, séparément de l’étude.");
- t.push("L’étude et le plan 2D à réaliser sont réglés avant leur démarrage, après confirmation du périmètre et des modalités par TMC. Votre réponse à ce mail n’est ni un paiement ni une commande de travaux.");
- t.push("Seule l’étude est déduite de votre commande de travaux si vous donnez suite. Le plan 2D reste une prestation distincte. Ce règlement n’est pas une commande de travaux.");
- return t.join("\n");
+ return "Pour votre devis sur mesure, l’étude couvre les matériaux, la logistique, la main-d’œuvre et les contraintes administratives. Étude et plan 2D à réaliser : règlement avant démarrage, après accord avec TMC. Un plan existant exploitable évite de facturer un nouveau plan. Seule l’étude sera déduite de la commande de travaux.";
 }
 
 function accuse(){
-  return [
-    "Ia ora na " + String(S.nom||"").trim() + ",",
-    "",
-    "Merci pour votre demande d’aménagement auprès de Tahiti Maison Container.",
-    "Référence : " + referenceDemande(),
-    "",
-    estimationTexte(),
-    "",
-    "PROCHAINE ÉTAPE",
-    prochaineAction(),
-    "",
-    suiteEtudeTexte(),
-    "",
-    confirmationEtudeTexte(),
-    "",
-    "Votre demande est transmise. Aucun devis ni délai de réalisation n’est confirmé par cet envoi.",
-    "",
-    "Pour compléter votre dossier, vous pouvez écrire à tahitimaisoncontainer@gmail.com en rappelant votre référence.",
-    "",
-    "Mauruuru,",
-    "Jean-Baptiste HAUATA — Tahiti Maison Container",
-    "87 22 65 55 — tahitimaisoncontainer@gmail.com"
-  ].join("\n");
+ // FormSubmit ajoute les champs ci-dessous à l’accusé : ne pas les répéter ici.
+ return "Ia ora na "+String(S.nom||"").trim()+",\n\nVoici le récapitulatif de votre demande et votre budget approximatif.\nLes tarifs et la marche à suivre pour poursuivre figurent ci-dessous.\n\nMauruuru,\nTahiti Maison Container";
 }
 
 function objet(r){
@@ -1438,32 +1393,25 @@ function evaluerDemande(){
 }
 
 function ficheEmail(){
-  var lieu = S.commune === "Autre île" ? S.ile : S.commune;
-  var fiche = {
-    "Client": [S.nom, S.profil, S.structure].filter(Boolean).join(" — "),
-    "email": S.mail || "",
-    "Téléphone": S.tel || "",
-    "Projet": [S.usage, S.modules ? libelleMod() : "", S.surface ? S.surface + " m² au total" : "", S.implantation].filter(Boolean).join(" ; "),
-    "Travaux souhaités": S.prestations || "À préciser"
-  };
-  if(S.prestationsDetails) fiche["Précisions sur les travaux"] = S.prestationsDetails;
-  if(perimetreTechnique()) fiche["Hypothèses et périmètre"] = perimetreTechnique();
-  var clarifications=pointsAClarifier();
-  fiche["Prochaine action"] = prochaineAction();
-  if(clarifications.client.length) fiche["Précisions attendues"] = clarifications.client.join("\n");
-  if(clarifications.technique.length) fiche["À vérifier par TMC"] = clarifications.technique.join("\n");
-  fiche["Lieu et livraison"] = [lieu, S.livraison, S.emplacement].filter(Boolean).join(" ; ");
-  fiche["Terrain et accès"] = [S.terrain, S.indivision, S.parcelle ? "Parcelle " + S.parcelle : "", S.acces ? "Accès grue : " + S.acces : ""].filter(Boolean).join(" ; ");
-  fiche["Plans et documents"] = [S.plan, PJ.length ? PJ.length + " fichier(s) joint(s) : " + PJ.map(function(f){return f.nom;}).join(", ") : "Aucun fichier joint"].filter(Boolean).join(" ; ");
-  fiche["Budget"] = S.enveloppe || "À préciser";
-  fiche["Estimation indicative"] = estimationTexte();
-  if(S.budgetExact) fiche["Budget disponible précisé"] = fmt(nombre(S.budgetExact))+" XPF";
-  fiche["Financement"] = S.financement || "À préciser";
-  fiche["Échéance souhaitée"] = S.delai || "À préciser";
-  fiche["Décision et suite souhaitée"] = [S.decision, S.etape].filter(Boolean).join(" ; ");
-  if(S.msg) fiche["Message du client"] = S.msg;
-  fiche["Référence du dossier"] = referenceDemande();
-  return fiche;
+ var plan=prixPlan();
+ var fiche={
+   "Référence":referenceDemande(),
+   "Client":[S.nom,S.structure].filter(Boolean).join(" — "),
+   "email":S.mail||"",
+   "Téléphone":S.tel||"",
+   "Conteneurs":S.modules?libelleMod():"À définir avec TMC",
+   "Aménagement":[S.usage,S.prestationsDetails||S.prestations].filter(Boolean).join(" — "),
+   "Lieu":[S.commune==="Autre île"?S.ile:S.commune,S.emplacement].filter(Boolean).join(" — "),
+   "Emplacement":S.implantation||"À définir avec TMC",
+   "Pour quand":S.delai||"À définir",
+   "Budget approximatif du projet":estimationTexte(),
+   "Étude pour le devis sur mesure":tarifEtude()||"Tarif à confirmer après définition de la surface",
+   "Plan 2D":plan?fmt(plan[0])+" XPF si TMC doit le réaliser ; pas de nouveau plan facturé si votre plan est exploitable.":"Tarif à confirmer après définition des conteneurs",
+   "Pour poursuivre":"Répondez à tahitimaisoncontainer@gmail.com : « Oui, je souhaite poursuivre avec l’étude — "+referenceDemande()+". » Cet accord ne vaut ni paiement ni commande de travaux.",
+   "Conditions de l’étude":suiteEtudeTexte(),
+   "Contact TMC":"Jean-Baptiste HAUATA — 87 22 65 55 — tahitimaisoncontainer@gmail.com"
+ };
+ return fiche;
 }
 
 function envoyer(){
