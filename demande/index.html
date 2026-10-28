@@ -203,8 +203,8 @@ E.profil = {k:"Pour commencer", q:"Vous êtes…", ch:"profil", o:[
 E.redirection = {k:"Conteneur brut", q:"Tout est déjà en ligne", redirect:1,
   sub:"Pour un conteneur livré tel quel, le prix de votre commune s'affiche directement sur notre page conteneurs, et vous commandez depuis cette page. Inutile de remplir un questionnaire."};
 
-E.commune = {k:"Le lieu", q:"Où le projet sera-t-il installé ?", sel:"commune",
-  sub:"L'île et la commune déterminent le transport et les conditions d'accès."};
+E.commune = {k:"Le lieu", q:"Où votre projet sera-t-il installé ?", sel:"commune",
+  sub:"Choisissez le lieu, puis ajoutez un quartier ou un repère si vous le connaissez."};
 
 E.acces = {k:"Livraison", q:"Un camion-grue peut-il accéder à l'emplacement ?", ch:"acces",
   sub:"C'est le point qui fait échouer le plus de livraisons.", o:[
@@ -244,8 +244,8 @@ E.prestations = {k:"Votre aménagement", q:"Quelles prestations souhaitez-vous ?
   ["Autres prestations"],
   ["À définir ensemble", "Nous préciserons les travaux avec vous.", 1]]};
 
-E.destination = {k:"La livraison", q:"Jusqu’où souhaitez-vous la livraison ?", destination:1,
-  sub:"Le transport jusqu’au quai et l’acheminement jusqu’au terrain sont deux prestations distinctes. Leur faisabilité et leur prix seront étudiés avant le devis."};
+E.destination = {k:"La livraison",q:"Où souhaitez-vous recevoir vos conteneurs ?",destination:1,
+ sub:"Au quai ou jusqu’au terrain : choisissez ce qui vous convient."};
 
 E.modules = {k:"Votre projet", q:"Quels conteneurs souhaitez-vous aménager ?", mod:1, gabarit:1, num:"surface",
   sub:"Indiquez vos conteneurs. La surface indicative est calculée automatiquement pour un logement ; vous retrouvez ensuite votre estimation globale."};
@@ -493,15 +493,35 @@ function modInconnu(){
 }
 
 /* ============ PARCOURS ============ */
+function estSurTahiti(){
+ var c=comInfo(S.commune),rang=c?COM.indexOf(c):-1;
+ return rang>=0 && rang<22;
+}
+function libelleLieu(){
+ return S.commune==="Autre île"?S.ile||"Autre île":String(S.commune||"").replace(" (au quai)","");
+}
+function normaliserLivraison(){
+ if(estSurTahiti())S.livraison="Jusqu’au terrain, avec déchargement et pose";
+}
+function champQuartier(){
+ return '<label class="f"><span>Quartier ou repère (facultatif)</span><input id="i_emplacement" type="text" maxlength="240" placeholder="Par exemple : PK, côté mer ou montagne" value="'+esc(S.emplacement||"")+'" oninput="maj(\'emplacement\',this.value)"></label>';
+}
+
 function parcours(){
   adapterDecision();
+  normaliserLivraison();
   var p = ["usage","profil","modules"];
   p.push("formule");
   if(formulePersonnalisee())p.push("prestations");
   if(totalMod() >= 2 || S.modules === "À définir") p.push("implantation");
-  p = p.concat(["commune","destination","terrain"]);
+  p.push("commune");
+  if(S.commune && !estSurTahiti())p.push("destination");
+  p.push("terrain");
   if(S.terrain === "Il m'appartient ou je le loue" || S.terrain === "Achat ou bail en cours de signature") p.push("indivision");
-  if(S.terrain && S.terrain!=="Je n'ai pas encore de terrain") p=p.concat(["parcelle","acces"]);
+  if(S.terrain && S.terrain!=="Je n'ai pas encore de terrain"){
+    p.push("parcelle");
+    if(S.livraison==="Jusqu’au terrain, avec déchargement et pose")p.push("acces");
+  }
   return p.concat(["plan","delai","enveloppe","estimation","financement","decision","contact","recap","fini"]);
 }
 
@@ -553,7 +573,7 @@ function estimationProjet(){
   if(totalMod()>0 && S.modules!=="À définir" && c && COM.indexOf(c)<=21 && S.livraison==="Jusqu’au terrain, avec déchargement et pose" && S.acces==="Oui, l'accès est dégagé") {
     // Grille Tahiti : supplément HT, TVA transport 13 %, arrondi supérieur par module.
     ajoute("Transport Tahiti, accès standard",nMod("n20")*arrondiHaut(c[1]*1.13)+nMod("n40")*arrondiHaut(c[2]*1.13));
-  } else manquants.push("Transport, grutage et livraison finale à chiffrer selon destination et accès");
+  } else manquants.push(S.livraison==="Au quai uniquement"?"Fret et mise à disposition au quai à chiffrer":"Transport, grutage et livraison finale à chiffrer selon destination et accès");
   if(prestation("Toiture de protection")) {
     var toit=toitureCalculee();
     if(toit){
@@ -891,10 +911,11 @@ function rendre(){
     h += '<label class="f"><span>Île et commune</span><select id="i_' + e.sel + '" onchange="maj(\'' + e.sel + '\',this.value);rendre()">'
        + '<option value="">— choisissez —</option>';
     for(var j=0;j<COM.length;j++)
-      h += '<option' + (S[e.sel] === COM[j][0] ? ' selected' : '') + '>' + esc(COM[j][0]) + '</option>';
+      h += '<option value="' + esc(COM[j][0]) + '"' + (S[e.sel] === COM[j][0] ? ' selected' : '') + '>' + esc(COM[j][0].replace(" (au quai)","")) + '</option>';
     h += '</select></label>';
     if(S.commune === "Autre île")
       h += '<label class="f"><span>Nom de l’île et commune</span><input id="i_ile" type="text" maxlength="160" placeholder="Par exemple Fakarava, village de Rotoava" value="' + esc(S.ile||"") + '" oninput="maj(\'ile\',this.value)"></label>';
+    if(estSurTahiti())h+=champQuartier();
 
   }
   if(e.formule && S.formule && !formulePersonnalisee())h+='<p class="pja">'+esc(resumeFormule())+'. Les postes restant à chiffrer seront signalés dans l’estimation.</p>';
@@ -903,15 +924,12 @@ function rendre(){
       + '<textarea id="i_prestationsDetails" maxlength="3000" placeholder="Par exemple : une baie vitrée en façade, deux prises, une douche ; toiture réalisée par mes soins…" oninput="maj(\'prestationsDetails\',this.value)">' + esc(S.prestationsDetails||"") + '</textarea></label>';
   }
   if(e.destination){
-    h += '<label class="f"><span>Périmètre de livraison souhaité</span><select id="i_livraison" onchange="maj(\'livraison\',this.value);rendre()">'
-      + '<option value="">— choisissez —</option>';
-    ["Au quai uniquement", "Jusqu’au terrain, avec déchargement et pose", "À définir ensemble"].forEach(function(v){
-      h += '<option' + (S.livraison === v ? ' selected' : '') + '>' + esc(v) + '</option>';
+    h+='<label class="f"><span>La livraison</span><select id="i_livraison" onchange="maj(\'livraison\',this.value);rendre()"><option value="">— choisissez —</option>';
+    [["Au quai uniquement","Au quai"],["Jusqu’au terrain, avec déchargement et pose","Jusqu’au terrain"],["À définir ensemble","Je ne sais pas"]].forEach(function(o){
+      h+='<option value="'+esc(o[0])+'"'+(S.livraison===o[0]?' selected':'')+'>'+esc(o[1])+'</option>';
     });
-    h += '</select></label>';
-    if(S.livraison && S.livraison !== "À définir ensemble")
-      h += '<label class="f"><span>Quartier ou repère du lieu de livraison</span><input id="i_emplacement" type="text" maxlength="240" placeholder="Précisez le lieu, ou écrivez « à préciser »" value="' + esc(S.emplacement||"") + '" oninput="maj(\'emplacement\',this.value)"></label>';
-    h += '<p class="pja">Si le lieu n’est pas encore arrêté, indiquez-le : aucune livraison ni aucun tarif de transport n’est confirmé à ce stade.</p>';
+    h+='</select></label>';
+    if(S.livraison==="Jusqu’au terrain, avec déchargement et pose")h+=champQuartier();
   }
   if(e.gabarit) h += '<div class="gab">' + GABARIT + '<div class="sep"></div>' + PLONGEE + LEGENDE + '</div>';
 
@@ -1130,7 +1148,10 @@ function coche(champ, i){
 
 function effaceErr(){ var d = document.getElementById("err"); if(d) d.innerHTML = ""; }
 function maj(champ, val){
+  var avant=S[champ];
   S[champ] = val;
+  if(champ==="commune" && avant!==val){delete S.emplacement;delete S.acces;delete S.livraison;delete S.ile;normaliserLivraison();}
+  if(champ==="livraison" && avant!==val && val!=="Jusqu’au terrain, avec déchargement et pose"){delete S.emplacement;delete S.acces;}
   if(champ==="prestationsDetails")S.prestationsDetailsPerso=val;
   if(champ === "commune" && val !== "Autre île") delete S.ile;
   if(champ === "livraison" && val === "À définir ensemble") delete S.emplacement;
@@ -1171,9 +1192,7 @@ function valide(){
   if(e.prestations && String(S.prestations||"").indexOf("Autres prestations") > -1 && String(S.prestationsDetails||"").trim().length < 3)
     return "Précisez les autres prestations souhaitées.";
   if(e.destination){
-    if(!S.livraison) return "Choisissez le périmètre de livraison souhaité.";
-    if(S.livraison !== "À définir ensemble" && String(S.emplacement||"").trim().length < 3)
-      return "Précisez le lieu final, ou indiquez « à préciser ».";
+    if(["Au quai uniquement","Jusqu’au terrain, avec déchargement et pose","À définir ensemble"].indexOf(S.livraison)<0)return "Choisissez au quai, jusqu’au terrain ou « Je ne sais pas ».";
   }
   if(e.txt && !e.opt && !S[e.txt]) return "Ce champ est nécessaire.";
   if(e.estimation){
@@ -1372,7 +1391,7 @@ function pointsAClarifier(){
  if(plafondEnveloppe()===null)client.push("Préciser le montant réellement mobilisable pour l’ensemble du projet, même approximatif.");
  if(coherenceBudget()==="incompatible")client.push("Revoir la surface ou les prestations, ou l’enveloppe disponible : le budget déclaré est sous le repère calculé.");
  if(!S.financement||/Je ne sais pas|reste à monter|cours d'instruction|Crédits votés/.test(S.financement))client.push("Confirmer la part de financement disponible et celle encore en attente avant de lancer l’étude.");
- if(!S.emplacement||/préciser|définir/i.test(S.emplacement))client.push("Transmettre un repère du terrain et, si possible, des photos de son accès lorsqu’il sera identifié.");
+ if((estSurTahiti()||S.livraison==="Jusqu’au terrain, avec déchargement et pose") && (!S.emplacement||/préciser|définir/i.test(S.emplacement)))technique.push("Préciser le quartier ou le repère avant d’organiser la livraison sur le terrain.");
  if(S.plan==="Oui, un plan coté" && !PJ.length)client.push("Envoyer le plan 2D annoncé pour vérifier s’il est exploitable avant de proposer un nouveau plan.");
  if(!decisionValidee())client.push("Confirmer la validation du projet et du budget auprès de la personne ou de l’instance qui décide.");
  if(S.modules==="À définir"||!S.modules)technique.push("Proposer le nombre et le format des modules à partir de la surface et de l’usage.");
@@ -1474,7 +1493,7 @@ function ficheEmail(){
    "Conteneurs":S.modules?libelleMod():"À définir avec TMC",
    "Formule":S.formule||"Je choisis mes prestations",
    "Aménagement":[S.usage,S.formule?resumeFormule():S.prestations,S.prestationsDetails].filter(Boolean).join(" — "),
-   "Commune / quartier":[S.commune==="Autre île"?S.ile:S.commune,S.emplacement].filter(Boolean).join(" — "),
+   "Commune / quartier":[libelleLieu(),S.emplacement].filter(Boolean).join(" — "),
    "Livraison":S.livraison||"À préciser",
    "Surface indicative":nombre(S.surface)>0?fmt(nombre(S.surface))+" m²":"À préciser",
    "Pour quand":S.delai||"À définir",
@@ -1524,7 +1543,7 @@ function envoyer(){
       var input = document.createElement("input"); input.type = "hidden";
       input.name = nom; input.value = valeur; form.appendChild(input);
     }
-    var lieu = S.commune === "Autre île" ? S.ile : S.commune;
+    var lieu = libelleLieu();
     var evaluation = evaluerDemande();
     // _subject sert au mail TMC ; aucun champ d'évaluation n'est ajouté à la
     // fiche que FormSubmit recopie dans l'accusé de réception du client.
