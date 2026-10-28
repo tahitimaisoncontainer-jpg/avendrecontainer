@@ -298,7 +298,7 @@ E.financement = {k:"Budget", q:"Comment envisagez-vous de financer ce projet ?",
   sub:"Plusieurs réponses possibles : beaucoup de projets combinent plusieurs sources. Cette question me sert à adapter le calendrier de facturation à votre situation.", o:[
   ["Fonds propres disponibles"],
   /* le 4e element limite l option aux structures : un particulier n emet pas de bon de commande */
-  ["Bon de commande ou marché signé","Engagement écrit de votre structure. C'est ce qui me permet de lancer.",0,"pro"],
+  ["Bon de commande ou marché signé","Engagement déclaré pour ce projet.",0,"pro"],
   ["Crédits votés, bon de commande à venir","Le budget est inscrit, l'engagement n'est pas encore émis.",0,"pro"],
   ["Prêt bancaire déjà accordé"],
   ["Aide ou subvention notifiée"],
@@ -315,12 +315,33 @@ E.rdvquand = {k:"Rendez-vous", q:"Quel moment vous arrange ?", ch:"rdvquand", o:
   ["En semaine, le matin"],["En semaine, l'après-midi"],["Le samedi"],["Peu importe, appelez-moi"]]};
 
 /* ---- commun fin ---- */
-E.decision = {k:"Presque fini", q:"Qui décide du projet avec vous ?", ch:"decision", o:[
-  ["Je décide seul","Décision personnelle"],
-  ["Nous décidons en couple ou en famille","Le principe est déjà validé entre nous"],
-  ["Nous n'en avons pas encore parlé","Discussion à venir"],
-  ["Je décide avec un associé ou ma hiérarchie","Validation interne à obtenir"],
-  ["Je fais la demande pour quelqu'un d'autre","Je ne suis pas le décideur"]]};
+var DECISIONS = {
+ "Un particulier":{q:"Qui décide du projet avec vous ?",o:[
+  ["Je décide seul"],["Nous décidons en couple ou en famille"],["Nous n'en avons pas encore parlé"],["Je fais la demande pour quelqu'un d'autre"]]},
+ "Une entreprise":{q:"Qui valide ce projet dans votre entreprise ?",o:[
+  ["Je peux valider le projet pour l’entreprise"],["Ma direction ou un associé doit valider"],["Je prépare la demande pour le décideur"]]},
+ "Une administration ou une commune":{q:"Comment ce projet sera-t-il validé ?",o:[
+  ["Je peux valider le projet pour la structure"],["Ma hiérarchie doit valider"],["Une décision officielle reste à obtenir"],["Je prépare uniquement la demande"]]},
+ "Une association":{q:"Qui valide ce projet dans votre association ?",o:[
+  ["Je peux valider le projet pour l’association"],["Le bureau ou le conseil d’administration doit valider"],["L’assemblée générale doit valider"],["Je prépare uniquement la demande"]]}
+};
+function adapterDecision(){
+ var config=DECISIONS[S.profil]||DECISIONS["Un particulier"];
+ E.decision={k:"Presque fini",q:config.q,ch:"decision",o:config.o};
+ if(S.decision && !config.o.some(function(o){return o[0]===S.decision;}))delete S.decision;
+}
+function decisionRenseignee(){
+ var config=DECISIONS[S.profil]||DECISIONS["Un particulier"];
+ return config.o.some(function(o){return o[0]===S.decision;});
+}
+function decisionValidee(){
+ var config=DECISIONS[S.profil]||DECISIONS["Un particulier"];
+ return S.decision===config.o[0][0] || (S.profil==="Un particulier" && S.decision===config.o[1][0]);
+}
+function libelleStructure(){
+ return S.profil==="Une entreprise"?"Nom de l’entreprise":S.profil==="Une association"?"Nom de l’association":"Nom de l’administration ou de la commune";
+}
+adapterDecision();
 
 E.contact = {k:"Vos coordonnées", q:"Vos coordonnées pour recevoir votre proposition", contact:1,
   sub:"Vous recevrez l’estimatif et les étapes pour poursuivre par email après transmission. Utilisez le dernier champ pour préciser vos questions ou vos contraintes.",
@@ -461,6 +482,7 @@ function modInconnu(){
 
 /* ============ PARCOURS ============ */
 function parcours(){
+  adapterDecision();
   var p = ["usage","profil","modules"];
   p.push("prestations");
   if(totalMod() >= 2 || S.modules === "À définir") p.push("implantation");
@@ -915,7 +937,7 @@ function rendre(){
        + '<label class="f"><span>Vos questions, ou un mot sur votre projet <small style="font-weight:400;color:#5b6470">(facultatif)</small></span>'
        + '<textarea id="i_msg" placeholder="Posez-moi vos questions : délais, matériaux, isolation, normes, transport, entretien, autorisations… J\'y réponds une par une." oninput="maj(\'msg\',this.value)">' + esc(S.msg||"") + '</textarea></label>';
     if(S.profil === "Une entreprise" || S.profil === "Une administration ou une commune" || S.profil === "Une association")
-      h += '<label class="f"><span>Nom de la structure</span><input id="i_structure" type="text" value="' + esc(S.structure||"") + '" oninput="maj(\'structure\',this.value)"></label>';
+      h += '<label class="f"><span>' + esc(libelleStructure()) + '</span><input id="i_structure" type="text" value="' + esc(S.structure||"") + '" oninput="maj(\'structure\',this.value)"></label>';
   }
 
   if(e.pj){
@@ -1028,6 +1050,7 @@ function choix(champ, i){
     if(S.terrain==="Je n'ai pas encore de terrain"){delete S.parcelle;delete S.acces;}
   }
   if(champ==="profil"){
+    delete S.decision;
     if(S.profil==="Un particulier"){
       delete S.structure;
       MULTI.financement=(MULTI.financement||[]).filter(function(v){return v!=="Bon de commande ou marché signé" && v!=="Crédits votés, bon de commande à venir";});
@@ -1096,6 +1119,7 @@ function majPrixLive(){
 function valide(){
   var e = E[ordre[idx]];
   if(e.o && !S[e.ch]) return "Choisissez une réponse pour continuer.";
+  if(e.ch==="decision" && !decisionRenseignee())return "Précisez qui valide le projet pour votre profil.";
   if(e.sel && !S[e.sel]) return "Indiquez la commune de livraison.";
   if(e.mod && !S.modules) return "Indiquez le nombre de conteneurs, ou choisissez « Je ne sais pas encore ».";
   if(e.num){
@@ -1122,6 +1146,7 @@ function valide(){
   }
   if(e.contact){
     if(!S.nom || S.nom.trim().length < 2) return "Merci d'indiquer votre nom.";
+    if(S.profil!=="Un particulier" && String(S.structure||"").trim().length<2)return "Merci d’indiquer le nom de votre structure.";
     var t = String(S.tel||"").replace(/[^0-9+]/g,"");
     if(t.length < 6) return "Merci d'indiquer un numéro de téléphone valide.";
     if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(String(S.mail||""))) return "Merci d'indiquer un email valide.";
@@ -1314,7 +1339,7 @@ function pointsAClarifier(){
  if(!S.financement||/Je ne sais pas|reste à monter|cours d'instruction|Crédits votés/.test(S.financement))client.push("Confirmer la part de financement disponible et celle encore en attente avant de lancer l’étude.");
  if(!S.emplacement||/préciser|définir/i.test(S.emplacement))client.push("Transmettre un repère du terrain et, si possible, des photos de son accès lorsqu’il sera identifié.");
  if(S.plan==="Oui, un plan coté" && !PJ.length)client.push("Envoyer le plan 2D annoncé pour vérifier s’il est exploitable avant de proposer un nouveau plan.");
- if(S.decision==="Je fais la demande pour quelqu'un d'autre"||S.decision==="Nous n'en avons pas encore parlé")client.push("Confirmer l’intérêt et le budget avec la personne qui décidera du projet.");
+ if(!decisionValidee())client.push("Confirmer la validation du projet et du budget auprès de la personne ou de l’instance qui décide.");
  if(S.modules==="À définir"||!S.modules)technique.push("Proposer le nombre et le format des modules à partir de la surface et de l’usage.");
  e.manquants.forEach(function(v){if(!/Surface à préciser|Nombre de conteneurs à préciser/.test(v))technique.push(v+".");});
  if(S.plan!=="Oui, un plan coté")technique.push("Définir le plan 2D nécessaire au devis ; examiner d’abord les croquis ou documents déjà disponibles.");
@@ -1380,7 +1405,8 @@ function evaluerDemande(){
   if(S.modules && S.modules !== "À définir" && totalMod() > 0) projet += 5;
   var surface = Number(String(S.surface||"").replace(",", "."));
   if(Number.isFinite(surface) && surface > 0) projet += 5;
-  if(S.decision === "Je décide seul" || S.decision === "Nous décidons en couple ou en famille" || S.decision === "Je décide avec un associé ou ma hiérarchie") decision = 5;
+  if(decisionValidee()) decision = 5;
+  else if(decisionRenseignee()) decision = 2;
   if(S.delai && S.delai !== "Pas de date, je me renseigne") delai = 5;
 
   var score = terrain + budget + financement + projet + decision + delai;
@@ -1404,7 +1430,10 @@ function ficheEmail(){
  var plan=prixPlan();
  var fiche={
    "Référence":referenceDemande(),
-   "Client":[S.nom,S.structure].filter(Boolean).join(" — "),
+   "Client":S.nom||"",
+   "Profil":S.profil||"",
+   "Structure":S.profil!=="Un particulier"?S.structure||"":"",
+   "Validation du projet":S.decision||"",
    "email":S.mail||"",
    "Téléphone":S.tel||"",
    "Conteneurs":S.modules?libelleMod():"À définir avec TMC",
