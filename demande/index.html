@@ -474,7 +474,7 @@ function parcours(){
    Fourchettes construites à partir des postes détaillés TMC 2021/2024/2026.
    Ce sont des provisions de préqualification, pas les extrema de devis identiques.
    Pas de coefficient automatique selon le profil du client. */
-var BAREME = {version:"2026-10-28", amenagement:[180000,220000], toiture:[6000,21000], plot:32000, assainissement:[1000000,2500000]};
+var BAREME = {version:"2026-10-28", amenagement:[180000,220000], toiture:[6200,6200], plot:32000, assainissement:[1000000,2500000]};
 function estPublic(){ return S.profil === "Une administration ou une commune"; }
 function arrondiHaut(v,pas){ return Math.ceil(v/(pas||10000))*(pas||10000); }
 function nombre(v){ return Number(String(v||"").replace(",",".")); }
@@ -483,6 +483,14 @@ function nombrePlotsCalcule(){
   // Règle TMC : aucun partage d’appuis entre modules.
   if(!S.modules || S.modules==="À définir" || totalMod()<1)return null;
   return nMod("n20")*4+nMod("n40")*10;
+}
+function toitureCalculee(){
+  if(!S.modules || S.modules==="À définir" || totalMod()<1)return null;
+  var a=nMod("n20"), b=nMod("n40"), n=a+b, largeur=2.438;
+  if(n>1 && S.implantation!=="Assemblés en un seul bâtiment" && S.implantation!=="Séparés, posés indépendamment")return null;
+  var separes=n>1 && S.implantation==="Séparés, posés indépendamment";
+  var surface=separes?a*(6.058+2)*(largeur+2)+b*(12.192+2)*(largeur+2):((b?12.192:6.058)+2)*(largeur*n+2);
+  return {surface:Math.round(surface*100)/100,hypothese:separes?"toitures séparées, débord de 1 m sur chaque côté":n>1?"modules côte à côte sous une toiture rectangulaire, débord extérieur de 1 m sur chaque côté":"débord de 1 m sur chaque côté"};
 }
 function estimationProjet(){
   var m=nombre(S.surface), lignes=[], manquants=[], standard=true;
@@ -503,9 +511,12 @@ function estimationProjet(){
     ajoute("Transport Tahiti, accès standard",nMod("n20")*arrondiHaut(c[1]*1.13)+nMod("n40")*arrondiHaut(c[2]*1.13));
   } else manquants.push("Transport, grutage et livraison finale à chiffrer selon destination et accès");
   if(prestation("Toiture de protection")) {
-    var toit=nombre(S.surfaceToiture);
-    if(Number.isFinite(toit)&&toit>0) ajoute("Toiture — "+toit+" m² de couverture, débords compris",toit*BAREME.toiture[0],toit*BAREME.toiture[1]);
-    else manquants.push("Surface réelle de toiture à préciser, débords compris");
+    var toit=toitureCalculee();
+    if(toit){
+      ajoute("Fournitures de toiture — "+toit.surface+" m² calculés automatiquement avec débords de 1 m",toit.surface*BAREME.toiture[0]);
+      manquants.push("Main-d’œuvre de toiture à ajouter ; fournitures seules dans ce repère");
+      if(totalMod()>1)manquants.push("Géométrie de toiture à vérifier par TMC : "+toit.hypothese);
+    }else manquants.push("TMC doit préciser l’implantation au sol pour calculer la toiture, sans demander de métrés au client");
   }
   if(prestation("Fondations ou plots")) {
     var plots=nombrePlotsCalcule();
@@ -890,7 +901,6 @@ function rendre(){
     h += '<div class="note"><b>Vos informations servent à traiter votre demande auprès de TMC.</b> Elles sont transmises via FormSubmit pour l’acheminement des emails et des fichiers. Elles ne sont pas publiées sur le site.</div>';
 
   if(e.estimation){
-    if(S.surfaceToiture && (!Number.isFinite(nombre(S.surfaceToiture)) || nombre(S.surfaceToiture)<=0)) return "La surface de toiture doit être positive.";
     if(S.budgetExact && (!Number.isFinite(nombre(S.budgetExact)) || nombre(S.budgetExact)<=0)) return "Le budget doit être positif.";
   }
   if(e.contact){
@@ -912,8 +922,7 @@ function rendre(){
   }
 
   if(e.estimation){
-    h+='<p class="sub">Ce repère sert à vérifier votre budget avant une étude détaillée. Aucun travail n’est commandé. Le nombre d’appuis est calculé automatiquement à partir des conteneurs indiqués au début. Si vous ne connaissez pas la surface de toiture, laissez le champ vide.</p>';
-    if(prestation("Toiture de protection")) h+='<label class="f"><span>Surface de toiture en m², débords compris (facultatif)</span><input type="number" inputmode="decimal" min="0.1" step="any" value="'+esc(S.surfaceToiture||"")+'" oninput="majEstimation(\'surfaceToiture\',this.value)"></label>';
+    h+='<p class="sub">Ce repère sert à vérifier votre budget avant une étude détaillée. Aucun travail n’est commandé. La toiture et le nombre d’appuis sont calculés à partir des conteneurs indiqués au début. TMC vérifiera les hypothèses d’implantation pendant l’étude.</p>';
     if(prestation("Assainissement et raccordements")) h+='<label class="f"><span>Raccordements extérieurs eau / électricité</span><select onchange="majEstimation(\'reseaux\',this.value)"><option value="">À chiffrer avec TMC</option><option '+(S.reseaux==="Raccordements extérieurs pris en charge séparément"?'selected':'')+'>Raccordements extérieurs pris en charge séparément</option></select></label>';
     if(!prestation("Assainissement et raccordements") && (prestation("Plomberie et sanitaires")||prestation("Cuisine")||S.usage==="Logement"||S.usage==="Hébergement ou tourisme")) h+='<label class="f"><span>Assainissement déjà disponible pour le projet ?</span><select onchange="majEstimation(\'assainExistant\',this.value)"><option value="">À vérifier / à créer</option><option value="oui" '+(S.assainExistant==="oui"?'selected':'')+'>Oui, installation existante annoncée (à vérifier lors de l’étude)</option></select></label>';
     h+='<label class="f"><span>Budget réellement disponible en XPF (facultatif)</span><input type="number" inputmode="numeric" min="1" step="1" value="'+esc(S.budgetExact||"")+'" oninput="majEstimation(\'budgetExact\',this.value)"></label>';
@@ -1311,7 +1320,7 @@ function confirmationEtudeTexte(){
 }
 function perimetreTechnique(){
  var p=[];
- if(prestation("Toiture de protection"))p.push(S.surfaceToiture?"Toiture déclarée : "+S.surfaceToiture+" m², débords compris":"Toiture : surface à définir par TMC");
+ if(prestation("Toiture de protection")){var t=toitureCalculee();p.push(t?"Toiture calculée : "+t.surface+" m² ; "+t.hypothese+" ; fournitures seules, main-d’œuvre à ajouter":"Toiture : implantation à préciser par TMC");}
  if(prestation("Fondations ou plots"))p.push(nombrePlotsCalcule()!==null?"Appuis calculés : "+nombrePlotsCalcule()+" plots (4 par 20 DRY, 10 par 40 HC), type à vérifier par TMC":"Appuis à calculer dès que les conteneurs seront définis");
  if(prestation("Assainissement et raccordements"))p.push(S.reseaux||"Raccordements extérieurs : à chiffrer avec TMC");
  else if(S.assainExistant==="oui")p.push("Assainissement existant déclaré, capacité à vérifier");
