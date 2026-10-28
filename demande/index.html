@@ -560,15 +560,17 @@ function plafondEnveloppe(){
   if(S.enveloppe === "50 millions XPF et plus") return 1e12;
   return null;
 }
+function minimumEnveloppe(){
+ var tranches={"2 à 3 millions XPF":2000000,"3 à 5 millions XPF":3000000,"5 à 10 millions XPF":5000000,"10 à 20 millions XPF":10000000,"20 à 30 millions XPF":20000000,"30 à 50 millions XPF":30000000,"50 millions XPF et plus":50000000};
+ return Object.prototype.hasOwnProperty.call(tranches,S.enveloppe)?tranches[S.enveloppe]:null;
+}
 function coherenceBudget(){
-  var e=estimationProjet(), pl=plafondEnveloppe(), exact=nombre(S.budgetExact);
-  if(exact>0) pl=exact;
-  if(e.bas===null || pl===null) return "inconnue";
-  if(!e.standard) return "incomplete";
-  if(pl<e.bas) return "incompatible";
-  if(!e.complet) return "incomplete";
-  if(pl<e.haut || !(exact>0)) return "juste";
-  return "coherente";
+ var e=estimationProjet(),pl=plafondEnveloppe(),minimum=minimumEnveloppe();
+ if(e.bas===null || pl===null)return "inconnue";
+ if(!e.standard)return "incomplete";
+ if(pl<e.bas)return "incompatible";
+ if(!e.complet)return "incomplete";
+ return minimum>=e.haut?"coherente":"juste";
 }
 function texteBudget(){
  var c=coherenceBudget();
@@ -576,7 +578,7 @@ function texteBudget(){
 }
 function signatureEstimation(){
  var e=estimationProjet();
- return JSON.stringify([BAREME.version,e.lignes,e.manquants,S.enveloppe,S.budgetExact,S.usage,S.prestations,S.implantation,S.commune,S.ile,S.livraison,S.acces,prestation("Assainissement et raccordements")?S.reseaux:null]);
+ return JSON.stringify([BAREME.version,e.lignes,e.manquants,S.enveloppe,S.usage,S.prestations,S.implantation,S.commune,S.ile,S.livraison,S.acces,prestation("Assainissement et raccordements")?S.reseaux:null]);
 }
 function accordEstimation(ok){ S.estimationLue=ok?signatureEstimation():""; }
 function messageEstimation(e){
@@ -927,7 +929,6 @@ function rendre(){
   if(e.estimation){
     h+='<p class="sub">Votre budget estimatif est calculé à partir de vos réponses. Aucun travail n’est commandé.</p>';
     if(prestation("Assainissement et raccordements")) h+='<label class="f"><span>Raccordements extérieurs eau / électricité</span><select onchange="majEstimation(\'reseaux\',this.value)"><option value="">À chiffrer avec TMC</option><option '+(S.reseaux==="Raccordements extérieurs pris en charge séparément"?'selected':'')+'>Raccordements extérieurs pris en charge séparément</option></select></label>';
-    h+='<label class="f"><span>Budget réellement disponible en XPF (facultatif)</span><input type="number" inputmode="numeric" min="1" step="1" value="'+esc(S.budgetExact||"")+'" oninput="majEstimation(\'budgetExact\',this.value)"></label>';
     h+='<div id="estimation-live">'+blocEstimation()+'</div><label style="display:flex;gap:12px;align-items:flex-start;margin:24px 0"><input id="estimation-lue" type="checkbox" style="width:24px;height:24px;flex-shrink:0" '+(S.estimationLue===signatureEstimation()?'checked':'')+' onchange="accordEstimation(this.checked)"><span>J’ai pris connaissance de cette estimation et de ses limites. Cela ne vaut pas acceptation d’un devis.</span></label>';
   }
   if(e.recap){
@@ -1117,7 +1118,6 @@ function valide(){
   }
   if(e.txt && !e.opt && !S[e.txt]) return "Ce champ est nécessaire.";
   if(e.estimation){
-    if(S.budgetExact && (!Number.isFinite(nombre(S.budgetExact)) || nombre(S.budgetExact)<=0)) return "Indiquez un budget supérieur à zéro, ou laissez ce champ vide.";
     if(S.estimationLue!==signatureEstimation()) return "Prenez connaissance de l’estimation, puis cochez la case pour continuer.";
   }
   if(e.contact){
@@ -1309,7 +1309,7 @@ function pointsAClarifier(){
  if(!(nombre(S.surface)>0))client.push("Indiquer une surface approximative souhaitée en m² ; TMC pourra ensuite proposer les modules.");
  if(S.terrain!=="Il m'appartient ou je le loue")client.push("Préciser à quelle étape le terrain ou le droit d’usage sera disponible, sans engager l’étude avant clarification.");
  else if(S.indivision!=="Non, je suis seul propriétaire ou titulaire du bail" && S.indivision!=="Oui, et l'indivision est réglée")client.push("Clarifier le droit d’usage et l’accord des propriétaires ou indivisaires.");
- if(!(nombre(S.budgetExact)>0))client.push("Préciser le montant réellement mobilisable pour l’ensemble du projet, même approximatif.");
+ if(plafondEnveloppe()===null)client.push("Préciser le montant réellement mobilisable pour l’ensemble du projet, même approximatif.");
  if(coherenceBudget()==="incompatible")client.push("Revoir la surface ou les prestations, ou l’enveloppe disponible : le budget déclaré est sous le repère calculé.");
  if(!S.financement||/Je ne sais pas|reste à monter|cours d'instruction|Crédits votés/.test(S.financement))client.push("Confirmer la part de financement disponible et celle encore en attente avant de lancer l’étude.");
  if(!S.emplacement||/préciser|définir/i.test(S.emplacement))client.push("Transmettre un repère du terrain et, si possible, des photos de son accès lorsqu’il sera identifié.");
@@ -1366,7 +1366,7 @@ function evaluerDemande(){
 
   var budgetAnnonce = plafondEnveloppe() !== null;
   var coherence=coherenceBudget();
-  if(budgetAnnonce || nombre(S.budgetExact)>0) budget = coherence==="coherente"?20:coherence==="incompatible"?0:10;
+  if(budgetAnnonce) budget = coherence==="coherente"?20:coherence==="incompatible"?0:10;
 
   var f = String(S.financement||"");
   var disponible = /Fonds propres disponibles|Prêt bancaire déjà accordé|Aide ou subvention notifiée|Bon de commande ou marché signé/.test(f);
@@ -1386,7 +1386,7 @@ function evaluerDemande(){
   var score = terrain + budget + financement + projet + decision + delai;
   var statut;
   if(!terrainDisponible || !indivisionClaire) statut = "TERRAIN À SÉCURISER";
-  else if(!budgetAnnonce && !(nombre(S.budgetExact)>0)) statut = "BUDGET À PRÉCISER";
+  else if(!budgetAnnonce) statut = "BUDGET À PRÉCISER";
   else if(coherence==="incompatible") statut = "BUDGET SOUS LE REPÈRE";
   else if(coherence!=="coherente") statut = "ESTIMATION À COMPLÉTER / BUDGET À CONFIRMER";
   else if(financement < 25) statut = "FINANCEMENT À CONFIRMER";
@@ -1413,7 +1413,7 @@ function ficheEmail(){
    "Livraison":S.livraison||"À préciser",
    "Surface indicative":nombre(S.surface)>0?fmt(nombre(S.surface))+" m²":"À préciser",
    "Pour quand":S.delai||"À définir",
-   "Budget déclaré":nombre(S.budgetExact)>0?fmt(nombre(S.budgetExact))+" XPF":S.enveloppe||"À préciser",
+   "Budget déclaré":S.enveloppe||"À préciser",
    "Terrain":S.terrain||"À préciser",
    "Financement":S.financement||"À préciser",
    "Budget approximatif du projet":estimationTexte(),
@@ -1504,7 +1504,7 @@ window.addEventListener("pageshow",function(event){
 try{
   var sauvegarde = JSON.parse(sessionStorage.getItem(BROUILLON_ENVOI)||"null");
   if(sauvegarde && sauvegarde.state && Date.now()-sauvegarde.date < 24*60*60*1000){
-    S = sauvegarde.state; delete S.assainExistant; delete S.etape; delete S.chambres; delete S.guidageModules; MULTI = sauvegarde.multi||{};
+    S = sauvegarde.state; delete S.budgetExact; delete S.assainExistant; delete S.etape; delete S.chambres; delete S.guidageModules; MULTI = sauvegarde.multi||{};
     if(sauvegarde.files && sauvegarde.files.length) window.FICHIERS_A_REJOINDRE = sauvegarde.files;
     if(totalMod()<2)delete S.implantation;
     if(S.terrain==="Je n'ai pas encore de terrain"){delete S.indivision;delete S.parcelle;delete S.acces;}
