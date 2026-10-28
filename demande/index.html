@@ -223,6 +223,12 @@ E.usage = {k:"Votre projet", q:"Quel usage prévoyez-vous ?", ch:"usage", o:[
   ["Sanitaire ou local spécialisé","Sanitaires, vestiaires, chambre froide, laboratoire, local technique"],
   ["Autre projet"]]};
 
+E.formule = {k:"Votre projet",q:"Quelle formule souhaitez-vous ?",ch:"formule",formule:1,
+ sub:"Choisissez une formule pour votre projet.",o:[
+ ["Clé en main sans assainissement","Aménagement complet, hors assainissement."],
+ ["Clé en main avec assainissement","Aménagement complet avec assainissement."],
+ ["Je choisis mes prestations","Je sélectionne les travaux souhaités."]]};
+
 E.prestations = {k:"Votre aménagement", q:"Quelles prestations souhaitez-vous ?", ch:"prestations", multi:1, prestations:1,
   sub:"Plusieurs choix possibles. Sélectionnez les travaux à confier à TMC ; les autres pourront être précisés lors de notre échange.", o:[
   ["Isolation et habillage intérieur"],
@@ -360,7 +366,7 @@ E.fini = {k:"", q:"", fini:1};
 /* ============ ETAPES AFFICHEES ============ */
 var PHASE = {
   profil:"Votre projet", besoin:"Votre projet", usage:"Votre projet",
-  prestations:"Votre projet", destination:"Le terrain", modules:"Votre projet", implantation:"Votre projet", surface:"Votre projet",
+  formule:"Votre projet", prestations:"Votre projet", destination:"Le terrain", modules:"Votre projet", implantation:"Votre projet", surface:"Votre projet",
   commune:"Le terrain", terrain:"Le terrain", indivision:"Le terrain", parcelle:"Le terrain", acces:"Le terrain",
   plan:"Votre plan", delai:"Votre plan",
   enveloppe:"Budget et décision", estimation:"Budget et décision", financement:"Budget et décision",
@@ -490,7 +496,8 @@ function modInconnu(){
 function parcours(){
   adapterDecision();
   var p = ["usage","profil","modules"];
-  p.push("prestations");
+  p.push("formule");
+  if(formulePersonnalisee())p.push("prestations");
   if(totalMod() >= 2 || S.modules === "À définir") p.push("implantation");
   p = p.concat(["commune","destination","terrain"]);
   if(S.terrain === "Il m'appartient ou je le loue" || S.terrain === "Achat ou bail en cours de signature") p.push("indivision");
@@ -606,7 +613,7 @@ function texteBudget(){
 }
 function signatureEstimation(){
  var e=estimationProjet();
- return JSON.stringify(["a-partir-haut-v1",BAREME.version,e.lignes,e.manquants,S.enveloppe,S.usage,S.prestations,S.implantation,S.commune,S.ile,S.livraison,S.acces,prestation("Assainissement et raccordements")?S.reseaux:null]);
+ return JSON.stringify(["a-partir-haut-v1",BAREME.version,S.formule,e.lignes,e.manquants,S.enveloppe,S.usage,S.prestations,S.implantation,S.commune,S.ile,S.livraison,S.acces,prestation("Assainissement et raccordements")?S.reseaux:null]);
 }
 function accordEstimation(ok){ S.estimationLue=ok?signatureEstimation():""; }
 function messageEstimation(e){
@@ -890,6 +897,7 @@ function rendre(){
       h += '<label class="f"><span>Nom de l’île et commune</span><input id="i_ile" type="text" maxlength="160" placeholder="Par exemple Fakarava, village de Rotoava" value="' + esc(S.ile||"") + '" oninput="maj(\'ile\',this.value)"></label>';
 
   }
+  if(e.formule && S.formule && !formulePersonnalisee())h+='<p class="pja">'+esc(resumeFormule())+'. Les postes restant à chiffrer seront signalés dans l’estimation.</p>';
   if(e.prestations){
     h += '<label class="f" style="margin-top:16px"><span>Précisions sur les travaux (facultatif, sauf autres prestations)</span>'
       + '<textarea id="i_prestationsDetails" maxlength="3000" placeholder="Par exemple : une baie vitrée en façade, deux prises, une douche ; toiture réalisée par mes soins…" oninput="maj(\'prestationsDetails\',this.value)">' + esc(S.prestationsDetails||"") + '</textarea></label>';
@@ -1047,9 +1055,27 @@ function ajoutPJ(input){
 
 
 /* ============ INTERACTIONS ============ */
+function formulePersonnalisee(){return S.formule==="Je choisis mes prestations";}
+function appliquerFormule(){
+ var personnalise=formulePersonnalisee();
+ var selections=personnalise?String(S.prestationsPerso||"").split(" · ").filter(Boolean):E.prestations.o.slice(0,9).map(function(o){return o[0];});
+ if(S.formule==="Clé en main avec assainissement")selections.push("Assainissement et raccordements");
+ MULTI.prestations=selections;S.prestations=selections.join(" · ");
+ if(personnalise)S.prestationsDetails=S.prestationsDetailsPerso||"";
+ else delete S.prestationsDetails;
+ if(!prestation("Assainissement et raccordements")){delete S.reseaux;delete S.assainExistant;}
+ S.estimationLue="";
+}
+function resumeFormule(){
+ if(formulePersonnalisee())return S.prestations||"À préciser";
+ return "Isolation, électricité, plomberie, cuisine, ouvertures, ventilation ou climatisation, toiture, terrasse et plots"
+ +(S.formule==="Clé en main avec assainissement"?", assainissement":" ; hors assainissement");
+}
+
 function choix(champ, i){
   var e = E[ordre[idx]];
   S[champ] = e.o[i][0];
+  if(champ==="formule")appliquerFormule();
   if(champ==="usage" && S.usage==="Logement" && totalMod()>0){S.surface=String(surfaceMod());delete S.surfaceManuelle;}
   if(champ==="terrain"){
     delete S.indivision;
@@ -1088,6 +1114,7 @@ function coche(champ, i){
   for(var z = 0; z < e.o.length; z++) rang[e.o[z][0]] = z;
   a.sort(function(x, y){ return rang[x] - rang[y]; });
   S[champ] = a.join(" · ");
+  if(champ==="prestations")S.prestationsPerso=S[champ];
   if(champ==="prestations" && !prestation("Assainissement et raccordements")){delete S.reseaux;delete S.assainExistant;}
   ordre = parcours();
   // Mettre les cases à jour sur place : ne pas reconstruire la page ni déplacer le défilement.
@@ -1104,6 +1131,7 @@ function coche(champ, i){
 function effaceErr(){ var d = document.getElementById("err"); if(d) d.innerHTML = ""; }
 function maj(champ, val){
   S[champ] = val;
+  if(champ==="prestationsDetails")S.prestationsDetailsPerso=val;
   if(champ === "commune" && val !== "Autre île") delete S.ile;
   if(champ === "livraison" && val === "À définir ensemble") delete S.emplacement;
   effaceErr();
@@ -1125,6 +1153,7 @@ function majPrixLive(){
 function valide(){
   var e = E[ordre[idx]];
   if(e.o && !S[e.ch]) return "Choisissez une réponse pour continuer.";
+  if(e.formule && !e.o.some(function(o){return o[0]===S.formule;}))return "Choisissez une formule pour continuer.";
   if(e.ch==="decision" && !decisionRenseignee())return "Précisez qui valide le projet pour votre profil.";
   if(e.sel && !S[e.sel]) return "Indiquez la commune de livraison.";
   if(e.mod && !S.modules) return "Indiquez le nombre de conteneurs, ou choisissez « Je ne sais pas encore ».";
@@ -1443,7 +1472,8 @@ function ficheEmail(){
    "email":S.mail||"",
    "Téléphone":S.tel||"",
    "Conteneurs":S.modules?libelleMod():"À définir avec TMC",
-   "Aménagement":[S.usage,S.prestations,S.prestationsDetails].filter(Boolean).join(" — "),
+   "Formule":S.formule||"Je choisis mes prestations",
+   "Aménagement":[S.usage,S.formule?resumeFormule():S.prestations,S.prestationsDetails].filter(Boolean).join(" — "),
    "Commune / quartier":[S.commune==="Autre île"?S.ile:S.commune,S.emplacement].filter(Boolean).join(" — "),
    "Livraison":S.livraison||"À préciser",
    "Surface indicative":nombre(S.surface)>0?fmt(nombre(S.surface))+" m²":"À préciser",
@@ -1544,6 +1574,7 @@ try{
     if(totalMod()<2)delete S.implantation;
     if(S.terrain==="Je n'ai pas encore de terrain"){delete S.indivision;delete S.parcelle;delete S.acces;}
     if(!prestation("Assainissement et raccordements"))delete S.reseaux;
+    if(!S.formule && S.prestations){S.formule="Je choisis mes prestations";S.prestationsPerso=S.prestations;S.prestationsDetailsPerso=S.prestationsDetails||"";}
     ordre = parcours(); idx = ordre.indexOf("recap");
   }else{sessionStorage.removeItem(BROUILLON_ENVOI);}
 }catch(storageError){}
