@@ -272,10 +272,10 @@ E.plan = {k:"Votre projet", q:"Avez-vous un plan ou un croquis ?", ch:"plan", pj
 
 E.enveloppe = {k:"Budget", q:"Quel budget avez-vous prévu pour votre projet ?", ch:"enveloppe", etudeNote:1, echelle:1,
   sub:"Indiquez le budget de <b>l'ensemble du projet</b> : les conteneurs et leur aménagement, tous modules compris. Cette information me permet de vérifier que votre projet est cohérent avec l'enveloppe que vous envisagez. Une estimation réaliste du budget est indispensable avant l'établissement d'un devis.", o:[
-  ["2 à 3 millions XPF","Aménagement simple d'un seul module"],
-  ["3 à 5 millions XPF","Un module entièrement aménagé et équipé"],
-  ["5 à 10 millions XPF","Un grand module abouti, ou deux modules"],
-  ["10 à 20 millions XPF","Trois à quatre modules, ou un ensemble de plusieurs pièces"],
+  ["2 à 3 millions XPF","Enveloppe totale disponible"],
+  ["3 à 5 millions XPF","Enveloppe totale disponible"],
+  ["5 à 10 millions XPF","Enveloppe totale disponible"],
+  ["10 à 20 millions XPF","Enveloppe totale disponible"],
   ["20 à 30 millions XPF","Projet résidentiel ou professionnel de grande taille"],
   ["30 à 50 millions XPF","Bâtiment complet ou ensemble de modules important"],
   ["50 millions XPF et plus","Programme complet, plusieurs bâtiments ou tranche importante"],
@@ -321,14 +321,14 @@ E.decision = {k:"Presque fini", q:"Qui décide du projet avec vous ?", ch:"decis
   ["Je décide avec un associé ou ma hiérarchie","Validation interne à obtenir"],
   ["Je fais la demande pour quelqu'un d'autre","Je ne suis pas le décideur"]]};
 
-E.etape = {k:"Presque fini", q:"Si ma proposition vous convient, quelle serait votre prochaine étape ?", ch:"etape", o:[
-  ["Je commande"],
+E.etape = {k:"Presque fini", q:"Après cet estimatif, comment souhaitez-vous avancer ?", ch:"etape", o:[
+  ["Je souhaite poursuivre avec l’étude","Recevoir le périmètre et les modalités de l’étude et du plan 2D si nécessaire"],
   ["J'en parle autour de moi, puis je reviens vers vous"],
   ["Je compare avec d'autres devis"],
   ["Je garde la proposition pour plus tard"]]};
 
 E.contact = {k:"Vos coordonnées", q:"Vos coordonnées pour recevoir votre proposition", contact:1,
-  sub:"Je réponds sous 48 heures, et sous 24 heures si votre projet est urgent. Profitez du dernier champ pour me poser vos questions : j'y réponds une par une.",
+  sub:"Vous recevrez l’estimatif et les étapes pour poursuivre par email après transmission. Utilisez le dernier champ pour préciser vos questions ou vos contraintes.",
   confid:1};
 
 E.estimation = {k:"Budget et décision", q:"Votre estimation indicative", estimation:1};
@@ -555,18 +555,18 @@ function signatureEstimation(){
 function accordEstimation(ok){ S.estimationLue=ok?signatureEstimation():""; }
 function estimationTexte(){
  var e=estimationProjet();
- if(e.bas===null)return "La fourchette globale ne peut pas encore être calculée : surface à préciser.";
+ if(e.bas===null || !e.standard || !S.modules || S.modules==="À définir")return "ESTIMATIF À PRÉCISER\nUne fourchette globale fiable nécessite de préciser la surface, les modules et les prestations. Aucun prix global ni plafond de budget n’est confirmé à ce stade.";
  return (e.complet?"BUDGET GLOBAL INDICATIF":"BUDGET GLOBAL PROVISOIRE — À COMPLÉTER")
    +"\nMinimum estimé : "+fmt(e.bas)+" XPF."
    +"\nMaximum estimé : "+fmt(e.haut)+" XPF."
-   +"\nCette fourchette comprend l’achat des conteneurs, leurs frais opérationnels, l’aménagement et les prestations chiffrées dans votre demande, sans détail de prix par poste."
-   +(e.manquants.length?"\nAttention : ce montant n’est pas encore tout compris. Restent à chiffrer ou à vérifier : "+e.manquants.join(" ; ")+".":"\nEnsemble du périmètre chiffré compris.")
+   +"\nCette fourchette couvre l’achat des conteneurs, leurs frais opérationnels, l’aménagement et les prestations chiffrées dans votre demande."
+   +(e.manquants.length?"\nLa borne haute concerne uniquement le périmètre chiffré : ce n’est pas un plafond du coût final. Ce montant n’est pas encore tout compris. Restent à chiffrer ou à vérifier : "+e.manquants.join(" ; ")+".":"")
    +"\nEstimation non contractuelle, à confirmer après étude du projet. Hors étude et plans, mobilier et équipements non chiffrés."
    +(S.estimationLue===signatureEstimation()?"\nVous avez consulté cette estimation avant l’envoi.":"\nCette estimation reste à consulter et à confirmer.");
 }
 function blocEstimation(){
  var e=estimationProjet();
- if(e.bas===null)return '<div class="note">La surface doit être précisée pour calculer un repère.</div>';
+ if(e.bas===null || !e.standard || !S.modules || S.modules==="À définir")return '<div class="note"><b>Estimatif à préciser.</b> Nous devons définir la surface, les modules et les prestations avant de vous donner une fourchette globale. Vous pouvez transmettre votre demande dès maintenant.</div>';
  var h='<div class="prix"><div class="lb">'+(e.complet?'Fourchette indicative':'Sous-total indicatif — postes à compléter')+'</div><div class="val" style="font-size:23px"><span style="white-space:nowrap">'+fmt(e.bas)+' XPF</span><br>à <span style="white-space:nowrap">'+fmt(e.haut)+' XPF</span></div></div><div class="recap">';
  e.lignes.forEach(function(l){h+='<div class="r"><b>'+esc(l.poste)+'</b><span>'+fmt(l.bas)+(l.bas!==l.haut?' à '+fmt(l.haut):'')+' XPF</span></div>';});
  h+='</div>';
@@ -908,9 +908,9 @@ function rendre(){
   }
 
   if(e.estimation){
-    h+='<p class="sub">Ce repère sert à vérifier votre budget avant une étude détaillée. Aucun travail n’est commandé.</p>';
-    if(prestation("Toiture de protection")) h+='<label class="f"><span>Surface de toiture prévue en m², débords compris (si connue)</span><input type="number" inputmode="decimal" min="0.1" step="any" value="'+esc(S.surfaceToiture||"")+'" oninput="majEstimation(\'surfaceToiture\',this.value)"></label>';
-    if(prestation("Fondations ou plots")) h+='<label class="f"><span>Nombre de plots bas prévu (si connu)</span><input type="number" inputmode="numeric" min="1" step="1" value="'+esc(S.nombrePlots||"")+'" oninput="majEstimation(\'nombrePlots\',this.value)"></label>';
+    h+='<p class="sub">Ce repère sert à vérifier votre budget avant une étude détaillée. Aucun travail n’est commandé. Si vous ne connaissez pas la surface de toiture ou le nombre d’appuis, laissez ces champs vides : TMC les définira pendant l’étude.</p>';
+    if(prestation("Toiture de protection")) h+='<label class="f"><span>Surface de toiture en m², débords compris (facultatif)</span><input type="number" inputmode="decimal" min="0.1" step="any" value="'+esc(S.surfaceToiture||"")+'" oninput="majEstimation(\'surfaceToiture\',this.value)"></label>';
+    if(prestation("Fondations ou plots")) h+='<label class="f"><span>Nombre de plots déjà prévu (facultatif, à vérifier par TMC)</span><input type="number" inputmode="numeric" min="1" step="1" value="'+esc(S.nombrePlots||"")+'" oninput="majEstimation(\'nombrePlots\',this.value)"></label>';
     if(prestation("Assainissement et raccordements")) h+='<label class="f"><span>Raccordements extérieurs eau / électricité</span><select onchange="majEstimation(\'reseaux\',this.value)"><option value="">À chiffrer avec TMC</option><option '+(S.reseaux==="Raccordements extérieurs pris en charge séparément"?'selected':'')+'>Raccordements extérieurs pris en charge séparément</option></select></label>';
     if(!prestation("Assainissement et raccordements") && (prestation("Plomberie et sanitaires")||prestation("Cuisine")||S.usage==="Logement"||S.usage==="Hébergement ou tourisme")) h+='<label class="f"><span>Assainissement déjà disponible pour le projet ?</span><select onchange="majEstimation(\'assainExistant\',this.value)"><option value="">À vérifier / à créer</option><option value="oui" '+(S.assainExistant==="oui"?'selected':'')+'>Oui, installation existante annoncée (à vérifier lors de l’étude)</option></select></label>';
     h+='<label class="f"><span>Budget réellement disponible en XPF (facultatif)</span><input type="number" inputmode="numeric" min="1" step="1" value="'+esc(S.budgetExact||"")+'" oninput="majEstimation(\'budgetExact\',this.value)"></label>';
@@ -921,7 +921,8 @@ function rendre(){
       return '<div class="r"><b>' + esc(l[0]) + '</b><span>' + esc(l[1]) + '</span></div>';
     }).join("") + '</div>';
     h += blocEstimation();
-    h += '<div class="note">' + esc(suiteEtudeTexte()).replace(/\\n/g,'<br>') + '</div>';
+    h += '<div class="note"><b>Prochaine étape</b><br>' + esc(prochaineAction()) + '</div>';
+    h += '<div class="note">' + esc(suiteEtudeTexte()).replace(/\n/g,'<br>') + '</div>';
     h += blocPrix();
     h += '<p class="pja">Référence : ' + esc(referenceDemande()) + '</p>';
     h += '<div class="note"><b>Dernière étape : vérifier et envoyer.</b><br>Une vérification antispam s’ouvrira sur FormSubmit. Terminez-la pour transmettre votre demande et activer l’accusé de réception automatique à votre adresse email.</div>';
@@ -1278,23 +1279,52 @@ function topo(r){
   return L.join("\n");
 }
 
+function intentionEtude(){return S.etape==="Je souhaite poursuivre avec l’étude"||S.etape==="Je commande";}
+function pointsAClarifier(){
+ var client=[], technique=[], e=estimationProjet();
+ if(!S.usage||S.usage==="Autre projet")client.push("Préciser l’usage et les pièces ou équipements souhaités.");
+ if(!(nombre(S.surface)>0))client.push("Indiquer une surface approximative souhaitée en m² ; TMC pourra ensuite proposer les modules.");
+ if(S.terrain!=="Il m'appartient ou je le loue")client.push("Préciser à quelle étape le terrain ou le droit d’usage sera disponible, sans engager l’étude avant clarification.");
+ else if(S.indivision!=="Non, je suis seul propriétaire ou titulaire du bail" && S.indivision!=="Oui, et l'indivision est réglée")client.push("Clarifier le droit d’usage et l’accord des propriétaires ou indivisaires.");
+ if(!(nombre(S.budgetExact)>0))client.push("Préciser le montant réellement mobilisable pour l’ensemble du projet, même approximatif.");
+ if(coherenceBudget()==="incompatible")client.push("Revoir la surface ou les prestations, ou l’enveloppe disponible : le budget déclaré est sous le repère calculé.");
+ if(!S.financement||/Je ne sais pas|reste à monter|cours d'instruction|Crédits votés/.test(S.financement))client.push("Confirmer la part de financement disponible et celle encore en attente avant de lancer l’étude.");
+ if(!S.emplacement||/préciser|définir/i.test(S.emplacement))client.push("Transmettre un repère du terrain et, si possible, des photos de son accès lorsqu’il sera identifié.");
+ if(S.plan==="Oui, un plan coté" && !PJ.length)client.push("Envoyer le plan 2D annoncé pour vérifier s’il est exploitable avant de proposer un nouveau plan.");
+ if(S.decision==="Je fais la demande pour quelqu'un d'autre"||S.decision==="Nous n'en avons pas encore parlé")client.push("Confirmer l’intérêt et le budget avec la personne qui décidera du projet.");
+ if(S.modules==="À définir"||!S.modules)technique.push("Proposer le nombre et le format des modules à partir de la surface et de l’usage.");
+ e.manquants.forEach(function(v){if(!/Surface à préciser|Nombre de conteneurs à préciser/.test(v))technique.push(v+".");});
+ if(S.plan!=="Oui, un plan coté")technique.push("Définir le plan 2D nécessaire au devis ; examiner d’abord les croquis ou documents déjà disponibles.");
+ return {client:client,technique:Array.from(new Set(technique))};
+}
+function prochaineAction(){
+ var p=pointsAClarifier();
+ if(S.etape==="Je garde la proposition pour plus tard")return "Dossier à reprendre à votre initiative lorsque votre projet avancera.";
+ if(p.client.length)return "Avant de proposer le lancement de l’étude, préciser : "+p.client.slice(0,3).join(" ");
+ if(intentionEtude())return "TMC doit valider le périmètre puis vous transmettre les modalités de l’étude et du plan 2D si nécessaire. Aucun travail n’est lancé par ce formulaire.";
+ return "Si vous souhaitez poursuivre sur cette base, répondez au mail avec votre référence pour examiner le périmètre de l’étude.";
+}
+function perimetreTechnique(){
+ var p=[];
+ if(prestation("Toiture de protection"))p.push(S.surfaceToiture?"Toiture déclarée : "+S.surfaceToiture+" m², débords compris":"Toiture : surface à définir par TMC");
+ if(prestation("Fondations ou plots"))p.push(S.nombrePlots?"Appuis déclarés : "+S.nombrePlots+" plots bas, à vérifier":"Appuis : nombre et type à définir par TMC");
+ if(prestation("Assainissement et raccordements"))p.push(S.reseaux||"Raccordements extérieurs : à chiffrer avec TMC");
+ else if(S.assainExistant==="oui")p.push("Assainissement existant déclaré, capacité à vérifier");
+ return p.join(" ; ");
+}
+
 function suiteEtudeTexte(){
  var etude=tarifEtude(), plan=prixPlan();
  var t=[
    "POUR OBTENIR UN DEVIS SUR MESURE",
-   "L’estimatif ci-dessus est non contractuel. Il sert uniquement à vous donner un ordre de grandeur du budget à prévoir ; ce n’est pas un devis personnalisé.",
-   "Si cette enveloppe vous convient et que vous souhaitez poursuivre, répondez à ce mail en rappelant votre référence.",
-   "L’établissement du devis sur mesure nécessite une étude payante : définition des matériaux et quantités, logistique et transport, moyens humains et main-d’œuvre, organisation du chantier et prise en compte des contraintes administratives du projet.",
-   etude ? "Étude détaillée pour la surface déclarée : "+etude+"." : "Le prix de l’étude sera confirmé après définition de la surface.",
-   "Un plan 2D coté exploitable est nécessaire pour établir ce devis."
+   "L’estimatif sert uniquement à situer votre budget. Le devis personnalisé nécessite une étude payante : matériaux et quantités, logistique et transport, moyens humains, organisation du chantier et contraintes administratives.",
+   etude?"Étude détaillée : "+etude+".":"Le tarif de l’étude sera confirmé une fois la surface définie.",
+   "Un plan 2D coté exploitable est nécessaire au chiffrage."
  ];
- if(S.plan==="Oui, un plan coté"){
-   t.push("Transmettez votre plan 2D pour vérification. S’il est exploitable, il servira de base à l’étude ; aucun nouveau plan ne sera facturé sans votre accord.");
- }else{
-   t.push(plan ? "Si le plan 2D doit être réalisé : "+fmt(plan[0])+" XPF, en supplément de l’étude. Tout document déjà disponible sera examiné avant de proposer cette prestation." : "Si le plan 2D doit être réalisé, son tarif sera confirmé une fois les modules définis, en supplément de l’étude.");
- }
- t.push("TMC vous confirme d’abord le périmètre des prestations et les modalités de règlement. Après votre accord et le règlement préalable de l’étude, ainsi que du plan 2D s’il est à réaliser, nous lançons les prestations convenues pour préparer votre devis sur mesure.");
- t.push("Le règlement concerne l’étude et, si nécessaire, le plan 2D : il ne constitue pas une commande de travaux. Seule l’étude est déduite de la commande de travaux si vous donnez suite ; le plan 2D est une prestation distincte.");
+ if(S.plan==="Oui, un plan coté")t.push("Envoyez votre plan pour vérification. S’il est exploitable, il sera utilisé sans vous facturer un nouveau plan.");
+ else t.push(plan?"Plan 2D à réaliser si nécessaire : "+fmt(plan[0])+" XPF, en supplément de l’étude. Vos croquis et documents seront examinés avant toute proposition.":"Si le plan 2D est à réaliser, son tarif sera confirmé après définition des modules, séparément de l’étude.");
+ t.push("Pour poursuivre, répondez avec votre référence. TMC confirme le périmètre et les modalités de règlement. L’étude et le plan 2D à réaliser sont réglés avant leur démarrage pour préparer votre devis sur mesure.");
+ t.push("Seule l’étude est déduite de votre commande de travaux si vous donnez suite. Le plan 2D reste une prestation distincte. Ce règlement n’est pas une commande de travaux.");
  return t.join("\n");
 }
 
@@ -1307,9 +1337,12 @@ function accuse(){
     "",
     estimationTexte(),
     "",
+    "PROCHAINE ÉTAPE",
+    prochaineAction(),
+    "",
     suiteEtudeTexte(),
     "",
-    "Cet accusé confirme la transmission de votre demande ; il ne constitue ni un devis ni une confirmation de délai ou de réalisation.",
+    "Votre demande est transmise. Aucun devis ni délai de réalisation n’est confirmé par cet envoi.",
     "",
     "Pour compléter votre dossier, vous pouvez écrire à tahitimaisoncontainer@gmail.com en rappelant votre référence.",
     "",
@@ -1344,7 +1377,7 @@ function evaluerDemande(){
 
   var f = String(S.financement||"");
   var disponible = /Fonds propres disponibles|Prêt bancaire déjà accordé|Aide ou subvention notifiée|Bon de commande ou marché signé/.test(f);
-  var enAttente = /Prêt en cours d'instruction|Crédits votés, bon de commande à venir|Le financement reste à monter/.test(f);
+  var enAttente = /Prêt en cours d'instruction|Crédits votés, bon de commande à venir|Le financement reste à monter|Je ne sais pas encore/.test(f);
   if(disponible && !enAttente) financement = 25;
   else if(disponible) financement = 15;
   else if(/Prêt en cours d'instruction|Crédits votés/.test(f)) financement = 10;
@@ -1365,8 +1398,12 @@ function evaluerDemande(){
   else if(coherence!=="coherente") statut = "ESTIMATION À COMPLÉTER / BUDGET À CONFIRMER";
   else if(financement < 25) statut = "FINANCEMENT À CONFIRMER";
   else if(projet < 15) statut = "PROJET À PRÉCISER";
+  else if(pointsAClarifier().client.length) statut="PRÉCISIONS À OBTENIR";
   else if(S.estimationLue!==signatureEstimation()) statut="ESTIMATION À CONSULTER";
+  else if(!intentionEtude()) statut="INTÉRÊT POUR L’ÉTUDE À CONFIRMER";
   else statut = "À ÉTUDIER — VALIDATION TMC";
+  if(pointsAClarifier().client.length) score=Math.min(score,85);
+  // Un dossier avec des précisions client en attente ne reçoit pas 100/100.
   // Un score élevé ne suffit jamais à valider un prix ni à identifier un concurrent.
   return {score:score,statut:statut,detail:{terrain:terrain,budget:budget,financement:financement,projet:projet,decision:decision,delai:delai}};
 }
@@ -1381,6 +1418,11 @@ function ficheEmail(){
     "Travaux souhaités": S.prestations || "À préciser"
   };
   if(S.prestationsDetails) fiche["Précisions sur les travaux"] = S.prestationsDetails;
+  if(perimetreTechnique()) fiche["Hypothèses et périmètre"] = perimetreTechnique();
+  var clarifications=pointsAClarifier();
+  fiche["Prochaine action"] = prochaineAction();
+  if(clarifications.client.length) fiche["Précisions attendues"] = clarifications.client.join("\n");
+  if(clarifications.technique.length) fiche["À vérifier par TMC"] = clarifications.technique.join("\n");
   fiche["Lieu et livraison"] = [lieu, S.livraison, S.emplacement].filter(Boolean).join(" ; ");
   fiche["Terrain et accès"] = [S.terrain, S.indivision, S.parcelle ? "Parcelle " + S.parcelle : "", S.acces ? "Accès grue : " + S.acces : ""].filter(Boolean).join(" ; ");
   fiche["Plans et documents"] = [S.plan, PJ.length ? PJ.length + " fichier(s) joint(s) : " + PJ.map(function(f){return f.nom;}).join(", ") : "Aucun fichier joint"].filter(Boolean).join(" ; ");
@@ -1419,7 +1461,7 @@ function envoyer(){
     var evaluation = evaluerDemande();
     // _subject sert au mail TMC ; aucun champ d'évaluation n'est ajouté à la
     // fiche que FormSubmit recopie dans l'accusé de réception du client.
-    champ("_subject", "[" + evaluation.score + "/100 · " + evaluation.statut + "] Aménagement — " + (S.nom||"Nouveau client") + (lieu ? " — " + lieu : ""));
+    champ("_subject", "[" + evaluation.score + "/100 · " + evaluation.statut + (S.delai==="Dans le mois"?" · URGENCE DÉCLARÉE":S.delai==="Dans 1 à 3 mois"?" · ÉCHÉANCE 1–3 MOIS":"") + "] Aménagement — " + (S.nom||"Nouveau client") + (lieu ? " — " + lieu : ""));
     champ("_template", "table");
     champ("_replyto", S.mail||"");
     champ("_autoresponse", accuse());
@@ -1470,6 +1512,7 @@ rendre();
 </script>
 </body>
 </html>
+
 
 
 
