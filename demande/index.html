@@ -322,11 +322,6 @@ E.decision = {k:"Presque fini", q:"Qui décide du projet avec vous ?", ch:"decis
   ["Je décide avec un associé ou ma hiérarchie","Validation interne à obtenir"],
   ["Je fais la demande pour quelqu'un d'autre","Je ne suis pas le décideur"]]};
 
-E.etape = {k:"Presque fini", q:"Souhaitez-vous poursuivre avec l’étude payante ?", ch:"etape", o:[
-  ["Je souhaite poursuivre avec l’étude"],
-  ["J’ai une question avant de décider"],
-  ["Non merci, je ne souhaite pas poursuivre","Votre demande sera close, sans relance"]]};
-
 E.contact = {k:"Vos coordonnées", q:"Vos coordonnées pour recevoir votre proposition", contact:1,
   sub:"Vous recevrez l’estimatif et les étapes pour poursuivre par email après transmission. Utilisez le dernier champ pour préciser vos questions ou vos contraintes.",
   confid:1};
@@ -470,7 +465,7 @@ function parcours(){
   if(totalMod() >= 2 || S.modules === "À définir") p.push("implantation");
   p = p.concat(["commune","destination","terrain"]);
   if(S.terrain === "Il m'appartient ou je le loue" || S.terrain === "Achat ou bail en cours de signature") p.push("indivision");
-  return p.concat(["parcelle","acces","plan","delai","enveloppe","estimation","financement","decision","etape","contact","recap","fini"]);
+  return p.concat(["parcelle","acces","plan","delai","enveloppe","estimation","financement","decision","contact","recap","fini"]);
 }
 
 /* ============ COHERENCE BUDGET ============ */
@@ -1141,7 +1136,7 @@ var ORDRE_R = ["reference","profil","structure","besoin","usage","modules","impl
 
 function lignesRecap(){
  var fiche=ficheEmail();
- return Object.keys(fiche).filter(function(k){return fiche[k] && k!=="Contact TMC";}).map(function(k){return [k==="email"?"Email":k,fiche[k]];});
+ return Object.keys(fiche).filter(function(k){return fiche[k] && k!=="Contact TMC" && k!=="Votre réponse";}).map(function(k){return [k==="email"?"Email":k,fiche[k]];});
 }
 /* ============ TOPO ET ENVOI PAR MAIL ============ */
 var NIV = {
@@ -1376,8 +1371,7 @@ function evaluerDemande(){
 
   var score = terrain + budget + financement + projet + decision + delai;
   var statut;
-  if(sansSuite()) statut = "CLOS — NON ENGAGÉ";
-  else if(!terrainDisponible || !indivisionClaire) statut = "TERRAIN À SÉCURISER";
+  if(!terrainDisponible || !indivisionClaire) statut = "TERRAIN À SÉCURISER";
   else if(!budgetAnnonce && !(nombre(S.budgetExact)>0)) statut = "BUDGET À PRÉCISER";
   else if(coherence==="incompatible") statut = "BUDGET SOUS LE REPÈRE";
   else if(coherence!=="coherente") statut = "ESTIMATION À COMPLÉTER / BUDGET À CONFIRMER";
@@ -1385,8 +1379,7 @@ function evaluerDemande(){
   else if(projet < 15) statut = "PROJET À PRÉCISER";
   else if(pointsAClarifier().client.length) statut="PRÉCISIONS À OBTENIR";
   else if(S.estimationLue!==signatureEstimation()) statut="ESTIMATION À CONSULTER";
-  else if(!intentionEtude()) statut="INTÉRÊT POUR L’ÉTUDE À CONFIRMER";
-  else statut = "À ÉTUDIER — VALIDATION TMC";
+  else statut = "CONFIRMATION ATTENDUE";
   if(pointsAClarifier().client.length) score=Math.min(score,85);
   // Un dossier avec des précisions client en attente ne reçoit pas 100/100.
   // Un score élevé ne suffit jamais à valider un prix ni à identifier un concurrent.
@@ -1410,7 +1403,7 @@ function ficheEmail(){
    "Budget approximatif du projet":estimationTexte(),
    "Étude pour le devis sur mesure":tarifEtude()||"Tarif à confirmer après définition de la surface",
    "Plan 2D":plan?fmt(plan[0])+" XPF pour dessiner votre projet vu de dessus, avec ses dimensions. Si vous avez déjà un plan utilisable, inutile d’en payer un nouveau. Le plan à réaliser est réglé avant de commencer.":"Tarif à confirmer après définition des conteneurs",
-   "Votre réponse":sansSuite()?"Demande close, sans relance. Vous pourrez recontacter TMC si vous décidez de poursuivre.":"Choisissez : Oui, poursuivre / J’ai une question / Non merci : https://tahitimaisoncontainer-jpg.github.io/avendrecontainer/demande/reponse.html?ref="+encodeURIComponent(referenceDemande())+" — puis envoyez l’email préparé. Aucun paiement ni travaux ne sont engagés par cette réponse.",
+   "Votre réponse":"Choisissez : Oui, poursuivre / J’ai une question / Non merci : https://tahitimaisoncontainer-jpg.github.io/avendrecontainer/demande/reponse.html?ref="+encodeURIComponent(referenceDemande())+" — puis envoyez l’email préparé. Aucun paiement ni travaux ne sont engagés par cette réponse.",
    "Conditions de l’étude":suiteEtudeTexte(),
    "Contact TMC":"Jean-Baptiste HAUATA — 87 22 65 55 — tahitimaisoncontainer@gmail.com"
  };
@@ -1482,7 +1475,7 @@ window.addEventListener("pageshow",function(event){
 try{
   var sauvegarde = JSON.parse(sessionStorage.getItem(BROUILLON_ENVOI)||"null");
   if(sauvegarde && sauvegarde.state && Date.now()-sauvegarde.date < 24*60*60*1000){
-    S = sauvegarde.state; delete S.chambres; delete S.guidageModules; MULTI = sauvegarde.multi||{};
+    S = sauvegarde.state; delete S.etape; delete S.chambres; delete S.guidageModules; MULTI = sauvegarde.multi||{};
     if(sauvegarde.files && sauvegarde.files.length) window.FICHIERS_A_REJOINDRE = sauvegarde.files;
     ordre = parcours(); idx = ordre.indexOf("recap");
   }else{sessionStorage.removeItem(BROUILLON_ENVOI);}
