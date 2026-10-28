@@ -114,6 +114,15 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,button:focus-vis
 .gab svg rect{fill:#273241;stroke:#e56535}
 .gab svg line{stroke:#98a4b5}
 .gab svg text[font-weight="800"]{fill:#ff9d77}
+
+.chambres-courtes{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+.chambres-courtes button.opt{padding:12px;min-width:0;gap:8px;min-height:56px}
+.chambres-courtes button.opt .tx{font-size:15px}
+.guide-court{padding:12px;margin:12px 0}
+.guide-court p{margin:0 0 10px}
+.guide-court>div{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.guide-court .btn{width:100%;min-width:0;height:auto;padding:11px 8px;font-size:13px;white-space:normal;line-height:1.3}
+.guide-court small{display:block;color:var(--gris);font-size:12px;line-height:1.3;margin-top:8px}
 </style>
 </head>
 <body>
@@ -241,7 +250,7 @@ E.destination = {k:"La livraison", q:"Jusqu’où souhaitez-vous la livraison ?"
   sub:"Le transport jusqu’au quai et l’acheminement jusqu’au terrain sont deux prestations distinctes. Leur faisabilité et leur prix seront étudiés avant le devis."};
 
 E.chambres = {k:"Votre projet", q:"Combien de chambres souhaitez-vous ?", ch:"chambres",
-  sub:"Choisissez votre besoin. Si la surface est trop petite, nous vous proposerons comment l’agrandir.", o:[
+  o:[
   ["Studio / sans chambre séparée"],["1 chambre"],["2 chambres"],["3 chambres"],["4 chambres ou plus"],["À définir"]]};
 
 E.modules = {k:"Votre projet", q:"Quels conteneurs souhaitez-vous aménager ?", mod:1, gabarit:1, num:"surface",
@@ -551,13 +560,12 @@ function revoirChoixChambres(){
  var z=document.querySelector("#main .opts");if(z)z.scrollIntoView({block:"start",behavior:"smooth"});
 }
 function blocGuidageLogement(){
- if(S.usage!=="Logement")return "";
- var msg=erreurLogement();
- if(!msg)return S.guidageModules?`<div class="note">Votre base a été ajustée à environ <b>${surfaceMod()} m²</b>. L’estimatif utilisera les nouveaux conteneurs. Le plan sera vérifié pendant l’étude.</div>`:"";
+ if(S.usage!=="Logement" || !erreurLogement())return "";
  var p=propositionPourChambres(), ch=nombreChambres();
- var exp=p?"Avec environ "+surfaceInterieureDisponible()+" m², il n’y a pas assez de place pour "+(ch===4?"4 chambres ou plus":ch+" chambres")+" et les autres pièces.":msg;
- var proposition=p?`<button type="button" class="btn p" style="width:100%;height:auto;white-space:normal" onclick="agrandirPourChambres()">Agrandir le projet à environ ${p.surface} m²</button><p class="pja">Base proposée : ${p.n20?p.n20+" conteneur(s) 20 pieds":""}${p.n20&&p.n40?" + ":""}${p.n40?p.n40+" conteneur(s) 40 pieds":""}. Le prix sera recalculé. Agencement à vérifier pendant l’étude.</p>`:nombre(S.surface)>surfaceMod()?`<button type="button" class="btn p" onclick="utiliserSurfaceModules()">Utiliser les ${surfaceMod()} m² des conteneurs</button>`:"";
- return `<div class="note" role="alert"><b>Adaptons votre projet</b><p>${esc(exp)}</p>${proposition}<button type="button" class="btn" style="width:100%;height:auto;white-space:normal;margin-top:8px" onclick="revoirChoixChambres()">Choisir moins de chambres</button></div>`;
+ var texte=p?"Surface trop petite pour "+(ch===4?"4 chambres ou plus":ch+" chambres")+".":"La surface dépasse celle des conteneurs.";
+ var action=p?`<button type="button" class="btn p" onclick="agrandirPourChambres()">Agrandir (~${p.surface} m²)</button>`:`<button type="button" class="btn p" onclick="utiliserSurfaceModules()">${surfaceMod()} m² intérieurs</button>`;
+ var base=p?`${p.n20?p.n20+" × 20 pieds":""}${p.n20&&p.n40?" + ":""}${p.n40?p.n40+" × 40 pieds":""} · prix recalculé`:"Surface calculée automatiquement";
+ return `<div class="note guide-court" role="alert"><p>${esc(texte)}</p><div>${action}<button type="button" class="btn" onclick="revoirChoixChambres()">Moins de chambres</button></div><small>${esc(base)}</small></div>`;
 }
 function rafraichirGuidage(){
  var z=document.getElementById("guidage-logement");
@@ -913,14 +921,14 @@ function rendre(){
 
   if(e.mod || e.ch==="chambres")h+='<div id="guidage-logement">'+blocGuidageLogement()+'</div>';
   if(e.o){
-    h += '<div class="opts">';
+    h += '<div class="opts' + (e.ch==="chambres"?' chambres-courtes':'') + '">';
     for(var i=0;i<e.o.length;i++){
       var v = e.o[i][0], d = e.o[i][1];
       if(e.o[i][3] === "pro" && S.profil === "Un particulier") continue;
       if(e.descPublic && estPublic() && e.descPublic[i] != null) d = e.descPublic[i];
       var actif = e.multi ? (MULTI[e.ch] || []).indexOf(v) > -1 : S[e.ch] === v;
-      h += '<button data-option-index="' + i + '"' + (e.multi ? ' aria-pressed="' + (actif ? 'true' : 'false') + '"' : '') + ' class="opt' + (actif ? ' sel' : '') + '" onclick="' + (e.multi ? 'coche' : 'choix') + '(\'' + e.ch + '\',' + i + ')">'
-         + '<span class="ic">✓</span><span class="tx">' + esc(v)
+      h += '<button data-option-index="' + i + '"' + (e.ch==="chambres"?' aria-label="'+esc(v)+'"':'') + (e.multi ? ' aria-pressed="' + (actif ? 'true' : 'false') + '"' : '') + ' class="opt' + (actif ? ' sel' : '') + '" onclick="' + (e.multi ? 'coche' : 'choix') + '(\'' + e.ch + '\',' + i + ')">'
+         + '<span class="ic">✓</span><span class="tx">' + esc(e.ch==="chambres" ? (i===0?'Studio':i===4?'4 ou plus':i===5?'À définir':String(i)) : v)
          + (d ? '<small>' + esc(d) + '</small>' : '') + '</span></button>';
     }
     h += '</div>';
