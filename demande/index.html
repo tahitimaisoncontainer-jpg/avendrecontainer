@@ -1302,7 +1302,7 @@ function prochaineAction(){
  if(S.etape==="Je garde la proposition pour plus tard")return "Dossier à reprendre à votre initiative lorsque votre projet avancera.";
  if(p.client.length)return "Avant de proposer le lancement de l’étude, préciser : "+p.client.slice(0,3).join(" ");
  if(intentionEtude())return "TMC doit valider le périmètre puis vous transmettre les modalités de l’étude et du plan 2D si nécessaire. Aucun travail n’est lancé par ce formulaire.";
- return "Si vous souhaitez poursuivre sur cette base, répondez au mail avec votre référence pour examiner le périmètre de l’étude.";
+ return "Si vous souhaitez poursuivre sur cette base, écrivez à tahitimaisoncontainer@gmail.com avec votre référence pour examiner le périmètre de l’étude.";
 }
 function perimetreTechnique(){
  var p=[];
@@ -1323,7 +1323,7 @@ function suiteEtudeTexte(){
  ];
  if(S.plan==="Oui, un plan coté")t.push("Envoyez votre plan pour vérification. S’il est exploitable, il sera utilisé sans vous facturer un nouveau plan.");
  else t.push(plan?"Plan 2D à réaliser si nécessaire : "+fmt(plan[0])+" XPF, en supplément de l’étude. Vos croquis et documents seront examinés avant toute proposition.":"Si le plan 2D est à réaliser, son tarif sera confirmé après définition des modules, séparément de l’étude.");
- t.push("Pour poursuivre, répondez avec votre référence. TMC confirme le périmètre et les modalités de règlement. L’étude et le plan 2D à réaliser sont réglés avant leur démarrage pour préparer votre devis sur mesure.");
+ t.push("Pour poursuivre, écrivez à tahitimaisoncontainer@gmail.com avec l’objet « Aménagement — "+referenceDemande()+" ». TMC confirme le périmètre et les modalités de règlement. L’étude et le plan 2D à réaliser sont réglés avant leur démarrage pour préparer votre devis sur mesure.");
  t.push("Seule l’étude est déduite de votre commande de travaux si vous donnez suite. Le plan 2D reste une prestation distincte. Ce règlement n’est pas une commande de travaux.");
  return t.join("\n");
 }
