@@ -322,11 +322,10 @@ E.decision = {k:"Presque fini", q:"Qui décide du projet avec vous ?", ch:"decis
   ["Je décide avec un associé ou ma hiérarchie","Validation interne à obtenir"],
   ["Je fais la demande pour quelqu'un d'autre","Je ne suis pas le décideur"]]};
 
-E.etape = {k:"Presque fini", q:"Après cet estimatif, comment souhaitez-vous avancer ?", ch:"etape", o:[
-  ["Je souhaite poursuivre avec l’étude","Recevoir le périmètre et les modalités de l’étude et du plan 2D si nécessaire"],
-  ["J'en parle autour de moi, puis je reviens vers vous"],
-  ["Je compare avec d'autres devis"],
-  ["Je garde la proposition pour plus tard"]]};
+E.etape = {k:"Presque fini", q:"Souhaitez-vous poursuivre avec l’étude payante ?", ch:"etape", o:[
+  ["Je souhaite poursuivre avec l’étude"],
+  ["J’ai une question avant de décider"],
+  ["Non merci, je ne souhaite pas poursuivre","Votre demande sera close, sans relance"]]};
 
 E.contact = {k:"Vos coordonnées", q:"Vos coordonnées pour recevoir votre proposition", contact:1,
   sub:"Vous recevrez l’estimatif et les étapes pour poursuivre par email après transmission. Utilisez le dernier champ pour préciser vos questions ou vos contraintes.",
@@ -1292,6 +1291,7 @@ function topo(r){
   return L.join("\n");
 }
 
+function sansSuite(){return S.etape==="Non merci, je ne souhaite pas poursuivre" || S.etape==="Je garde la proposition pour plus tard" || S.etape==="J'en parle autour de moi, puis je reviens vers vous";}
 function intentionEtude(){return S.etape==="Je souhaite poursuivre avec l’étude"||S.etape==="Je commande";}
 function pointsAClarifier(){
  var client=[], technique=[], e=estimationProjet();
@@ -1311,11 +1311,11 @@ function pointsAClarifier(){
  return {client:client,technique:Array.from(new Set(technique))};
 }
 function prochaineAction(){
- if(S.etape==="Je garde la proposition pour plus tard")return "Dossier à reprendre à votre initiative lorsque votre projet avancera.";
+ if(sansSuite())return "Demande close, sans relance. Vous pourrez nous contacter à nouveau si vous décidez de poursuivre.";
  return "Après lecture de l’estimatif et des conditions de l’étude ci-dessous, confirmez par email si vous souhaitez poursuivre. Les précisions techniques seront reprises avec TMC.";
 }
 function confirmationEtudeTexte(){
- if(S.etape==="Je garde la proposition pour plus tard")return "Vous avez indiqué vouloir reprendre le projet plus tard. Écrivez à TMC avec votre référence lorsque vous souhaiterez poursuivre.";
+ if(sansSuite())return "Vous ne souhaitez pas poursuivre actuellement. Votre demande sera close, sans relance.";
  return "VOTRE RÉPONSE ATTENDUE\nÉcrivez à tahitimaisoncontainer@gmail.com avec l’objet « Aménagement — "+referenceDemande()+" » et le message :\n« Oui, je souhaite poursuivre avec l’étude de mon projet — "+referenceDemande()+". »\nCette réponse confirme votre souhait d’avancer. TMC vérifiera les derniers points et confirmera le périmètre et les modalités de règlement avant le démarrage de l’étude.";
 }
 function perimetreTechnique(){
@@ -1376,7 +1376,8 @@ function evaluerDemande(){
 
   var score = terrain + budget + financement + projet + decision + delai;
   var statut;
-  if(!terrainDisponible || !indivisionClaire) statut = "TERRAIN À SÉCURISER";
+  if(sansSuite()) statut = "CLOS — NON ENGAGÉ";
+  else if(!terrainDisponible || !indivisionClaire) statut = "TERRAIN À SÉCURISER";
   else if(!budgetAnnonce && !(nombre(S.budgetExact)>0)) statut = "BUDGET À PRÉCISER";
   else if(coherence==="incompatible") statut = "BUDGET SOUS LE REPÈRE";
   else if(coherence!=="coherente") statut = "ESTIMATION À COMPLÉTER / BUDGET À CONFIRMER";
@@ -1403,10 +1404,13 @@ function ficheEmail(){
    "Aménagement":[S.usage,S.prestationsDetails||S.prestations].filter(Boolean).join(" — "),
    "Commune / quartier":[S.commune==="Autre île"?S.ile:S.commune,S.emplacement].filter(Boolean).join(" — "),
    "Pour quand":S.delai||"À définir",
+   "Budget déclaré":nombre(S.budgetExact)>0?fmt(nombre(S.budgetExact))+" XPF":S.enveloppe||"À préciser",
+   "Terrain":S.terrain||"À préciser",
+   "Financement":S.financement||"À préciser",
    "Budget approximatif du projet":estimationTexte(),
    "Étude pour le devis sur mesure":tarifEtude()||"Tarif à confirmer après définition de la surface",
    "Plan 2D":plan?fmt(plan[0])+" XPF pour dessiner votre projet vu de dessus, avec ses dimensions. Si vous avez déjà un plan utilisable, inutile d’en payer un nouveau. Le plan à réaliser est réglé avant de commencer.":"Tarif à confirmer après définition des conteneurs",
-   "Votre réponse":"Choisissez : Oui, poursuivre / J’ai une question / Plus tard / Non merci : https://tahitimaisoncontainer-jpg.github.io/avendrecontainer/demande/reponse.html?ref="+encodeURIComponent(referenceDemande())+" — puis envoyez l’email préparé. Aucun paiement ni travaux ne sont engagés par cette réponse.",
+   "Votre réponse":sansSuite()?"Demande close, sans relance. Vous pourrez recontacter TMC si vous décidez de poursuivre.":"Choisissez : Oui, poursuivre / J’ai une question / Non merci : https://tahitimaisoncontainer-jpg.github.io/avendrecontainer/demande/reponse.html?ref="+encodeURIComponent(referenceDemande())+" — puis envoyez l’email préparé. Aucun paiement ni travaux ne sont engagés par cette réponse.",
    "Conditions de l’étude":suiteEtudeTexte(),
    "Contact TMC":"Jean-Baptiste HAUATA — 87 22 65 55 — tahitimaisoncontainer@gmail.com"
  };
