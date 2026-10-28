@@ -745,7 +745,7 @@ function rendre(){
       if(e.o[i][3] === "pro" && S.profil === "Un particulier") continue;
       if(e.descPublic && estPublic() && e.descPublic[i] != null) d = e.descPublic[i];
       var actif = e.multi ? (MULTI[e.ch] || []).indexOf(v) > -1 : S[e.ch] === v;
-      h += '<button class="opt' + (actif ? ' sel' : '') + '" onclick="' + (e.multi ? 'coche' : 'choix') + '(\'' + e.ch + '\',' + i + ')">'
+      h += '<button data-option-index="' + i + '"' + (e.multi ? ' aria-pressed="' + (actif ? 'true' : 'false') + '"' : '') + ' class="opt' + (actif ? ' sel' : '') + '" onclick="' + (e.multi ? 'coche' : 'choix') + '(\'' + e.ch + '\',' + i + ')">'
          + '<span class="ic">✓</span><span class="tx">' + esc(v)
          + (d ? '<small>' + esc(d) + '</small>' : '') + '</span></button>';
     }
@@ -952,7 +952,14 @@ function coche(champ, i){
   a.sort(function(x, y){ return rang[x] - rang[y]; });
   S[champ] = a.join(" · ");
   ordre = parcours();
-  rendre();
+  // Mettre les cases à jour sur place : ne pas reconstruire la page ni déplacer le défilement.
+  document.querySelectorAll("#main .opts button[data-option-index]").forEach(function(button){
+    var option = e.o[Number(button.getAttribute("data-option-index"))];
+    var selected = !!option && a.indexOf(option[0]) > -1;
+    button.classList.toggle("sel", selected);
+    button.setAttribute("aria-pressed", selected ? "true" : "false");
+  });
+  effaceErr();
 }
 
 function effaceErr(){ var d = document.getElementById("err"); if(d) d.innerHTML = ""; }
