@@ -220,13 +220,14 @@ E.usage = {k:"Votre projet", q:"Quel usage prévoyez-vous ?", ch:"usage", o:[
   ["Bureau ou activité professionnelle","Bureau, commerce, boutique, cabinet, kiosque"],
   ["Hébergement ou tourisme","Bungalow, hébergement touristique, unité locative"],
   ["Atelier ou stockage aménagé","Atelier, stockage, local isolé ou électrifié"],
-  ["Sanitaire ou local spécialisé","Sanitaires, vestiaires, chambre froide, laboratoire, local technique"],
+  ["Sanitaires ou vestiaires","WC, douches, lavabos, vestiaires, accès PMR"],
+  ["Local spécialisé","Chambre froide, laboratoire, local alimentaire ou technique : chiffrage adapté"],
   ["Autre projet"]]};
 
 E.formule = {k:"Votre projet",q:"Quelle formule souhaitez-vous ?",ch:"formule",formule:1,
- sub:"Choisissez une formule pour votre projet.",o:[
- ["Clé en main sans assainissement","Aménagement complet, hors assainissement."],
- ["Clé en main avec assainissement","Aménagement complet avec assainissement."],
+ sub:"Choisissez la base de votre demande. Le périmètre dépend de l’usage ; l’étude précisera les équipements, options et le prix final.",o:[
+ ["Clé en main sans assainissement","Aménagement du conteneur selon l’usage, hors assainissement et options précisées ci-dessous."],
+ ["Clé en main avec assainissement","Même aménagement, avec une provision d’assainissement à confirmer après étude."],
  ["Je choisis mes prestations","Je sélectionne les travaux souhaités."]]};
 
 E.prestations = {k:"Votre aménagement", q:"Quelles prestations souhaitez-vous ?", ch:"prestations", multi:1, prestations:1,
@@ -243,6 +244,9 @@ E.prestations = {k:"Votre aménagement", q:"Quelles prestations souhaitez-vous ?
   ["Assainissement et raccordements"],
   ["Autres prestations"],
   ["À définir ensemble", "Nous préciserons les travaux avec vous.", 1]]};
+
+E.detailsProjet={k:"Votre projet",q:"Précisez le local et les équipements souhaités",detailsProjet:1,
+ sub:"Par exemple : chambre froide et température souhaitée, laboratoire, activité et équipements. TMC vous proposera un premier repère adapté avant votre décision sur l’étude payante."};
 
 E.destination = {k:"La livraison",q:"Où souhaitez-vous recevoir vos conteneurs ?",destination:1,
  sub:"Au quai ou jusqu’au terrain : choisissez ce qui vous convient."};
@@ -315,11 +319,11 @@ E.plan = {k:"Votre projet", q:"Avez-vous un plan ou un croquis ?", ch:"plan", pj
   ["Oui, un plan coté"],["Un croquis à main levée"],["Non, rien pour l'instant"]]};
 
 E.enveloppe = {k:"Budget", q:"Quel budget avez-vous prévu pour votre projet ?", ch:"enveloppe", etudeNote:1, echelle:1,
-  sub:"Indiquez le budget de <b>l'ensemble du projet</b> : les conteneurs et leur aménagement, tous modules compris. Cette information me permet de vérifier que votre projet est cohérent avec l'enveloppe que vous envisagez. Vous recevrez notre estimation par email après l’envoi de votre demande.", o:[
-  ["2 à 3 millions XPF","Enveloppe totale disponible"],
-  ["3 à 5 millions XPF","Enveloppe totale disponible"],
-  ["5 à 10 millions XPF","Enveloppe totale disponible"],
-  ["10 à 20 millions XPF","Enveloppe totale disponible"],
+  sub:"Indiquez le budget de <b>l'ensemble du projet</b> : les conteneurs, leur aménagement et les frais annexes, étude et plans compris. Cette information me permet de vérifier que votre projet est cohérent avec l'enveloppe que vous envisagez. Vous recevrez notre estimation par email après l’envoi de votre demande.", o:[
+  ["2 à 3 millions XPF","Budget total envisagé, financement à préciser ensuite"],
+  ["3 à 5 millions XPF","Budget total envisagé, financement à préciser ensuite"],
+  ["5 à 10 millions XPF","Budget total envisagé, financement à préciser ensuite"],
+  ["10 à 20 millions XPF","Budget total envisagé, financement à préciser ensuite"],
   ["20 à 30 millions XPF","Projet résidentiel ou professionnel de grande taille"],
   ["30 à 50 millions XPF","Bâtiment complet ou ensemble de modules important"],
   ["50 millions XPF et plus","Programme complet, plusieurs bâtiments ou tranche importante"],
@@ -341,7 +345,8 @@ var FINANCEMENTS = {
  "Un particulier":{q:"Comment envisagez-vous de financer ce projet ?",multi:true,sub:"Plusieurs réponses possibles si vous combinez plusieurs sources de financement.",o:[
  ["Fonds propres disponibles","",0,"disponible"],
  ["Prêt bancaire déjà accordé","",0,"disponible"],
- ["Aide ou subvention notifiée","",0,"disponible"],
+ ["Aide ou subvention déjà versée","",0,"disponible"],
+ ["Aide ou subvention notifiée, versement à venir","",0,"attente"],
  ["Prêt en cours d'instruction","",0,"attente"],
  ["Le financement reste à monter","",0,"recherche"],
  ["Je ne sais pas encore","",1,"inconnu"]]},
@@ -373,6 +378,7 @@ var FINANCEMENTS = {
 };
 function configFinancement(){return FINANCEMENTS[S.profil]||FINANCEMENTS["Un particulier"];}
 function adapterFinancement(){
+ if(S.profil==="Un particulier" && S.financement==="Aide ou subvention notifiée")S.financement="Aide ou subvention notifiée, versement à venir";
  var config=configFinancement();
  E.financement={k:"Budget",q:config.q,ch:"financement",multi:config.multi,sub:config.sub,o:config.o};
  var selections=String(S.financement||"").split(" · ").filter(Boolean).filter(function(v){return config.o.some(function(o){return o[0]===v;});});
@@ -435,7 +441,7 @@ function libelleStructure(){
 adapterDecision();
 
 E.contact = {k:"Vos coordonnées", q:"Vos coordonnées pour recevoir votre proposition", contact:1,
-  sub:"Vous recevrez l’estimatif et les étapes pour poursuivre par email après transmission. Utilisez le dernier champ pour préciser vos questions ou vos contraintes.",
+  sub:"Vous recevrez votre récapitulatif et un prix de départ indicatif lorsque le projet permet de le calculer. Sinon, TMC précisera votre demande avant de vous proposer un premier repère. Utilisez le dernier champ pour préciser vos questions ou vos contraintes.",
   confid:1};
 
 E.estimation = {k:"Budget et décision", q:"Votre estimation indicative", estimation:1};
@@ -587,14 +593,18 @@ function champQuartier(){
 }
 
 function parcours(){
+  // Les anciens dossiers regroupaient sanitaires et locaux spécialisés : ne pas supposer l’usage.
+  if(S.usage==="Sanitaire ou local spécialisé")S.usage="Local spécialisé";
   adapterDecision();
   adapterTerrain();
   adapterFinancement();
   normaliserLivraison();
+  if(S.formule && !formulePersonnalisee())appliquerFormule();
   var p = ["usage","profil","modules"];
+  if(S.usage==="Local spécialisé" || S.usage==="Autre projet")p.push("detailsProjet");
   p.push("formule");
   if(formulePersonnalisee())p.push("prestations");
-  if(totalMod() >= 2 || S.modules === "À définir") p.push("implantation");
+  if(totalMod() >= 2) p.push("implantation");
   p.push("commune");
   if(S.commune && !estSurTahiti())p.push("destination");
   p.push("terrain");
@@ -612,7 +622,7 @@ function parcours(){
 /* Barème de provision standard, version 2026-10-28.
    Fourchettes construites à partir des postes détaillés TMC 2021/2024/2026.
    Ce sont des provisions de préqualification, pas les extrema de devis identiques.
-   Pas de coefficient automatique selon le profil du client. */
+   Provisions de budget TTC ; adaptation du profil public appliquée une seule fois en fin de calcul. */
 var BAREME = {version:"2026-10-28", amenagement:[180000,220000], toiture:[6200,6200], plot:32000, assainissement:{petit:1000000,intermediaire:2500000,grand:3000000,surfaceReference:26}};
 function estPublic(){ return S.profil === "Une administration publique"; }
 function arrondiHaut(v,pas){ return Math.ceil(v/(pas||10000))*(pas||10000); }
@@ -647,54 +657,43 @@ function provisionAssainissement(){
 var TARIF_ATELIER_GLOBAL=230000;
 function atelierCleEnMain(){return S.usage==="Atelier ou stockage aménagé" && (S.formule==="Clé en main sans assainissement" || S.formule==="Clé en main avec assainissement");}
 function estimationProjet(){
-  var m=nombre(S.surface), lignes=[], manquants=[], standard=true, atelier=atelierCleEnMain();
-  function ajoute(n,bas,haut){ lignes.push({poste:n,bas:arrondiHaut(bas),haut:arrondiHaut(haut==null?bas:haut)}); }
-  if(!Number.isFinite(m)||m<=0) return {lignes:[],manquants:["Surface à préciser"],bas:null,haut:null,complet:false};
-  if(!S.modules || S.modules==="À définir" || totalMod()<1) manquants.push("Nombre de conteneurs à préciser");
-  else if(!atelier) ajoute("Conteneurs et frais opérationnels (hors livraison)",plancherConteneurs());
-  if(totalMod()>0 && m>nMod("n20")*15+nMod("n40")*30) manquants.push("Surface supérieure à celle des modules : extension ou surface à vérifier");
-  var sanitaireCleEnMain=S.usage==="Sanitaire ou local spécialisé" && (S.formule==="Clé en main sans assainissement" || S.formule==="Clé en main avec assainissement");
-  var special=S.usage!=="Logement" && S.usage!=="Hébergement ou tourisme" && S.usage!=="Bureau ou activité professionnelle" && !sanitaireCleEnMain && !atelier;
-  if(sanitaireCleEnMain || atelier)manquants.push("Équipements spécifiques et suppléments à confirmer après étude");
-  if(special) {standard=false; manquants.push("Usage spécialisé : aménagement sur étude, aucun forfait standard appliqué");}
-  var core=prestation("Isolation et habillage intérieur")&&prestation("Électricité et éclairage")&&prestation("Portes, fenêtres et baies vitrées");
-  var eau=S.usage==="Logement"||S.usage==="Hébergement ou tourisme"||prestation("Plomberie et sanitaires")||prestation("Cuisine");
-  if(!special && (!core || (eau&&!prestation("Plomberie et sanitaires")))) {standard=false;manquants.push("Travaux partiels ou à définir : le repère standard doit être adapté");}
-  if(atelier)ajoute("Atelier — repère global conteneurs, aménagement, livraison locale standard, toiture et plots — "+m+" m² × "+fmt(TARIF_ATELIER_GLOBAL)+" XPF",m*TARIF_ATELIER_GLOBAL);
-  else if(!special) ajoute((standard?"Aménagement standard":"Repère d’aménagement standard, à adapter")+" — "+m+" m² × 180 000 à 220 000 XPF",m*BAREME.amenagement[0],m*BAREME.amenagement[1]);
-  var c=COM.find(function(c){return c[0]===S.commune;});
-  if(totalMod()>0 && S.modules!=="À définir" && c && COM.indexOf(c)<=21 && S.livraison==="Jusqu’au terrain, avec déchargement et pose" && S.acces==="Oui, l'accès est dégagé") {
-    // Grille Tahiti : supplément HT, TVA transport 13 %, arrondi supérieur par module.
-    if(!atelier)ajoute("Transport Tahiti, accès standard",nMod("n20")*arrondiHaut(c[1]*1.13)+nMod("n40")*arrondiHaut(c[2]*1.13));
-  } else manquants.push(S.livraison==="Au quai uniquement"?"Fret et mise à disposition au quai à chiffrer":"Transport, grutage et livraison finale à chiffrer selon destination et accès");
-  if(!atelier && prestation("Toiture de protection")) {
-    var toit=toitureCalculee();
-    if(toit){
-      ajoute("Fournitures de toiture — "+toit.surface+" m² calculés automatiquement avec débords de 1 m",toit.surface*BAREME.toiture[0]);
-      manquants.push("Main-d’œuvre de toiture à ajouter ; fournitures seules dans ce repère");
-      if(totalMod()>1)manquants.push("Géométrie de toiture à vérifier par TMC : "+toit.hypothese);
-    }else manquants.push("TMC doit préciser l’implantation au sol pour calculer la toiture, sans demander de métrés au client");
-  }
-  if(!atelier && prestation("Fondations ou plots")) {
-    var plots=nombrePlotsCalcule();
-    if(Number.isInteger(plots)&&plots>0) ajoute("Provision pour "+plots+" plots bas — calcul automatique selon les conteneurs",plots*BAREME.plot);
-    else manquants.push("Définir les conteneurs pour calculer automatiquement les appuis ; TMC vérifiera leur type sur le terrain");
-  }
-  if(prestation("Assainissement et raccordements")) {
-    var ass=provisionAssainissement();
-    if(ass)ajoute("Provision d’assainissement — "+ass.regle,ass.bas,ass.haut);
-    else manquants.push("Provision d’assainissement à préciser par TMC selon l’usage et la configuration");
-    if(S.reseaux!=="Raccordements extérieurs pris en charge séparément") manquants.push("Raccordements extérieurs eau/électricité à chiffrer");
-  }
-  if(prestation("Cuisine")) manquants.push("Mobilier de cuisine et électroménager non chiffrés");
-  if(prestation("Ventilation ou climatisation")) manquants.push("Climatisation et ventilation à dimensionner");
-  if(prestation("Terrasse et accès")) manquants.push("Terrasse, escalier et accès à chiffrer");
-  if(prestation("Autres prestations")||prestation("À définir ensemble")) manquants.push("Prestations complémentaires à définir");
-  if(S.implantation && S.implantation!=="Assemblés en un seul bâtiment" && S.implantation!=="Séparés, posés indépendamment") manquants.push("Implantation ou superposition à valider techniquement");
-  if(S.profil==="Une administration publique") manquants.push("Conditions du marché et financement à vérifier par TMC");
-  var bas=lignes.reduce(function(a,l){return a+l.bas;},0),haut=lignes.reduce(function(a,l){return a+l.haut;},0);
-  var coefficient=S.profil==="Une administration publique"?COEF_PUBLIC:1;
-  return {lignes:lignes,manquants:manquants,bas:lignes.length?Math.round(arrondiHaut(bas,100000)*coefficient):null,haut:lignes.length?Math.round(arrondiHaut(haut,100000)*coefficient):null,standard:standard,complet:standard&&manquants.length===0};
+ var m=nombre(S.surface),lignes=[],manquants=[],atelier=atelierCleEnMain();
+ function ajoute(poste,bas,haut){lignes.push({poste:poste,bas:arrondiHaut(bas),haut:arrondiHaut(haut==null?bas:haut)});}
+ function sansPrix(message){return {lignes:[],manquants:[message],bas:null,haut:null,standard:false,complet:false};}
+ if(!Number.isFinite(m)||m<=0)return sansPrix("Surface à préciser");
+ if(formulePersonnalisee())return sansPrix("Prestations au choix : repère adapté à établir par TMC");
+ if(["Logement","Hébergement ou tourisme","Bureau ou activité professionnelle","Atelier ou stockage aménagé","Sanitaires ou vestiaires"].indexOf(S.usage)<0)return sansPrix("Local ou équipements spécialisés : repère adapté à établir par TMC");
+ if(!S.modules || S.modules==="À définir" || totalMod()<1)return sansPrix("Nombre de conteneurs à préciser");
+ if(m>nMod("n20")*15+nMod("n40")*30)return sansPrix("Surface et conteneurs à vérifier avec TMC");
+ if(totalMod()>1 && ["Assemblés en un seul bâtiment","Séparés, posés indépendamment"].indexOf(S.implantation)<0)return sansPrix("Implantation ou superposition à chiffrer avec TMC");
+ ajoute("Conteneurs et frais opérationnels TTC",plancherConteneurs());
+ var c=comInfo(S.commune),transportLocal=c&&COM.indexOf(c)<22 && S.livraison==="Jusqu’au terrain, avec déchargement et pose" && S.acces==="Oui, l'accès est dégagé";
+ if(atelier){
+   // Décomposer l’ancien repère global : les coûts fixes ne diminuent plus avec la surface aménagée.
+   // Taravao sert uniquement à retirer une provision de transport de la référence historique.
+   var ref=comInfo("Taravao"),toit=toitureCalculee(),coutToit=toit?arrondiHaut(toit.surface*BAREME.toiture[0]):0;
+   var fixes=arrondiHaut(plancherConteneurs())+arrondiHaut(nombrePlotsCalcule()*BAREME.plot)+coutToit;
+   var transportRef=nMod("n20")*arrondiHaut(ref[1]*1.13)+nMod("n40")*arrondiHaut(ref[2]*1.13);
+   var tauxAmenagement=Math.max(0,(surfaceMod()*TARIF_ATELIER_GLOBAL-fixes-transportRef)/surfaceMod());
+   ajoute("Aménagement atelier TTC — provision adaptée à la surface aménagée",m*tauxAmenagement);
+   if(toit)ajoute("Provision de toiture standard TTC",coutToit);
+   manquants.push("Machines, équipement professionnel, ventilation et éventuelles adaptations de toiture à confirmer après étude");
+ }else{
+   ajoute("Aménagement standard TTC selon l’usage — "+m+" m²",m*BAREME.amenagement[0],m*BAREME.amenagement[1]);
+ }
+ if(prestation("Fondations ou plots"))ajoute("Provision de plots standard TTC",nombrePlotsCalcule()*BAREME.plot);
+ if(transportLocal)ajoute("Transport Tahiti TTC, accès standard",nMod("n20")*arrondiHaut(c[1]*1.13)+nMod("n40")*arrondiHaut(c[2]*1.13));
+ else manquants.push(S.livraison==="Au quai uniquement"?"Fret et mise à disposition au quai à chiffrer":"Transport et grutage à chiffrer selon le lieu et l’accès");
+ if(prestation("Assainissement et raccordements")){
+   var ass=provisionAssainissement();if(ass)ajoute("Provision d’assainissement TTC",ass.bas,ass.haut);
+   manquants.push("Assainissement : dimensionnement, terrain et raccordements extérieurs à confirmer");
+ }
+ if(S.usage==="Sanitaires ou vestiaires")manquants.push("Nombre de WC, douches, lavabos et adaptations PMR à confirmer");
+ if(usageHabitation())manquants.push("Cuisine équipée, mobilier et éventuelle climatisation hors prix de départ");
+ manquants.push("Raccordements extérieurs, terrasse et travaux particuliers du terrain hors prix de départ");
+ if(S.profil==="Une administration publique")manquants.push("Disponibilité des crédits et conditions de commande à confirmer");
+ var bas=lignes.reduce(function(a,l){return a+l.bas;},0),haut=lignes.reduce(function(a,l){return a+l.haut;},0),coefficient=estPublic()?COEF_PUBLIC:1;
+ return {lignes:lignes,manquants:manquants,bas:Math.round(arrondiHaut(bas,100000)*coefficient),haut:Math.round(arrondiHaut(haut,100000)*coefficient),standard:true,complet:false};
 }
 function estimPlancher(){return estimationProjet().bas;}
 function tauxPlancher(){return atelierCleEnMain()?TARIF_ATELIER_GLOBAL:BAREME.amenagement[0];}
@@ -730,20 +729,22 @@ function signatureEstimation(){
  return JSON.stringify(["a-partir-haut-v1",BAREME.version,S.formule,e.lignes,e.manquants,S.enveloppe,S.usage,S.prestations,S.implantation,S.commune,S.ile,S.livraison,S.acces,prestation("Assainissement et raccordements")?S.reseaux:null]);
 }
 function accordEstimation(ok){ S.estimationLue=ok?signatureEstimation():""; }
+function prixCalculable(){var e=estimationProjet();return e.haut!==null && e.standard && S.modules && S.modules!=="À définir";}
 function messageEstimation(e){
- if(!(nombre(S.surface)>0))return "Indiquez une surface approximative pour situer votre projet.";
- if(!S.modules || S.modules==="À définir" || totalMod()<1)return "Les conteneurs sont à définir avec TMC avant de calculer le prix global.";
- if(e.manquants.some(function(v){return v.indexOf("Travaux partiels")===0;}))return "Pour les seules prestations choisies, le prix sera précisé par TMC. Le tarif d’un aménagement complet n’est pas appliqué.";
- return "Ce type d’aménagement nécessite un chiffrage adapté par TMC.";
+ if(!(nombre(S.surface)>0))return "TMC précisera la surface et le périmètre pour vous proposer un premier prix indicatif.";
+ if(!S.modules || S.modules==="À définir" || totalMod()<1)return "TMC vous aidera à définir les conteneurs avant de vous proposer un premier prix indicatif.";
+ if(formulePersonnalisee())return "TMC étudiera les prestations choisies pour vous proposer une estimation.";
+ if(totalMod()>1 && ["Assemblés en un seul bâtiment","Séparés, posés indépendamment"].indexOf(S.implantation)<0)return "TMC vérifiera l’implantation et la structure pour vous proposer un premier prix indicatif.";
+ return "TMC précisera les équipements et contraintes de votre projet pour vous proposer un premier prix indicatif adapté.";
 }
 function estimationTexte(){
  var e=estimationProjet();
- if(e.bas===null || !e.standard || !S.modules || S.modules==="À définir")return messageEstimation(e);
- return "À partir de "+fmt(e.haut)+" XPF"
-   +"\nConteneurs, aménagement et prestations chiffrées compris."
-   +((S.usage==="Sanitaire ou local spécialisé" || atelierCleEnMain())?"\nÉquipements spécifiques et suppléments à confirmer après étude.":"")
-   +"\nEstimatif non contractuel, hors étude et plan 2D."
-   +(e.manquants.length?"\nMontant à compléter : certains travaux ou frais restent à chiffrer lors de l’étude. Le montant indiqué n’est pas un prix final.":"");
+ if(!prixCalculable())return messageEstimation(e);
+ return "À partir de "+fmt(e.haut)+" XPF TTC"
+  +"\nBase indicative : "+perimetreForfait()+"."
+  +"\n"+optionsHorsForfait()
+  +"\nLe transport est compris uniquement s’il figure parmi les postes chiffrés ; sinon il reste à préciser."
+  +"\nPrix de départ non contractuel, hors étude et plan 2D. L’étude permettra d’établir le devis personnalisé.";
 }
 
 function blocEstimation(){
@@ -982,7 +983,7 @@ function rendre(){
     if(pp)
       h += '<div class="prix"><div class="lb">Pour votre projet \u2014 ' + esc(libelleMod()) + '</div>'
          + '<div class="val" style="font-size:22px;line-height:1.35">Plan 2D si à réaliser : ' + fmt(pp[0]) + ' XPF</div>'
-         + '<div class="det">Visuel 3D en option : ' + fmt(pp[1]) + ' XPF. Ce sont les tarifs de l\'architecte, sans marge de ma part. Le d\u00e9tail du bar\u00e8me est ci-dessous.</div></div>';
+         + '<div class="det">Visuel 3D en option : ' + fmt(pp[1]) + ' XPF. La réalisation est confiée à notre prestataire. Le d\u00e9tail du bar\u00e8me est ci-dessous.</div></div>';
     h += '<div class="note">' + e.reperes + '</div>';
   }
 
@@ -1010,7 +1011,8 @@ function rendre(){
     if(estSurTahiti())h+=champQuartier();
 
   }
-  if(e.formule && S.formule && !formulePersonnalisee())h+='<p class="pja">'+esc(resumeFormule())+'. Vous recevrez notre prix approximatif par email.</p>';
+  if(e.formule)h+='<div class="note"><b>Base du clé en main pour cet usage</b><br>'+esc(perimetreForfait(true))+'.<br>'+esc(optionsHorsForfait(true))+'<br>La formule avec assainissement ajoute une provision dédiée ; son dimensionnement sera confirmé après étude.</div>';
+  if(e.detailsProjet)h+='<label class="f"><span>Type de local, activité et équipements prévus</span><textarea id="i_detailsProjet" maxlength="3000" placeholder="Décrivez brièvement votre besoin" oninput="maj(\'detailsProjet\',this.value)">'+esc(S.detailsProjet||"")+'</textarea></label>';
   if(e.prestations){
     h += '<label class="f" style="margin-top:16px"><span>Précisions sur les travaux (facultatif, sauf autres prestations)</span>'
       + '<textarea id="i_prestationsDetails" maxlength="3000" placeholder="Par exemple : une baie vitrée en façade, deux prises, une douche ; toiture réalisée par mes soins…" oninput="maj(\'prestationsDetails\',this.value)">' + esc(S.prestationsDetails||"") + '</textarea></label>';
@@ -1157,10 +1159,31 @@ function ajoutPJ(input){
 
 /* ============ INTERACTIONS ============ */
 function formulePersonnalisee(){return S.formule==="Je choisis mes prestations";}
+function usageHabitation(){return S.usage==="Logement" || S.usage==="Hébergement ou tourisme";}
+function postesForfait(){
+ var p=["Isolation et habillage intérieur","Électricité et éclairage","Portes, fenêtres et baies vitrées","Fondations ou plots"];
+ if(usageHabitation() || S.usage==="Sanitaires ou vestiaires")p.push("Plomberie et sanitaires");
+ if(atelierCleEnMain())p.push("Toiture de protection");
+ if(S.formule==="Clé en main avec assainissement")p.push("Assainissement et raccordements");
+ return p;
+}
+function perimetreForfait(apercu){
+ if(formulePersonnalisee() && !apercu)return S.prestations||"Prestations à préciser";
+ if(S.usage==="Local spécialisé" || S.usage==="Autre projet")return "Aménagement et équipements à définir avec TMC ; aucun forfait standard appliqué";
+ return "Conteneurs, isolation et habillage intérieur, électricité, ouvertures et plots standard"
+  +(usageHabitation() || S.usage==="Sanitaires ou vestiaires"?", plomberie et sanitaires de base":"")
+  +(S.usage==="Atelier ou stockage aménagé"?", toiture standard":"")
+  +(!apercu && S.formule==="Clé en main avec assainissement"?", provision d’assainissement incluse":" ; hors assainissement");
+}
+function optionsHorsForfait(apercu){
+ if(formulePersonnalisee() && !apercu)return "Le périmètre sera précisé à partir des postes sélectionnés.";
+ return "Hors mobilier, cuisine équipée, machines et équipements professionnels, climatisation, terrasse, raccordements extérieurs et travaux particuliers du terrain."
+  +(S.usage==="Atelier ou stockage aménagé"?"":" Toiture de protection à prévoir séparément si nécessaire.")
+  +" Les adaptations PMR, le nombre d’équipements et les besoins de ventilation seront précisés pendant l’étude.";
+}
 function appliquerFormule(){
  var personnalise=formulePersonnalisee();
- var selections=personnalise?String(S.prestationsPerso||"").split(" · ").filter(Boolean):E.prestations.o.slice(0,9).map(function(o){return o[0];});
- if(S.formule==="Clé en main avec assainissement")selections.push("Assainissement et raccordements");
+ var selections=personnalise?String(S.prestationsPerso||"").split(" · ").filter(Boolean):postesForfait();
  MULTI.prestations=selections;S.prestations=selections.join(" · ");
  if(personnalise)S.prestationsDetails=S.prestationsDetailsPerso||"";
  else delete S.prestationsDetails;
@@ -1169,7 +1192,7 @@ function appliquerFormule(){
 }
 function resumeFormule(){
  if(formulePersonnalisee())return S.prestations||"À préciser";
- return S.formule==="Clé en main avec assainissement"?"Aménagement complet du conteneur, avec assainissement":"Aménagement complet du conteneur, sans assainissement";
+ return perimetreForfait();
 }
 
 function choix(champ, i){
@@ -1254,6 +1277,7 @@ function majPrixLive(){
 
 function valide(){
   var e = E[ordre[idx]];
+  if(e.detailsProjet && String(S.detailsProjet||"").trim().length<5)return "Précisez brièvement l’usage et les équipements souhaités.";
   if(e.o && !S[e.ch]) return "Choisissez une réponse pour continuer.";
   if(e.formule && !e.o.some(function(o){return o[0]===S.formule;}))return "Choisissez une formule pour continuer.";
   if(e.ch==="decision" && !decisionRenseignee())return "Précisez qui valide le projet pour votre profil.";
@@ -1308,7 +1332,7 @@ var ORDRE_R = ["reference","profil","structure","besoin","usage","modules","impl
 
 function lignesRecap(){
  var fiche=ficheEmail();
- return Object.keys(fiche).filter(function(k){return fiche[k] && k!=="Contact TMC" && k!=="Votre réponse" && k!=="Budget approximatif du projet";}).map(function(k){return [k==="email"?"Email":k,fiche[k]];});
+ return Object.keys(fiche).filter(function(k){return fiche[k] && ["Contact TMC","Votre réponse","Budget approximatif du projet","Si vous souhaitez poursuivre"].indexOf(k)<0;}).map(function(k){return [k==="email"?"Email":k,fiche[k]];});
 }
 /* ============ TOPO ET ENVOI PAR MAIL ============ */
 var NIV = {
@@ -1452,7 +1476,7 @@ function sansSuite(){return S.etape==="Non merci, je ne souhaite pas poursuivre"
 function intentionEtude(){return S.etape==="Je souhaite poursuivre avec l’étude"||S.etape==="Je commande";}
 function pointsAClarifier(){
  var client=[], technique=[], e=estimationProjet();
- if(!S.usage||S.usage==="Autre projet")client.push("Préciser l’usage et les pièces ou équipements souhaités.");
+ if((!S.usage||S.usage==="Autre projet"||S.usage==="Local spécialisé") && !S.detailsProjet)client.push("Préciser l’usage et les équipements souhaités.");
  if(!(nombre(S.surface)>0))client.push("Indiquer une surface approximative souhaitée en m² ; TMC pourra ensuite proposer les modules.");
  if(etatTerrain()!=="Il m'appartient ou je le loue")client.push(estStructure()?"Préciser la disponibilité de l’emplacement auprès de la structure ou du service concerné.":"Préciser à quelle étape le terrain ou le droit d’usage sera disponible, sans engager l’étude avant clarification.");
  else if(!droitsTerrainClairs())client.push(estStructure()?"Confirmer l’autorisation d’utiliser l’emplacement pour ce projet.":"Clarifier le droit d’usage et l’accord des propriétaires ou indivisaires.");
@@ -1464,6 +1488,7 @@ function pointsAClarifier(){
  if(!decisionValidee())client.push("Confirmer la validation du projet et du budget auprès de la personne ou de l’instance qui décide.");
  if(S.modules==="À définir"||!S.modules)technique.push("Proposer le nombre et le format des modules à partir de la surface et de l’usage.");
  e.manquants.forEach(function(v){if(!/Surface à préciser|Nombre de conteneurs à préciser/.test(v))technique.push(v+".");});
+ if(S.acces==="Non, l'accès est difficile")technique.push("Accès difficile : vérifier les dimensions du passage, le grutage et les moyens de pose.");
  if(S.plan!=="Oui, un plan coté")technique.push("Définir le plan 2D nécessaire au devis ; examiner d’abord les croquis ou documents déjà disponibles.");
  return {client:client,technique:Array.from(new Set(technique))};
 }
@@ -1484,6 +1509,7 @@ function perimetreTechnique(){
 }
 
 function plan2DTexte(){
+ if(S.plan==="Oui, un plan coté")return "Plan fourni à vérifier par TMC. Aucun nouveau plan à payer s’il est exploitable.";
  var tarif=prixPlan();
  return (tarif?fmt(tarif[0])+" XPF si un nouveau plan est nécessaire. ":"Tarif à confirmer. ")
   +"Les plans 2D sont réalisés par notre prestataire. Ils permettent de faire correspondre le devis à vos attentes en matière d’aménagement et peuvent être utilisés pour un dépôt de permis auprès de la DCA, si nécessaire.";
@@ -1559,12 +1585,17 @@ function ficheEmail(){
    "Conteneurs":S.modules?libelleMod():"À définir avec TMC",
    "Formule":S.formule||"Je choisis mes prestations",
    "Aménagement":[S.usage,S.formule?resumeFormule():S.prestations,S.prestationsDetails].filter(Boolean).join(" — "),
+   "Précisions sur le projet":S.detailsProjet||"",
+   "Implantation":totalMod()>1?S.implantation||"À préciser":"",
    "Commune / quartier":[libelleLieu(),S.emplacement].filter(Boolean).join(" — "),
    "Livraison":S.livraison||"À préciser",
    "Surface indicative":nombre(S.surface)>0?fmt(nombre(S.surface))+" m²":"À préciser",
    "Pour quand":S.delai||"À définir",
    "Budget déclaré":S.enveloppe||"À préciser",
    "Terrain":S.terrain||"À préciser",
+   "Parcelle":S.parcelle||"",
+   "Accès camion-grue":S.livraison==="Jusqu’au terrain, avec déchargement et pose"?S.acces||"À confirmer":"Non concerné : livraison au quai ou à définir",
+   "Plan disponible":S.plan||"À préciser",
    "Autorisation de l’emplacement":estStructure()?S.droitUsage||"À confirmer":"",
    "Financement":S.financement||"À préciser",
    "Budget approximatif du projet":estimationTexte(),
@@ -1598,7 +1629,10 @@ function lienReponseEmail(choix){
  if(S.structure)identite.push("Structure : "+S.structure);
  var projet=["Référence : "+ref,"Projet : "+(S.usage||"")+" — "+(S.modules?libelleMod():"Conteneurs à définir"),"Lieu : "+[libelleLieu(),S.emplacement].filter(Boolean).join(" — ")];
  var objet="Aménagement — "+ref+" — ",message;
- if(choix==="oui"){
+ if(choix==="oui" && !prixCalculable()){
+   objet+="Oui, préciser le projet";
+   message="Bonjour TMC,\n\nOui, je souhaite préciser mon projet pour recevoir un premier prix indicatif avant de décider de poursuivre avec une étude payante.\n\n"+identite.join("\n")+"\n\n"+projet.join("\n")+"\n\nPrécisions : "+(S.detailsProjet||S.prestationsDetails||"À compléter ensemble")+"\n\nAucune étude ni commande de travaux n’est engagée par ce message.";
+ }else if(choix==="oui"){
    objet+="Oui, poursuivre l’étude";
    message="Bonjour TMC,\n\nOui, je souhaite poursuivre avec l’étude de mon projet — "+ref+".\n\n"+identite.join("\n")+"\n\n"+projet.join("\n")+"\n\nPrix indicatif TMC reçu : "+estimationTexte()+"\nÉtude : "+(tarifEtude()||"Tarif à confirmer")+"\n\nPlan 2D : "+plan2DTexte()+"\n\nConditions de l’étude : "+suiteEtudeTexte()+"\n\nMerci de me préciser les modalités pour la suite. Ce message confirme mon souhait d’avancer ; il ne constitue ni un paiement ni une commande de travaux.";
  }else if(choix==="non"){
@@ -1613,8 +1647,9 @@ function lienReponseEmail(choix){
 function boutonsReponseEmail(){
  var base="display:block;padding:13px 16px;margin:10px 0;border-radius:7px;text-align:center;text-decoration:none;font-family:Arial,sans-serif;font-size:15px;font-weight:bold;";
  function bouton(choix,texte,couleur){return '<p style="margin:10px 0"><a href="'+esc(lienReponseEmail(choix))+'" style="'+base+'background:'+couleur+';color:#ffffff">'+texte+'</a></p>';}
- return '<div style="margin-top:24px"><h3>Souhaitez-vous poursuivre avec l’étude ?</h3>'
-  +bouton("oui","Oui, je souhaite poursuivre","#397d46")
+ var calc=prixCalculable();
+ return '<div style="margin-top:24px"><h3>'+(calc?'Souhaitez-vous poursuivre avec l’étude ?':'Souhaitez-vous préciser votre projet avec TMC ?')+'</h3>'
+  +bouton("oui",calc?"Oui, je souhaite poursuivre":"Oui, précisons mon projet","#397d46")
   +bouton("question","J’ai une question","#345574")
   +bouton("non","Non merci","#616975")
   +'<p style="font-size:13px">Chaque bouton ouvre un email prérempli à TMC. Vérifiez votre réponse puis cliquez sur « Envoyer » dans votre messagerie. Pour une question, complétez le message avant l’envoi. Aucun paiement ni travaux ne sont engagés par ce choix.</p></div>';
@@ -1628,19 +1663,19 @@ function courrierInterneHtml(){
  var calculable=e.haut!==null && e.standard && S.modules && S.modules!=="À définir";
  var maximum=plafondEnveloppe(),minimum=minimumEnveloppe(),comparaison="Comparaison à confirmer",couleur="#345574";
  if(calculable && maximum!==null){
-   if(e.haut>maximum){comparaison="Budget déclaré inférieur au prix indicatif TMC";couleur="#a13828";}
-   else if(minimum!==null && e.haut<minimum){comparaison="Prix indicatif inférieur à la tranche de budget déclarée";couleur="#35633e";}
-   else {comparaison="Prix indicatif dans le budget déclaré";couleur="#35633e";}
+   if(e.haut>maximum){comparaison="Budget prévu inférieur au prix de départ TMC";couleur="#a13828";}
+   else if(minimum!==null && e.haut<minimum){comparaison="Prix de départ inférieur à la tranche de budget prévue";couleur="#35633e";}
+   else {comparaison="Prix de départ dans le budget prévu — suppléments à vérifier";couleur="#35633e";}
  }
  function ligne(t,v){if(!v)return "";return '<tr><td style="padding:8px 4px;border-bottom:1px solid #e5e7eb;vertical-align:top;width:38%;color:#5d6670">'+esc(t)+'</td><td style="padding:8px 4px;border-bottom:1px solid #e5e7eb;vertical-align:top">'+esc(v).replace(/\n/g,"<br>")+'</td></tr>';}
  function section(t,contenu){return '<h3 style="font-size:17px;margin:24px 0 7px;color:#d9572a">'+t+'</h3><table style="border-collapse:collapse;width:100%;font-size:14px">'+contenu+'</table>';}
- var h='<div style="padding:16px;background:#fff2e9;border:1px solid #e56535;border-radius:8px"><div style="font-size:13px;color:#5d6670">Budget déclaré par le client</div><p style="font-size:22px;font-weight:bold;margin:5px 0 15px">'+esc(S.enveloppe||"À préciser")+'</p><div style="font-size:13px;color:#5d6670">Prix approximatif TMC</div><p style="font-size:26px;font-weight:bold;margin:5px 0 14px;color:#b94b21">'+(calculable?fmt(e.haut)+" XPF":"À chiffrer")+'</p><p style="margin:0;color:'+couleur+';font-weight:bold">'+esc(comparaison)+'</p><p style="font-size:12px;margin:8px 0 0">Comparaison indicative, hors étude et plan 2D. Les suppléments et le financement restent à vérifier.</p></div>';
- h+='<p style="font-size:13px"><b>Référence :</b> '+esc(referenceDemande())+'<br><b>Réponse client :</b> en attente après proposition.</p>';
+ var h='<div style="padding:16px;background:#fff2e9;border:1px solid #e56535;border-radius:8px"><div style="font-size:13px;color:#5d6670">Budget prévu par le client</div><p style="font-size:22px;font-weight:bold;margin:5px 0 15px">'+esc(S.enveloppe||"À préciser")+'</p><div style="font-size:13px;color:#5d6670">Prix approximatif TMC</div><p style="font-size:26px;font-weight:bold;margin:5px 0 14px;color:#b94b21">'+(calculable?fmt(e.haut)+" XPF TTC":"À chiffrer")+'</p><p style="margin:0;color:'+couleur+';font-weight:bold">'+esc(comparaison)+'</p><p style="font-size:12px;margin:8px 0 0">Comparaison sur le prix de départ TTC, hors étude et plan 2D. L’enveloppe totale, les options et le financement restent à confirmer.</p></div>';
+ h+='<p style="font-size:13px"><b>Référence :</b> '+esc(referenceDemande())+'<br><b>Réponse client :</b> '+(calculable?"en attente après proposition.":"besoin à préciser avant proposition d’une étude.")+'</p>';
  h+=section("Contact",ligne("Nom et prénom",S.nom)+ligne("Profil",S.profil)+ligne("Structure",estStructure()?S.structure:"")+ligne("Téléphone",S.tel)+ligne("Email",S.mail));
- h+=section("Projet",ligne("Usage",S.usage)+ligne("Conteneurs",fiche["Conteneurs"])+ligne("Surface",fiche["Surface indicative"])+ligne("Formule",fiche["Formule"])+(formulePersonnalisee()?ligne("Aménagement",S.prestations):"")+ligne("Précisions",S.prestationsDetails)+ligne("Lieu",fiche["Commune / quartier"])+ligne("Livraison",fiche["Livraison"])+ligne("Pour quand",fiche["Pour quand"]));
- h+=section("Terrain et financement",ligne("Emplacement",fiche["Terrain"])+ligne("Autorisation",fiche["Autorisation de l’emplacement"])+ligne("Financement",fiche["Financement"])+ligne("Validation du projet",S.decision));
+ h+=section("Projet",ligne("Usage",S.usage)+ligne("Conteneurs",fiche["Conteneurs"])+ligne("Surface",fiche["Surface indicative"])+ligne("Implantation",fiche["Implantation"])+ligne("Formule",fiche["Formule"])+ligne("Précisions sur le projet",S.detailsProjet)+(formulePersonnalisee()?ligne("Aménagement",S.prestations):"")+ligne("Précisions",S.prestationsDetails)+ligne("Lieu",fiche["Commune / quartier"])+ligne("Livraison",fiche["Livraison"])+ligne("Pour quand",fiche["Pour quand"]));
+ h+=section("Terrain et financement",ligne("Emplacement",fiche["Terrain"])+ligne("Parcelle",S.parcelle)+ligne("Accès camion-grue",fiche["Accès camion-grue"])+ligne("Autorisation",fiche["Autorisation de l’emplacement"])+ligne("Financement",fiche["Financement"])+ligne("Validation du projet",S.decision));
  var plan=prixPlan();
- h+=section("Étude et plan 2D",ligne("Étude",tarifEtude()||"À confirmer")+ligne("Plan 2D",plan?fmt(plan[0])+" XPF":"À confirmer"));
+ h+=section("Étude et plan 2D",ligne("Étude",tarifEtude()||"À confirmer")+ligne("Plan disponible",S.plan)+ligne("Plan 2D",S.plan==="Oui, un plan coté"?"Plan fourni à vérifier — aucun nouveau plan si exploitable":plan?fmt(plan[0])+" XPF":"À confirmer"));
  if(S.msg)h+=section("Message du client",ligne("Message",S.msg));
  var clar=pointsAClarifier(),points=Array.from(new Set(clar.client.concat(clar.technique)));
  if(points.length)h+='<h3 style="font-size:17px;margin:24px 0 7px;color:#d9572a">Points à vérifier</h3><ul style="padding-left:20px;font-size:13px">'+points.map(function(p){return "<li>"+esc(p)+"</li>";}).join("")+"</ul>";
@@ -1650,39 +1685,26 @@ function courrierInterneHtml(){
 
 function courrierHtml(interne){
  if(interne)return courrierInterneHtml();
- var fiche=ficheEmail(), lignes=[];
- Object.keys(fiche).forEach(function(k){
-   if(!fiche[k] || k==="Contact TMC" || k==="Votre réponse")return;
-   if(!interne && ["Profil","Structure","Validation du projet","email","Téléphone","Budget déclaré","Terrain","Autorisation de l’emplacement","Financement","Votre message","Budget approximatif du projet"].indexOf(k)>-1)return;
-   if(interne && k==="Aménagement" && S.formule!=="Je choisis mes prestations")return;
-   var valeur=fiche[k];
-   if(interne){
-     if(k==="Plan 2D"){var plan=prixPlan();valeur=plan?fmt(plan[0])+" XPF":"À confirmer";}
-     if(k==="Budget approximatif du projet"){
-       var estimationInterne=estimationProjet();
-       valeur=estimationInterne.haut!==null && estimationInterne.standard && S.modules && S.modules!=="À définir"?fmt(estimationInterne.haut)+" XPF":"À chiffrer";
-     }
-     // Garder l’usage visible même quand la ligne Aménagement est masquée.
-     if(k==="Formule" && S.usage)valeur=S.usage+" — "+valeur;
-   }
-   lignes.push('<tr><th style="padding:9px;text-align:left;vertical-align:top;border-bottom:1px solid #ddd">'+esc(k==="email"?"Email":k)+'</th><td style="padding:9px;border-bottom:1px solid #ddd">'+esc(valeur).replace(/\n/g,"<br>")+'</td></tr>');
- });
- var entete=interne?'<p><b>Nouvelle demande reçue depuis le formulaire TMC.</b></p>':'<p>Ia ora na '+esc(S.nom||"")+',</p><p>Voici le prix indicatif TMC pour votre projet, puis votre récapitulatif et les modalités pour poursuivre.</p>';
- var prix="";
- if(!interne){
-   var estimation=estimationProjet(),calculable=estimation.haut!==null && estimation.standard && S.modules && S.modules!=="À définir";
-   prix='<div style="margin:20px 0;padding:20px;background:#fff2e9;border:1px solid #e56535;border-radius:8px"><h2 style="font-size:18px;margin:0 0 10px;color:#303946">Prix indicatif TMC pour votre projet</h2>'
-    +(calculable?'<p style="font-size:28px;font-weight:bold;color:#b94b21;margin:8px 0">À partir de '+fmt(estimation.haut)+' XPF</p><p style="margin:8px 0">Conteneurs, aménagement et prestations chiffrées compris.</p><p style="font-size:13px">'+((S.usage==="Sanitaire ou local spécialisé" || atelierCleEnMain())?"Équipements spécifiques et suppléments à confirmer après étude. ":"")+'Estimation non contractuelle, hors étude et plan 2D. '+(estimation.manquants.length?'Certains travaux ou frais restent à chiffrer et s’ajouteront au montant indiqué. ':'')+'Le prix précis sera établi après étude.</p>':'<p>'+esc(estimationTexte())+'</p>')
-    +(S.enveloppe?'<p style="font-size:13px"><b>Votre budget déclaré :</b> '+esc(S.enveloppe)+'.</p>':"")+'</div>';
- }
- var interneHtml="";
- if(interne){
-   var e=evaluerDemande(),clar=pointsAClarifier();
-   interneHtml='<p><b>Qualification interne : '+esc(e.score)+'/100 — '+esc(e.statut)+'</b></p><p>Validation client : confirmation à attendre après proposition. Ne pas confondre avec une commande.</p>';
-   if(clar.technique.length)interneHtml+='<p><b>À vérifier par TMC :</b><br>'+clar.technique.map(esc).join("<br>")+'</p>';
- }
- var suite=interne?'<p>Le client reçoit trois choix par email : Oui, je souhaite poursuivre / J’ai une question / Non merci. Attendre son email effectivement envoyé avant de modifier l’accord au dossier.</p>':boutonsReponseEmail();
- return entete+prix+interneHtml+'<table style="border-collapse:collapse;width:100%;font-size:14px">'+lignes.join("")+'</table>'+suite+'<p>Plans et photos : répondez à cet email pour les transmettre à TMC en rappelant '+esc(referenceDemande())+'.</p>'+(interne?'<p>Notification technique : TMC-FORMULAIRE-EMAILJS-V1. Cette notification contient une demande déclarative ; elle ne constitue ni une réponse humaine ni une confirmation de l’étude.</p>':'');
+ var fiche=ficheEmail(),e=estimationProjet(),calc=prixCalculable();
+ var h='<p>Ia ora na '+esc(S.nom||"")+',</p><p>'+(calc?'Voici un prix de départ pour situer votre projet et vous aider à décider de la suite.':'Nous avons reçu votre demande. TMC précisera votre besoin pour vous proposer un premier prix indicatif avant toute décision sur une étude payante.')+'</p>';
+ h+='<div style="margin:20px 0;padding:18px;background:#fff2e9;border:1px solid #e56535;border-radius:8px"><h2 style="font-size:18px;margin:0 0 10px;color:#303946">'+(calc?'Prix de départ indicatif TMC':'Premier prix à préciser avec TMC')+'</h2>';
+ if(calc){
+   var transport=e.lignes.some(function(l){return l.poste.indexOf("Transport Tahiti")===0;});
+   h+='<p style="font-size:28px;font-weight:bold;color:#b94b21;margin:8px 0">À partir de '+fmt(e.haut)+' XPF TTC</p><p><b>Base prévue :</b> '+esc(perimetreForfait())+'.</p><p>'+(transport?'Transport local avec accès standard compris.':'Transport, fret et grutage restent à chiffrer selon la destination et l’accès.')+'</p><p style="font-size:13px">'+esc(optionsHorsForfait())+'</p><p style="font-size:13px">Prix de départ non contractuel, hors étude et plan 2D. L’étude précisera les quantités, équipements, contraintes et suppléments pour établir votre devis personnalisé.</p>';
+ }else h+='<p>'+esc(messageEstimation(e))+'</p>';
+ if(S.enveloppe)h+='<p style="font-size:13px"><b>Votre budget prévu :</b> '+esc(S.enveloppe)+'.</p>';
+ h+='</div>';
+ function ligne(t,v){return v?'<tr><th style="padding:8px;text-align:left;vertical-align:top;border-bottom:1px solid #ddd">'+esc(t)+'</th><td style="padding:8px;border-bottom:1px solid #ddd">'+esc(v).replace(/\n/g,"<br>")+'</td></tr>':"";}
+ h+='<h3>Votre projet</h3><table style="border-collapse:collapse;width:100%;font-size:14px">'
+  +ligne("Référence",referenceDemande())+ligne("Structure",estStructure()?S.structure:"")+ligne("Contact",S.nom)
+  +ligne("Usage",S.usage)+ligne("Précisions",S.detailsProjet)+ligne("Conteneurs",fiche["Conteneurs"])+ligne("Implantation",fiche["Implantation"])+ligne("Surface indicative",fiche["Surface indicative"])
+  +ligne("Formule",S.formule)+(formulePersonnalisee()?ligne("Aménagement",S.prestations)+ligne("Détail des prestations",S.prestationsDetails):"")
+  +ligne("Lieu",fiche["Commune / quartier"])+ligne("Livraison souhaitée",S.livraison)+ligne("Pour quand",S.delai)+ligne("Plan disponible",S.plan)+'</table>';
+ h+='<h3>'+(calc?'Si vous poursuivez après ce premier prix':'Après réception du premier prix, si vous poursuivez')+'</h3><table style="border-collapse:collapse;width:100%;font-size:14px">'
+  +ligne("Étude pour le devis personnalisé",tarifEtude()||"Tarif à confirmer selon la surface")+ligne("Plan 2D",plan2DTexte())+'</table>';
+ if(calc)h+='<p style="font-size:13px">'+esc(suiteEtudeTexte())+'</p>';
+ else h+='<p style="font-size:13px">Aucune étude payante ne démarre sans votre accord. Nous précisons d’abord votre besoin et le premier prix indicatif.</p>';
+ return h+boutonsReponseEmail()+'<p>Plans et photos : répondez à cet email pour les transmettre à TMC en rappelant '+esc(referenceDemande())+'.</p>';
 }
 function conserverEnvois(){
  try{sessionStorage.setItem(BROUILLON_ENVOI,JSON.stringify({state:S,multi:MULTI,files:[],date:Date.now(),envois:ETAT_ENVOIS}));}catch(e){}
@@ -1762,6 +1784,7 @@ rendre();
 </script>
 </body>
 </html>
+
 
 
 
