@@ -337,17 +337,57 @@ E.enveloppe = {k:"Budget", q:"Quel budget avez-vous prévu pour votre projet ?",
   "Bâtiment complet, programme ou tranche importante",
   "Je vous situe au premier échange"]};
 
-E.financement = {k:"Budget", q:"Comment envisagez-vous de financer ce projet ?", ch:"financement", multi:1,
-  sub:"Plusieurs réponses possibles : beaucoup de projets combinent plusieurs sources. Cette question me sert à adapter le calendrier de facturation à votre situation.", o:[
-  ["Fonds propres disponibles"],
-  /* le 4e element limite l option aux structures : un particulier n emet pas de bon de commande */
-  ["Bon de commande ou marché signé","Engagement déclaré pour ce projet.",0,"pro"],
-  ["Crédits votés, bon de commande à venir","Le budget est inscrit, l'engagement n'est pas encore émis.",0,"pro"],
-  ["Prêt bancaire déjà accordé"],
-  ["Aide ou subvention notifiée"],
-  ["Prêt en cours d'instruction"],
-  ["Le financement reste à monter"],
-  ["Je ne sais pas encore", "", 1]]};
+var FINANCEMENTS = {
+ "Un particulier":{q:"Comment envisagez-vous de financer ce projet ?",multi:true,sub:"Plusieurs réponses possibles si vous combinez plusieurs sources de financement.",o:[
+ ["Fonds propres disponibles","",0,"disponible"],
+ ["Prêt bancaire déjà accordé","",0,"disponible"],
+ ["Aide ou subvention notifiée","",0,"disponible"],
+ ["Prêt en cours d'instruction","",0,"attente"],
+ ["Le financement reste à monter","",0,"recherche"],
+ ["Je ne sais pas encore","",1,"inconnu"]]},
+ "Une administration ou une commune":{q:"Où en est le budget prévu pour ce projet ?",multi:false,sub:"Indiquez la situation actuelle du budget de votre administration ou de votre commune.",o:[
+ ["Budget voté et crédits disponibles","",0,"disponible"],
+ ["Budget voté, crédits à mobiliser","",0,"attente"],
+ ["Budget en cours de validation","",0,"attente"],
+ ["Demande de financement ou de subvention en cours","",0,"attente"],
+ ["Nous nous renseignons pour préparer le budget","",0,"recherche"],
+ ["Je ne sais pas, ce point est suivi par un autre service","",1,"inconnu"]]},
+ "Une association":{q:"Comment l’association prévoit-elle de financer ce projet ?",multi:true,sub:"Plusieurs réponses possibles si le projet combine trésorerie, subventions et participations.",o:[
+ ["Trésorerie de l’association disponible","",0,"disponible"],
+ ["Subvention déjà versée","",0,"disponible"],
+ ["Subvention accordée, versement à venir","",0,"attente"],
+ ["Demande de subvention en cours","",0,"attente"],
+ ["Participation de partenaires ou mécènes déjà reçue","",0,"disponible"],
+ ["Financement en cours de recherche","",0,"recherche"],
+ ["Je ne sais pas encore","",1,"inconnu"]]},
+ "Une entreprise":{q:"Comment l’entreprise prévoit-elle de financer ce projet ?",multi:true,sub:"Plusieurs réponses possibles si l’entreprise combine plusieurs sources de financement.",o:[
+ ["Trésorerie de l’entreprise disponible","",0,"disponible"],
+ ["Financement bancaire accordé","",0,"disponible"],
+ ["Demande de financement bancaire en cours","",0,"attente"],
+ ["Apport d’associés disponible","",0,"disponible"],
+ ["Aide ou subvention déjà versée","",0,"disponible"],
+ ["Aide ou subvention accordée, versement à venir","",0,"attente"],
+ ["Budget d’investissement en cours de validation","",0,"attente"],
+ ["Financement à rechercher","",0,"recherche"],
+ ["Je ne sais pas encore","",1,"inconnu"]]}
+};
+function configFinancement(){return FINANCEMENTS[S.profil]||FINANCEMENTS["Un particulier"];}
+function adapterFinancement(){
+ var config=configFinancement();
+ E.financement={k:"Budget",q:config.q,ch:"financement",multi:config.multi,sub:config.sub,o:config.o};
+ var selections=String(S.financement||"").split(" · ").filter(Boolean).filter(function(v){return config.o.some(function(o){return o[0]===v;});});
+ if(!config.multi && selections.length>1)selections=[];
+ if(selections.some(function(v){return config.o.some(function(o){return o[0]===v && o[2];});}) && selections.length>1)selections=[];
+ MULTI.financement=config.multi?selections:[];
+ S.financement=selections.join(" · ");
+}
+function qualificationFinancement(){
+ var config=configFinancement(),choix=String(S.financement||"").split(" · "),etats=[];
+ config.o.forEach(function(o){if(choix.indexOf(o[0])>-1)etats.push(o[3]);});
+ var disponible=etats.indexOf("disponible")>-1,attente=etats.some(function(v){return v!=="disponible";});
+ var score=disponible?(attente?15:25):etats.indexOf("attente")>-1?10:etats.indexOf("recherche")>-1?5:0;
+ return {score:score,disponible:disponible,partiel:disponible&&attente,aConfirmer:score<25};
+}
 
 /* ---- branche RDV ---- */
 E.rdvlieu = {k:"Rendez-vous", q:"Où souhaitez-vous qu'on se voie ?", ch:"rdvlieu", o:[
@@ -547,6 +587,7 @@ function champQuartier(){
 function parcours(){
   adapterDecision();
   adapterTerrain();
+  adapterFinancement();
   normaliserLivraison();
   var p = ["usage","profil","modules"];
   p.push("formule");
@@ -746,11 +787,8 @@ function noter(){
     else if(coh === "juste"){ C = 9; dr.push("enveloppe juste"); }
     else if(coh === "incompatible"){ C = 3; dr.push("enveloppe incompatible avec la surface"); }
     else C = 6;
-    var f = String(S.financement || "");
-    if(f.indexOf("Fonds propres") > -1 || f.indexOf("déjà accordé") > -1
-       || f.indexOf("subvention notifiée") > -1 || f.indexOf("Bon de commande") > -1) C += 10;
-    else if(f.indexOf("cours d'instruction") > -1 || f.indexOf("Crédits votés") > -1) C += 6;
-    else if(f.indexOf("reste à monter") > -1) C += 2;
+    var financementQualifie=qualificationFinancement();
+    C += financementQualifie.score===25?10:financementQualifie.score>=10?6:financementQualifie.score===5?2:0;
   }
   C = Math.max(0, Math.min(25, C));
 
@@ -1131,11 +1169,10 @@ function choix(champ, i){
   }
   if(champ==="profil"){
     delete S.decision;
-    if(ancienProfil!==S.profil){delete S.terrain;delete S.indivision;delete S.droitUsage;delete S.parcelle;delete S.acces;delete S.structure;}
+    if(ancienProfil!==S.profil){delete S.terrain;delete S.indivision;delete S.droitUsage;delete S.parcelle;delete S.acces;delete S.structure;delete S.financement;MULTI.financement=[];}
     if(S.profil==="Un particulier"){
       delete S.structure;
-      MULTI.financement=(MULTI.financement||[]).filter(function(v){return v!=="Bon de commande ou marché signé" && v!=="Crédits votés, bon de commande à venir";});
-      S.financement=MULTI.financement.join(" · ");
+
     }
   }
   ordre = parcours();
@@ -1307,19 +1344,10 @@ function vigilance(){
       m.push("  Enveloppe incompatible : le plancher est de "+fmt(pB)+" XPF pour "+det+". Recadrez avant tout chiffrage.");
     else if(cB==="juste")
       m.push("  Enveloppe juste : le plancher tourne autour de "+fmt(pB)+" XPF pour "+det+". Prévenez-le tout de suite.");
-    var fin=String(S.financement||"");
-    var finSolide = fin.indexOf("Fonds propres")>-1 || fin.indexOf("déjà accordé")>-1
-                 || fin.indexOf("subvention notifiée")>-1 || fin.indexOf("Bon de commande")>-1;
-    if(fin.indexOf("Bon de commande")>-1)
-      m.push("  Bon de commande annoncé : demandez-en une copie avant de commander la matière. C'est la pièce qui vous protège en cas de changement d'interlocuteur.");
-    else if(fin.indexOf("Crédits votés")>-1)
-      m.push("  Crédits votés mais pas encore engagés : rien ne part avant le bon de commande signé. Demandez qui l'émet et sous quel délai.");
-    else if(estPublic())
-      m.push("  Aucun engagement budgétaire annoncé pour une commande publique : vérifiez que les crédits existent avant de consacrer du temps au chiffrage.");
-    if(fin && !finSolide && fin.indexOf("Crédits votés")===-1)
-      m.push("  Financement non bouclé : ne lancez pas l'étude avant d'avoir un plan de financement.");
-    else if(finSolide && (fin.indexOf("reste à monter")>-1 || fin.indexOf("cours d'instruction")>-1 || fin.indexOf("Crédits votés")>-1))
-      m.push("  Financement partiel : une partie est acquise, le reste ne l'est pas. Calez l'échéancier de facturation là-dessus.");
+    var financementQualifie=qualificationFinancement();
+    if(estPublic())m.push("  Vérifier auprès du service concerné les crédits mobilisables et les pièces d’engagement nécessaires ; un budget déclaré ne constitue ni une commande ni un paiement.");
+    if(financementQualifie.partiel)m.push("  Financement partiel : distinguer les ressources déclarées disponibles et celles encore attendues.");
+    else if(financementQualifie.aConfirmer)m.push("  Financement à confirmer selon le profil et les accords ou versements encore attendus.");
     if(etatTerrain()==="Je n'ai pas encore de terrain"||etatTerrain()==="Je l'ai repéré, il n'est pas encore à moi")
       m.push("  Terrain non maîtrisé : estimation en fourchette seulement, pas de devis détaillé.");
     if(S.modules==="À définir")
@@ -1417,7 +1445,7 @@ function pointsAClarifier(){
  else if(!droitsTerrainClairs())client.push(estStructure()?"Confirmer l’autorisation d’utiliser l’emplacement pour ce projet.":"Clarifier le droit d’usage et l’accord des propriétaires ou indivisaires.");
  if(plafondEnveloppe()===null)client.push("Préciser le montant réellement mobilisable pour l’ensemble du projet, même approximatif.");
  if(coherenceBudget()==="incompatible")client.push("Revoir la surface ou les prestations, ou l’enveloppe disponible : le budget déclaré est sous le repère calculé.");
- if(!S.financement||/Je ne sais pas|reste à monter|cours d'instruction|Crédits votés/.test(S.financement))client.push("Confirmer la part de financement disponible et celle encore en attente avant de lancer l’étude.");
+ if(qualificationFinancement().aConfirmer)client.push(estPublic()?"Confirmer la disponibilité des crédits et les validations budgétaires restantes auprès du service concerné.":S.profil==="Une association"?"Confirmer la trésorerie mobilisable, les subventions ou participations reçues et celles encore attendues.":S.profil==="Une entreprise"?"Confirmer la part de trésorerie, d’apport ou de financement bancaire disponible et les accords encore attendus.":"Confirmer la part de financement disponible et celle encore en attente avant de lancer l’étude.");
  if((estSurTahiti()||S.livraison==="Jusqu’au terrain, avec déchargement et pose") && (!S.emplacement||/préciser|définir/i.test(S.emplacement)))technique.push("Préciser le quartier ou le repère avant d’organiser la livraison sur le terrain.");
  if(S.plan==="Oui, un plan coté" && !PJ.length)client.push("Envoyer le plan 2D annoncé pour vérifier s’il est exploitable avant de proposer un nouveau plan.");
  if(!decisionValidee())client.push("Confirmer la validation du projet et du budget auprès de la personne ou de l’instance qui décide.");
@@ -1479,13 +1507,7 @@ function evaluerDemande(){
   var coherence=coherenceBudget();
   if(budgetAnnonce) budget = coherence==="coherente"?20:coherence==="incompatible"?0:10;
 
-  var f = String(S.financement||"");
-  var disponible = /Fonds propres disponibles|Prêt bancaire déjà accordé|Aide ou subvention notifiée|Bon de commande ou marché signé/.test(f);
-  var enAttente = /Prêt en cours d'instruction|Crédits votés, bon de commande à venir|Le financement reste à monter|Je ne sais pas encore/.test(f);
-  if(disponible && !enAttente) financement = 25;
-  else if(disponible) financement = 15;
-  else if(/Prêt en cours d'instruction|Crédits votés/.test(f)) financement = 10;
-  else if(f === "Le financement reste à monter") financement = 5;
+  financement = qualificationFinancement().score;
 
   if(S.usage && S.usage !== "Autre projet") projet += 5;
   if(S.modules && S.modules !== "À définir" && totalMod() > 0) projet += 5;
