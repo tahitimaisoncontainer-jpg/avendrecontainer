@@ -270,6 +270,43 @@ E.indivision = {k:"Le terrain", q:"Le terrain est-il en indivision ?", ch:"indiv
   ["Oui, et elle n'est pas réglée"],
   ["Je ne sais pas"]]};
 
+var TERRAIN_PARTICULIER = E.terrain;
+var TERRAIN_STRUCTURE = {k:"L’emplacement",q:"Votre structure dispose-t-elle déjà d’un emplacement pour ce projet ?",ch:"terrain",o:[
+ ["Oui, l’emplacement est disponible"],
+ ["Un emplacement est identifié, mais sa mise à disposition reste à confirmer"],
+ ["Non, nous recherchons encore un emplacement"],
+ ["Je ne sais pas, ce point est géré par un autre service"]]};
+E.droitUsage={k:"L’emplacement",q:"L’utilisation de cet emplacement est-elle autorisée pour ce projet ?",ch:"droitUsage",o:[
+ ["Oui, l’accord de la structure ou du gestionnaire est obtenu"],
+ ["L’accord est en cours"],
+ ["Je ne sais pas"]]};
+function estStructure(){
+ return ["Une entreprise","Une administration ou une commune","Une association"].indexOf(S.profil)>-1;
+}
+function etatTerrain(){
+ var equivalents={
+  "Oui, l’emplacement est disponible":"Il m'appartient ou je le loue",
+  "Un emplacement est identifié, mais sa mise à disposition reste à confirmer":"Je l'ai repéré, il n'est pas encore à moi",
+  "Non, nous recherchons encore un emplacement":"Je n'ai pas encore de terrain",
+  "Je ne sais pas, ce point est géré par un autre service":"À confirmer par la structure"};
+ return equivalents[S.terrain]||S.terrain;
+}
+function terrainLocalise(){
+ return ["Il m'appartient ou je le loue","Achat ou bail en cours de signature","Je l'ai repéré, il n'est pas encore à moi"].indexOf(etatTerrain())>-1;
+}
+function droitsTerrainClairs(){
+ return estStructure()?S.droitUsage==="Oui, l’accord de la structure ou du gestionnaire est obtenu":
+  S.indivision==="Non, je suis seul propriétaire ou titulaire du bail" || S.indivision==="Oui, et l'indivision est réglée";
+}
+function adapterTerrain(){
+ E.terrain=estStructure()?TERRAIN_STRUCTURE:TERRAIN_PARTICULIER;
+ if(S.terrain && !E.terrain.o.some(function(o){return o[0]===S.terrain;})){
+  delete S.terrain;delete S.indivision;delete S.droitUsage;delete S.parcelle;delete S.acces;
+ }
+ if(estStructure())delete S.indivision;else delete S.droitUsage;
+ if(!terrainLocalise()){delete S.parcelle;delete S.acces;}
+}
+
 E.parcelle = {k:"Le terrain", q:"Le numéro de votre parcelle", txt:"parcelle",
   sub:"Il se trouve en quelques secondes sur otia.gov.pf. Facultatif, mais il me fait gagner un aller-retour.", opt:1};
 
@@ -367,7 +404,7 @@ E.fini = {k:"", q:"", fini:1};
 var PHASE = {
   profil:"Votre projet", besoin:"Votre projet", usage:"Votre projet",
   formule:"Votre projet", prestations:"Votre projet", destination:"Le terrain", modules:"Votre projet", implantation:"Votre projet", surface:"Votre projet",
-  commune:"Le terrain", terrain:"Le terrain", indivision:"Le terrain", parcelle:"Le terrain", acces:"Le terrain",
+  commune:"Le terrain", terrain:"Le terrain", indivision:"Le terrain", droitUsage:"Le terrain", parcelle:"Le terrain", acces:"Le terrain",
   plan:"Votre plan", delai:"Votre plan",
   enveloppe:"Budget et décision", estimation:"Budget et décision", financement:"Budget et décision",
   decision:"Budget et décision", etape:"Budget et décision",
@@ -509,6 +546,7 @@ function champQuartier(){
 
 function parcours(){
   adapterDecision();
+  adapterTerrain();
   normaliserLivraison();
   var p = ["usage","profil","modules"];
   p.push("formule");
@@ -517,8 +555,10 @@ function parcours(){
   p.push("commune");
   if(S.commune && !estSurTahiti())p.push("destination");
   p.push("terrain");
-  if(S.terrain === "Il m'appartient ou je le loue" || S.terrain === "Achat ou bail en cours de signature") p.push("indivision");
-  if(S.terrain && S.terrain!=="Je n'ai pas encore de terrain"){
+  if(estStructure()){
+    if(etatTerrain()==="Il m'appartient ou je le loue")p.push("droitUsage");
+  }else if(etatTerrain() === "Il m'appartient ou je le loue" || etatTerrain() === "Achat ou bail en cours de signature")p.push("indivision");
+  if(terrainLocalise()){
     p.push("parcelle");
     if(S.livraison==="Jusqu’au terrain, avec déchargement et pose")p.push("acces");
   }
@@ -688,9 +728,9 @@ function noter(){
   /* B - terrain et logistique (15) */
   if(rdv) B = 9;
   else {
-    if(S.terrain === "Il m'appartient ou je le loue") B = 12;
-    else if(S.terrain === "Achat ou bail en cours de signature") B = 9;
-    else if(S.terrain === "Je l'ai repéré, il n'est pas encore à moi") B = 4;
+    if(etatTerrain() === "Il m'appartient ou je le loue") B = 12;
+    else if(etatTerrain() === "Achat ou bail en cours de signature") B = 9;
+    else if(etatTerrain() === "Je l'ai repéré, il n'est pas encore à moi") B = 4;
     else B = 0;
     if(S.acces === "Oui, l'accès est dégagé") B += 3;
     else if(S.acces === "Non, l'accès est difficile") B -= 3;
@@ -743,7 +783,7 @@ function noter(){
 
   if(S.indivision === "Oui, et elle n'est pas réglée") dr.push("indivision non réglée");
   if(S.acces === "Non, l'accès est difficile") dr.push("accès camion-grue difficile");
-  if(S.terrain === "Je n'ai pas encore de terrain") dr.push("pas de terrain");
+  if(etatTerrain() === "Je n'ai pas encore de terrain") dr.push("pas de terrain");
 
   var sc = Math.max(0, Math.min(100, A+B+C+D+Ee+F));
   /* Les verrous abaissent le score lui-meme, pas seulement le niveau :
@@ -751,8 +791,8 @@ function noter(){
   /* Une administration qui sous-estime l enveloppe reste un dossier a traiter :
      le budget se renegocie, la commande publique pas. On plafonne moins fort. */
   if(coh === "incompatible") sc = Math.min(sc, estPublic() ? 69 : 44);
-  if(S.terrain === "Je n'ai pas encore de terrain"
-     || S.terrain === "Je l'ai repéré, il n'est pas encore à moi") sc = Math.min(sc, 69);
+  if(etatTerrain() === "Je n'ai pas encore de terrain"
+     || etatTerrain() === "Je l'ai repéré, il n'est pas encore à moi") sc = Math.min(sc, 69);
   if(S.indivision === "Oui, et elle n'est pas réglée") sc = Math.min(sc, 84);
 
   var n = sc >= 85 ? 5 : sc >= 70 ? 4 : sc >= 45 ? 3 : sc >= 25 ? 2 : 1;
@@ -918,7 +958,7 @@ function rendre(){
     if(estSurTahiti())h+=champQuartier();
 
   }
-  if(e.formule && S.formule && !formulePersonnalisee())h+='<p class="pja">'+esc(resumeFormule())+'. Les postes restant à chiffrer seront signalés dans l’estimation.</p>';
+  if(e.formule && S.formule && !formulePersonnalisee())h+='<p class="pja">'+esc(resumeFormule())+'. Vous recevrez notre prix approximatif par email.</p>';
   if(e.prestations){
     h += '<label class="f" style="margin-top:16px"><span>Précisions sur les travaux (facultatif, sauf autres prestations)</span>'
       + '<textarea id="i_prestationsDetails" maxlength="3000" placeholder="Par exemple : une baie vitrée en façade, deux prises, une douche ; toiture réalisée par mes soins…" oninput="maj(\'prestationsDetails\',this.value)">' + esc(S.prestationsDetails||"") + '</textarea></label>';
@@ -963,13 +1003,13 @@ function rendre(){
     h += '<div class="note"><b>Vos informations servent à traiter votre demande auprès de TMC.</b> Elles sont transmises via EmailJS pour envoyer votre demande à TMC et votre récapitulatif par email. Elles ne sont pas publiées sur le site.</div>';
 
   if(e.contact){
-    h += '<label class="f"><span>Nom et prénom</span><input id="i_nom" type="text" autocomplete="name" value="' + esc(S.nom||"") + '" oninput="maj(\'nom\',this.value)"></label>'
+    if(estStructure())h += '<label class="f"><span>' + esc(libelleStructure()) + '</span><input id="i_structure" type="text" autocomplete="organization" value="' + esc(S.structure||"") + '" oninput="maj(\'structure\',this.value)"></label>';
+    h += '<label class="f"><span>'+esc(estStructure()?"Nom et prénom de la personne qui s’occupe du dossier":"Nom et prénom")+'</span><input id="i_nom" type="text" autocomplete="name" value="' + esc(S.nom||"") + '" oninput="maj(\'nom\',this.value)"></label>'
        + '<label class="f"><span>Téléphone</span><input id="i_tel" type="tel" inputmode="tel" autocomplete="tel" placeholder="87 12 34 56" value="' + esc(S.tel||"") + '" oninput="maj(\'tel\',this.value)"></label>'
        + '<label class="f"><span>Email</span><input id="i_mail" type="email" inputmode="email" autocomplete="email" placeholder="vous@exemple.pf" value="' + esc(S.mail||"") + '" oninput="maj(\'mail\',this.value)"></label>'
        + '<label class="f"><span>Vos questions, ou un mot sur votre projet <small style="font-weight:400;color:#5b6470">(facultatif)</small></span>'
        + '<textarea id="i_msg" placeholder="Posez-moi vos questions : délais, matériaux, isolation, normes, transport, entretien, autorisations… J\'y réponds une par une." oninput="maj(\'msg\',this.value)">' + esc(S.msg||"") + '</textarea></label>';
-    if(S.profil === "Une entreprise" || S.profil === "Une administration ou une commune" || S.profil === "Une association")
-      h += '<label class="f"><span>' + esc(libelleStructure()) + '</span><input id="i_structure" type="text" value="' + esc(S.structure||"") + '" oninput="maj(\'structure\',this.value)"></label>';
+
   }
 
   if(e.pj){
@@ -1077,21 +1117,21 @@ function appliquerFormule(){
 }
 function resumeFormule(){
  if(formulePersonnalisee())return S.prestations||"À préciser";
- return "Isolation, électricité, plomberie, cuisine, ouvertures, ventilation ou climatisation, toiture, terrasse et plots"
- +(S.formule==="Clé en main avec assainissement"?", assainissement":" ; hors assainissement");
+ return S.formule==="Clé en main avec assainissement"?"Aménagement complet du conteneur, avec assainissement":"Aménagement complet du conteneur, sans assainissement";
 }
 
 function choix(champ, i){
-  var e = E[ordre[idx]];
+  var e = E[ordre[idx]], ancienProfil=S.profil;
   S[champ] = e.o[i][0];
   if(champ==="formule")appliquerFormule();
   if(champ==="usage" && S.usage==="Logement" && totalMod()>0){S.surface=String(surfaceMod());delete S.surfaceManuelle;}
   if(champ==="terrain"){
-    delete S.indivision;
-    if(S.terrain==="Je n'ai pas encore de terrain"){delete S.parcelle;delete S.acces;}
+    delete S.indivision;delete S.droitUsage;
+    if(etatTerrain()==="Je n'ai pas encore de terrain"){delete S.parcelle;delete S.acces;}
   }
   if(champ==="profil"){
     delete S.decision;
+    if(ancienProfil!==S.profil){delete S.terrain;delete S.indivision;delete S.droitUsage;delete S.parcelle;delete S.acces;delete S.structure;}
     if(S.profil==="Un particulier"){
       delete S.structure;
       MULTI.financement=(MULTI.financement||[]).filter(function(v){return v!=="Bon de commande ou marché signé" && v!=="Crédits votés, bon de commande à venir";});
@@ -1186,8 +1226,8 @@ function valide(){
   }
   if(e.txt && !e.opt && !S[e.txt]) return "Ce champ est nécessaire.";
   if(e.contact){
-    if(!S.nom || S.nom.trim().length < 2) return "Merci d'indiquer votre nom.";
-    if(S.profil!=="Un particulier" && String(S.structure||"").trim().length<2)return "Merci d’indiquer le nom de votre structure.";
+    if(estStructure() && String(S.structure||"").trim().length<2)return "Merci d’indiquer le nom de votre structure.";
+    if(!S.nom || S.nom.trim().length < 2) return estStructure()?"Merci d’indiquer le nom et prénom de la personne qui s’occupe du dossier.":"Merci d'indiquer votre nom.";
     var t = String(S.tel||"").replace(/[^0-9+]/g,"");
     if(t.length < 6) return "Merci d'indiquer un numéro de téléphone valide.";
     if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(String(S.mail||""))) return "Merci d'indiquer un email valide.";
@@ -1280,7 +1320,7 @@ function vigilance(){
       m.push("  Financement non bouclé : ne lancez pas l'étude avant d'avoir un plan de financement.");
     else if(finSolide && (fin.indexOf("reste à monter")>-1 || fin.indexOf("cours d'instruction")>-1 || fin.indexOf("Crédits votés")>-1))
       m.push("  Financement partiel : une partie est acquise, le reste ne l'est pas. Calez l'échéancier de facturation là-dessus.");
-    if(S.terrain==="Je n'ai pas encore de terrain"||S.terrain==="Je l'ai repéré, il n'est pas encore à moi")
+    if(etatTerrain()==="Je n'ai pas encore de terrain"||etatTerrain()==="Je l'ai repéré, il n'est pas encore à moi")
       m.push("  Terrain non maîtrisé : estimation en fourchette seulement, pas de devis détaillé.");
     if(S.modules==="À définir")
       m.push("  Nombre de conteneurs non défini : l'enveloppe annoncée ne veut pas dire grand-chose tant que l'échelle du projet n'est pas fixée.");
@@ -1373,8 +1413,8 @@ function pointsAClarifier(){
  var client=[], technique=[], e=estimationProjet();
  if(!S.usage||S.usage==="Autre projet")client.push("Préciser l’usage et les pièces ou équipements souhaités.");
  if(!(nombre(S.surface)>0))client.push("Indiquer une surface approximative souhaitée en m² ; TMC pourra ensuite proposer les modules.");
- if(S.terrain!=="Il m'appartient ou je le loue")client.push("Préciser à quelle étape le terrain ou le droit d’usage sera disponible, sans engager l’étude avant clarification.");
- else if(S.indivision!=="Non, je suis seul propriétaire ou titulaire du bail" && S.indivision!=="Oui, et l'indivision est réglée")client.push("Clarifier le droit d’usage et l’accord des propriétaires ou indivisaires.");
+ if(etatTerrain()!=="Il m'appartient ou je le loue")client.push(estStructure()?"Préciser la disponibilité de l’emplacement auprès de la structure ou du service concerné.":"Préciser à quelle étape le terrain ou le droit d’usage sera disponible, sans engager l’étude avant clarification.");
+ else if(!droitsTerrainClairs())client.push(estStructure()?"Confirmer l’autorisation d’utiliser l’emplacement pour ce projet.":"Clarifier le droit d’usage et l’accord des propriétaires ou indivisaires.");
  if(plafondEnveloppe()===null)client.push("Préciser le montant réellement mobilisable pour l’ensemble du projet, même approximatif.");
  if(coherenceBudget()==="incompatible")client.push("Revoir la surface ou les prestations, ou l’enveloppe disponible : le budget déclaré est sous le repère calculé.");
  if(!S.financement||/Je ne sais pas|reste à monter|cours d'instruction|Crédits votés/.test(S.financement))client.push("Confirmer la part de financement disponible et celle encore en attente avant de lancer l’étude.");
@@ -1429,11 +1469,11 @@ function objet(r){
    mesure la maturité de la demande et ne confirme pas sa faisabilité. */
 function evaluerDemande(){
   var terrain = 0, budget = 0, financement = 0, projet = 0, decision = 0, delai = 0;
-  var terrainDisponible = S.terrain === "Il m'appartient ou je le loue";
-  var indivisionClaire = S.indivision === "Non, je suis seul propriétaire ou titulaire du bail" || S.indivision === "Oui, et l'indivision est réglée";
+  var terrainDisponible = etatTerrain() === "Il m'appartient ou je le loue";
+  var indivisionClaire = droitsTerrainClairs();
   if(terrainDisponible) terrain = indivisionClaire ? 30 : 20;
-  else if(S.terrain === "Achat ou bail en cours de signature") terrain = 15;
-  else if(S.terrain === "Je l'ai repéré, il n'est pas encore à moi") terrain = 5;
+  else if(etatTerrain() === "Achat ou bail en cours de signature") terrain = 15;
+  else if(etatTerrain() === "Je l'ai repéré, il n'est pas encore à moi") terrain = 5;
 
   var budgetAnnonce = plafondEnveloppe() !== null;
   var coherence=coherenceBudget();
@@ -1490,6 +1530,7 @@ function ficheEmail(){
    "Pour quand":S.delai||"À définir",
    "Budget déclaré":S.enveloppe||"À préciser",
    "Terrain":S.terrain||"À préciser",
+   "Autorisation de l’emplacement":estStructure()?S.droitUsage||"À confirmer":"",
    "Financement":S.financement||"À préciser",
    "Budget approximatif du projet":estimationTexte(),
    "Étude pour le devis sur mesure":tarifEtude()||"Tarif à confirmer après définition de la surface",
@@ -1547,7 +1588,7 @@ function courrierHtml(interne){
  var fiche=ficheEmail(), lignes=[];
  Object.keys(fiche).forEach(function(k){
    if(!fiche[k] || k==="Contact TMC" || k==="Votre réponse")return;
-   if(!interne && ["Profil","Structure","Validation du projet","email","Téléphone","Budget déclaré","Terrain","Financement","Votre message","Budget approximatif du projet"].indexOf(k)>-1)return;
+   if(!interne && ["Profil","Structure","Validation du projet","email","Téléphone","Budget déclaré","Terrain","Autorisation de l’emplacement","Financement","Votre message","Budget approximatif du projet"].indexOf(k)>-1)return;
    if(interne && k==="Aménagement" && S.formule!=="Je choisis mes prestations")return;
    var valeur=fiche[k];
    if(interne){
@@ -1646,7 +1687,7 @@ try{
     S = sauvegarde.state; ETAT_ENVOIS=sauvegarde.envois||null; delete S.budgetExact; delete S.assainExistant; delete S.etape; delete S.chambres; delete S.guidageModules; MULTI = sauvegarde.multi||{};
     if(sauvegarde.files && sauvegarde.files.length) window.FICHIERS_A_REJOINDRE = sauvegarde.files;
     if(totalMod()<2)delete S.implantation;
-    if(S.terrain==="Je n'ai pas encore de terrain"){delete S.indivision;delete S.parcelle;delete S.acces;}
+    if(etatTerrain()==="Je n'ai pas encore de terrain"){delete S.indivision;delete S.parcelle;delete S.acces;}
     if(!prestation("Assainissement et raccordements"))delete S.reseaux;
     if(!S.formule && S.prestations){S.formule="Je choisis mes prestations";S.prestationsPerso=S.prestations;S.prestationsDetailsPerso=S.prestationsDetails||"";}
     ordre = parcours(); idx = ordre.indexOf("recap");
