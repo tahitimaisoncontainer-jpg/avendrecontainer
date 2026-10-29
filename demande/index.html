@@ -138,7 +138,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,button:focus-vis
 <script>
 /* ============ PARAMETRES A AJUSTER ============ */
 var SITE_ACHAT = "https://tahitimaisoncontainer-jpg.github.io/avendrecontainer/";
-var RELAIS = "https://formsubmit.co/f86aed3fe4300aa72852f47498da914a";
+// L’envoi est assuré par le modèle EmailJS dédié ci-dessous.
 
 
 /* ============ TARIFS (identiques a la page de vente) ============ */
@@ -960,7 +960,7 @@ function rendre(){
          + esc(lb.join(" \u00b7 ")) + '.<br>Choisissez la tranche qui correspond \u00e0 ce total \u2014 conteneurs et am\u00e9nagement compris \u2014 et non au co\u00fbt d\'un seul module.</div>';
   }
   if(e.confid)
-    h += '<div class="note"><b>Vos informations servent à traiter votre demande auprès de TMC.</b> Elles sont transmises via FormSubmit pour l’acheminement des emails et des fichiers. Elles ne sont pas publiées sur le site.</div>';
+    h += '<div class="note"><b>Vos informations servent à traiter votre demande auprès de TMC.</b> Elles sont transmises via EmailJS pour envoyer votre demande à TMC et votre récapitulatif par email. Elles ne sont pas publiées sur le site.</div>';
 
   if(e.contact){
     h += '<label class="f"><span>Nom et prénom</span><input id="i_nom" type="text" autocomplete="name" value="' + esc(S.nom||"") + '" oninput="maj(\'nom\',this.value)"></label>'
@@ -973,11 +973,7 @@ function rendre(){
   }
 
   if(e.pj){
-    h += '<div class="pj"><label class="pjb"><input type="file" multiple accept="image/*,.pdf,application/pdf" onchange="ajoutPJ(this)">'
-       + '<span>+  Joindre un plan, un croquis ou des photos</span></label>'
-       + '<p class="pja">Facultatif. Un plan PDF, un croquis photographié, des vues du terrain. '
-       + 'Les photos sont automatiquement allégées dans votre téléphone avant l\'envoi, vous n\'avez rien à faire.</p>'
-       + '<div id="pjliste">' + listePJ() + '</div></div>';
+    h += '<div class="note"><b>Plans, croquis et photos</b><br>Après l’envoi de votre demande, répondez au mail reçu pour transmettre vos documents à TMC. Un plan existant exploitable évite de facturer un nouveau plan.</div>';
   }
 
   if(e.estimation){
@@ -989,10 +985,10 @@ function rendre(){
     h += '<div class="recap">' + lignesRecap().map(function(l){
       return '<div class="r"><b>' + esc(l[0]) + '</b><span>' + esc(l[1]) + '</span></div>';
     }).join("") + '</div>';
-    h += '<p class="pja">Une vérification antispam s’ouvrira pour terminer l’envoi via FormSubmit. Vos réponses et fichiers seront transmis à TMC.</p>';
+    h += '<p class="pja">Votre demande sera envoyée à TMC, puis vous recevrez votre récapitulatif par email. Les plans et photos pourront être envoyés en réponse à ce mail.</p>';
     var manquants = (window.FICHIERS_A_REJOINDRE||[]).filter(function(nom){return !PJ.some(function(f){return f.nom===nom;});});
     if(manquants.length)
-      h += '<div class="note"><b>Fichiers à joindre à nouveau :</b> ' + esc(manquants.join(", ")) + '. Revenez à l’étape des plans pour les ajouter, ou envoyez-les par email après votre demande.</div>';
+      h += '<div class="note"><b>Fichiers à joindre à nouveau :</b> ' + esc(manquants.join(", ")) + '. Envoyez-les par email en réponse au récapitulatif après votre demande.</div>';
 
   } else {
     h += blocPrix();
@@ -1420,7 +1416,7 @@ function suiteEtudeTexte(){
 }
 
 function accuse(){
- // FormSubmit ajoute les champs ci-dessous à l’accusé : ne pas les répéter ici.
+ // Introduction conservée pour les outils de récapitulatif.
  return "Ia ora na "+String(S.nom||"").trim()+",\n\nVoici le récapitulatif de votre demande et votre budget approximatif.\nLes tarifs et la marche à suivre pour poursuivre figurent ci-dessous.\n\nMauruuru,\nTahiti Maison Container";
 }
 
@@ -1521,58 +1517,76 @@ function verifierDossier(){
  idx=avant;return erreur;
 }
 
-function envoyer(){
-  if(ENVOI_EN_COURS) return;
-  ordre=parcours();var controle=verifierDossier();
-  if(controle){idx=controle.index;rendre();var zone=document.getElementById("err");if(zone)zone.innerHTML='<div class="err">'+esc(controle.message)+'</div>';return;}
-  var err = document.getElementById("err");
-  if(PJ_EN_PREPARATION){
-    if(err) err.innerHTML = '<div class="err">Les fichiers sont encore en préparation. Patientez un instant puis réessayez.</div>';
-    return;
-  }
-  var b = document.getElementById("next"), back = document.getElementById("back");
-  var form;
-  try{
-    referenceDemande();
-    // Conserver les réponses dans cet onglet pour un retour après une erreur du service.
-    try{ sessionStorage.setItem(BROUILLON_ENVOI, JSON.stringify({state:S,multi:MULTI,files:PJ.map(function(f){return f.nom;}),date:Date.now()})); }catch(storageError){}
-    form = document.createElement("form");
-    form.id = "tmc-envoi"; form.method = "POST"; form.action = RELAIS;
-    form.enctype = "multipart/form-data"; form.style.display = "none";
-    function champ(nom,valeur){
-      var input = document.createElement("input"); input.type = "hidden";
-      input.name = nom; input.value = valeur; form.appendChild(input);
-    }
-    var lieu = libelleLieu();
-    var evaluation = evaluerDemande();
-    // _subject sert au mail TMC ; aucun champ d'évaluation n'est ajouté à la
-    // fiche que FormSubmit recopie dans l'accusé de réception du client.
-    champ("_subject", "[" + evaluation.score + "/100 · " + evaluation.statut + (S.delai==="Dans le mois"?" · URGENCE DÉCLARÉE":S.delai==="Dans 1 à 3 mois"?" · ÉCHÉANCE 1–3 MOIS":"") + "] Aménagement — " + (S.nom||"Nouveau client") + (lieu ? " — " + lieu : ""));
-    champ("_template", "table");
-    champ("_url", "https://tahitimaisoncontainer-jpg.github.io/avendrecontainer/demande/");
-    champ("_replyto", S.mail||"");
-    champ("_autoresponse", accuse());
-    // FormSubmit exige son antispam et un envoi natif pour l’accusé automatique.
-    champ("_captcha", "true");
-    champ("_next", "https://tahitimaisoncontainer-jpg.github.io/avendrecontainer/demande/merci.html?ref=" + encodeURIComponent(referenceDemande()));
-    var fiche = ficheEmail();
-    Object.keys(fiche).forEach(function(k){ if(fiche[k]) champ(k,fiche[k]); });
-    for(var i=0;i<PJ.length;i++){
-      var input = document.createElement("input"), transfer = new DataTransfer();
-      input.type = "file"; input.name = i ? "attachment"+(i+1) : "attachment";
-      transfer.items.add(new File([PJ[i].blob],PJ[i].nom,{type:PJ[i].blob.type || "application/octet-stream"}));
-      input.files = transfer.files; form.appendChild(input);
-    }
-    var ancien = document.getElementById("tmc-envoi"); if(ancien) ancien.remove();
-    document.body.appendChild(form);
-    ENVOI_EN_COURS = true; b.disabled = true; back.disabled = true;
-    b.textContent = "Ouverture de la vérification…";
-    form.submit();
-  }catch(e){
-    ENVOI_EN_COURS = false; b.disabled = false; back.disabled = false; b.textContent = "Réessayer l’envoi";
-    if(form) form.remove();
-    if(err){err.innerHTML = '<div class="err">L’envoi n’a pas démarré. Vos réponses restent sur cette page. Réessayez ou contactez TMC au 87 22 65 55 en rappelant ' + esc(referenceDemande()) + '.</div>';err.focus();}
-  }
+
+/* Deux messages séparés : dossier TMC, puis récapitulatif client.
+   Aucun score interne n'est inclus dans le message client. */
+var ETAT_ENVOIS = null;
+function courrierHtml(interne){
+ var fiche=ficheEmail(), lignes=[];
+ Object.keys(fiche).forEach(function(k){
+   if(!fiche[k] || k==="Contact TMC" || k==="Votre réponse")return;
+   lignes.push('<tr><th style="padding:9px;text-align:left;vertical-align:top;border-bottom:1px solid #ddd">'+esc(k==="email"?"Email":k)+'</th><td style="padding:9px;border-bottom:1px solid #ddd">'+esc(fiche[k]).replace(/\n/g,"<br>")+'</td></tr>');
+ });
+ var lien="https://tahitimaisoncontainer-jpg.github.io/avendrecontainer/demande/reponse.html?ref="+encodeURIComponent(referenceDemande());
+ var entete=interne?'<p><b>Nouvelle demande reçue depuis le formulaire TMC.</b></p>':'<p>Ia ora na '+esc(S.nom||"")+',</p><p>Voici le récapitulatif de votre demande et votre budget approximatif. Ce montant est indicatif ; aucun devis ni délai de travaux n’est confirmé.</p>';
+ var suite='<p><b>Souhaitez-vous poursuivre ?</b></p><p><a href="'+lien+'" style="display:inline-block;padding:12px 18px;background:#e56535;color:white;text-decoration:none;border-radius:6px">Oui, poursuivre / J’ai une question / Non merci</a></p><p>Choisissez votre réponse puis envoyez l’email préparé. Aucun paiement ni travaux ne sont engagés par ce choix.</p>';
+ var interneHtml="";
+ if(interne){
+   var e=evaluerDemande(),clar=pointsAClarifier();
+   interneHtml='<p><b>Qualification interne : '+esc(e.score)+'/100 — '+esc(e.statut)+'</b></p><p>Validation client : confirmation à attendre après proposition. Ne pas confondre avec une commande.</p>';
+   if(clar.technique.length)interneHtml+='<p><b>À vérifier par TMC :</b><br>'+clar.technique.map(esc).join("<br>")+'</p>';
+ }
+ return entete+interneHtml+'<table style="border-collapse:collapse;width:100%;font-size:14px">'+lignes.join("")+'</table>'+suite+'<p>Plans et photos : répondez à cet email pour les transmettre à TMC en rappelant '+esc(referenceDemande())+'.</p>'+(interne?'<p>Notification technique : TMC-FORMULAIRE-EMAILJS-V1. Cette notification contient une demande déclarative ; elle ne constitue ni une réponse humaine ni une confirmation de l’étude.</p>':'');
+}
+function conserverEnvois(){
+ try{sessionStorage.setItem(BROUILLON_ENVOI,JSON.stringify({state:S,multi:MULTI,files:[],date:Date.now(),envois:ETAT_ENVOIS}));}catch(e){}
+}
+async function transmettreEmailJS(destinataire,objetMail,contenu,repondre){
+ var reponse=await fetch("https://api.emailjs.com/api/v1.0/email/send",{
+   method:"POST",headers:{"Content-Type":"application/json"},
+   body:JSON.stringify({service_id:"service_i0e49ke",template_id:"template_u84704l",user_id:"au3T6ceaeV1ANEIkp",template_params:{to_email:destinataire,subject:objetMail,message_html:contenu,reply_to:repondre}})
+ });
+ if(!reponse.ok){var probleme=new Error("EmailJS "+reponse.status);probleme.statut=reponse.status;throw probleme;}
+}
+async function envoyer(){
+ if(ENVOI_EN_COURS)return;
+ ordre=parcours();var controle=verifierDossier();
+ if(controle){idx=controle.index;rendre();var zone=document.getElementById("err");if(zone)zone.innerHTML='<div class="err">'+esc(controle.message)+'</div>';return;}
+ var b=document.getElementById("next"),back=document.getElementById("back"),err=document.getElementById("err");
+ referenceDemande();
+ var signature=JSON.stringify(ficheEmail());
+ if(!ETAT_ENVOIS || ETAT_ENVOIS.signature!==signature)ETAT_ENVOIS={signature:signature,tmc:false,client:false};
+ if(ETAT_ENVOIS.incertain){
+   err.innerHTML='<div class="err">Le résultat du précédent essai est incertain. Vérifiez votre boîte mail avant de recommencer. Contactez TMC au 87 22 65 55 avec la référence '+esc(referenceDemande())+'. Vos réponses sont conservées.</div>';
+   return;
+ }
+ ENVOI_EN_COURS=true;b.disabled=true;back.disabled=true;err.innerHTML="";
+ conserverEnvois();
+ var envoiActuel="";
+ try{
+   if(!ETAT_ENVOIS.tmc){
+     envoiActuel="tmc";b.textContent="Envoi à TMC…";
+     var evaluation=evaluerDemande();
+     await transmettreEmailJS("tahitimaisoncontainer@gmail.com","["+evaluation.score+"/100 · "+evaluation.statut+"] Aménagement — "+referenceDemande()+" — "+(S.nom||"Nouveau client")+" — "+libelleLieu(),courrierHtml(true),S.mail);
+     ETAT_ENVOIS.tmc=true;conserverEnvois();
+     await new Promise(function(resolve){setTimeout(resolve,1200);});
+   }
+   if(!ETAT_ENVOIS.client){
+     envoiActuel="client";b.textContent="Envoi de votre récapitulatif…";
+     await transmettreEmailJS(S.mail,"Votre projet d’aménagement TMC — "+referenceDemande(),courrierHtml(false),"tahitimaisoncontainer@gmail.com");
+     ETAT_ENVOIS.client=true;conserverEnvois();
+   }
+   location.href="merci.html?ref="+encodeURIComponent(referenceDemande());
+ }catch(e){
+   // Une erreur réseau peut survenir après l’acceptation de l’email : pas de
+   // nouvel essai automatique susceptible de produire des doublons.
+   if(!e.statut)ETAT_ENVOIS.incertain=envoiActuel;
+   conserverEnvois();ENVOI_EN_COURS=false;b.disabled=false;back.disabled=false;
+   b.textContent=ETAT_ENVOIS.tmc?"Réessayer le mail client":"Réessayer l’envoi";
+   var message=ETAT_ENVOIS.tmc?"TMC a reçu votre demande, mais l’envoi de votre récapitulatif n’a pas pu être confirmé.":"L’envoi de votre demande n’a pas pu être confirmé.";
+   err.innerHTML='<div class="err">'+message+' Vos réponses sont conservées. '+(ETAT_ENVOIS.incertain?'Vérifiez votre boîte mail avant tout nouvel essai.':'Vous pouvez réessayer.')+' En cas de difficulté, contactez TMC au 87 22 65 55 avec la référence '+esc(referenceDemande())+'.</div>';
+   err.focus();
+ }
 }
 
 // Le bouton Retour du navigateur doit permettre un nouvel essai après une interruption.
@@ -1589,7 +1603,7 @@ window.addEventListener("pageshow",function(event){
 try{
   var sauvegarde = JSON.parse(sessionStorage.getItem(BROUILLON_ENVOI)||"null");
   if(sauvegarde && sauvegarde.state && Date.now()-sauvegarde.date < 24*60*60*1000){
-    S = sauvegarde.state; delete S.budgetExact; delete S.assainExistant; delete S.etape; delete S.chambres; delete S.guidageModules; MULTI = sauvegarde.multi||{};
+    S = sauvegarde.state; ETAT_ENVOIS=sauvegarde.envois||null; delete S.budgetExact; delete S.assainExistant; delete S.etape; delete S.chambres; delete S.guidageModules; MULTI = sauvegarde.multi||{};
     if(sauvegarde.files && sauvegarde.files.length) window.FICHIERS_A_REJOINDRE = sauvegarde.files;
     if(totalMod()<2)delete S.implantation;
     if(S.terrain==="Je n'ai pas encore de terrain"){delete S.indivision;delete S.parcelle;delete S.acces;}
