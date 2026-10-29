@@ -278,7 +278,7 @@ E.plan = {k:"Votre projet", q:"Avez-vous un plan ou un croquis ?", ch:"plan", pj
   ["Oui, un plan coté"],["Un croquis à main levée"],["Non, rien pour l'instant"]]};
 
 E.enveloppe = {k:"Budget", q:"Quel budget avez-vous prévu pour votre projet ?", ch:"enveloppe", etudeNote:1, echelle:1,
-  sub:"Indiquez le budget de <b>l'ensemble du projet</b> : les conteneurs et leur aménagement, tous modules compris. Cette information me permet de vérifier que votre projet est cohérent avec l'enveloppe que vous envisagez. Une estimation réaliste du budget est indispensable avant l'établissement d'un devis.", o:[
+  sub:"Indiquez le budget de <b>l'ensemble du projet</b> : les conteneurs et leur aménagement, tous modules compris. Cette information me permet de vérifier que votre projet est cohérent avec l'enveloppe que vous envisagez. Vous recevrez notre estimation par email après l’envoi de votre demande.", o:[
   ["2 à 3 millions XPF","Enveloppe totale disponible"],
   ["3 à 5 millions XPF","Enveloppe totale disponible"],
   ["5 à 10 millions XPF","Enveloppe totale disponible"],
@@ -522,7 +522,7 @@ function parcours(){
     p.push("parcelle");
     if(S.livraison==="Jusqu’au terrain, avec déchargement et pose")p.push("acces");
   }
-  return p.concat(["plan","delai","enveloppe","estimation","financement","decision","contact","recap","fini"]);
+  return p.concat(["plan","delai","enveloppe","financement","decision","contact","recap","fini"]);
 }
 
 /* ============ COHERENCE BUDGET ============ */
@@ -976,16 +976,11 @@ function rendre(){
     h += '<div class="note"><b>Plans, croquis et photos</b><br>Après l’envoi de votre demande, répondez au mail reçu pour transmettre vos documents à TMC. Un plan existant exploitable évite de facturer un nouveau plan.</div>';
   }
 
-  if(e.estimation){
-    h+='<p class="sub">Votre budget estimatif est calculé à partir de vos réponses. Aucun travail n’est commandé.</p>';
-    if(prestation("Assainissement et raccordements")) h+='<label class="f"><span>Raccordements extérieurs eau / électricité</span><select onchange="majEstimation(\'reseaux\',this.value)"><option value="">À chiffrer avec TMC</option><option '+(S.reseaux==="Raccordements extérieurs pris en charge séparément"?'selected':'')+'>Raccordements extérieurs pris en charge séparément</option></select></label>';
-    h+='<div id="estimation-live">'+blocEstimation()+'</div><label style="display:flex;gap:12px;align-items:flex-start;margin:24px 0"><input id="estimation-lue" type="checkbox" style="width:24px;height:24px;flex-shrink:0" '+(S.estimationLue===signatureEstimation()?'checked':'')+' onchange="accordEstimation(this.checked)"><span>J’ai pris connaissance de cette estimation et de ses limites. Cela ne vaut pas acceptation d’un devis.</span></label>';
-  }
   if(e.recap){
     h += '<div class="recap">' + lignesRecap().map(function(l){
       return '<div class="r"><b>' + esc(l[0]) + '</b><span>' + esc(l[1]) + '</span></div>';
     }).join("") + '</div>';
-    h += '<p class="pja">Votre demande sera envoyée à TMC, puis vous recevrez votre récapitulatif par email. Les plans et photos pourront être envoyés en réponse à ce mail.</p>';
+    h += '<p class="pja">Après l’envoi, vous recevrez par email votre récapitulatif et notre prix approximatif, lorsque votre projet permet de le calculer. Les plans et photos pourront être envoyés en réponse à ce mail.</p>';
     var manquants = (window.FICHIERS_A_REJOINDRE||[]).filter(function(nom){return !PJ.some(function(f){return f.nom===nom;});});
     if(manquants.length)
       h += '<div class="note"><b>Fichiers à joindre à nouveau :</b> ' + esc(manquants.join(", ")) + '. Envoyez-les par email en réponse au récapitulatif après votre demande.</div>';
@@ -1191,9 +1186,6 @@ function valide(){
     if(["Au quai uniquement","Jusqu’au terrain, avec déchargement et pose","À définir ensemble"].indexOf(S.livraison)<0)return "Choisissez au quai, jusqu’au terrain ou « Je ne sais pas ».";
   }
   if(e.txt && !e.opt && !S[e.txt]) return "Ce champ est nécessaire.";
-  if(e.estimation){
-    if(S.estimationLue!==signatureEstimation()) return "Prenez connaissance de l’estimation, puis cochez la case pour continuer.";
-  }
   if(e.contact){
     if(!S.nom || S.nom.trim().length < 2) return "Merci d'indiquer votre nom.";
     if(S.profil!=="Un particulier" && String(S.structure||"").trim().length<2)return "Merci d’indiquer le nom de votre structure.";
@@ -1226,7 +1218,7 @@ var ORDRE_R = ["reference","profil","structure","besoin","usage","modules","impl
 
 function lignesRecap(){
  var fiche=ficheEmail();
- return Object.keys(fiche).filter(function(k){return fiche[k] && k!=="Contact TMC" && k!=="Votre réponse";}).map(function(k){return [k==="email"?"Email":k,fiche[k]];});
+ return Object.keys(fiche).filter(function(k){return fiche[k] && k!=="Contact TMC" && k!=="Votre réponse" && k!=="Budget approximatif du projet";}).map(function(k){return [k==="email"?"Email":k,fiche[k]];});
 }
 /* ============ TOPO ET ENVOI PAR MAIL ============ */
 var NIV = {
@@ -1468,7 +1460,6 @@ function evaluerDemande(){
   else if(financement < 25) statut = "FINANCEMENT À CONFIRMER";
   else if(projet < 15) statut = "PROJET À PRÉCISER";
   else if(pointsAClarifier().client.length) statut="PRÉCISIONS À OBTENIR";
-  else if(S.estimationLue!==signatureEstimation()) statut="ESTIMATION À CONSULTER";
   else statut = "CONFIRMATION ATTENDUE";
   if(pointsAClarifier().client.length) score=Math.min(score,85);
   // Un dossier avec des précisions client en attente ne reçoit pas 100/100.
