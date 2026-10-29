@@ -1538,9 +1538,9 @@ function envoyer(){
     try{ sessionStorage.setItem(BROUILLON_ENVOI, JSON.stringify({state:S,multi:MULTI,files:PJ.map(function(f){return f.nom;}),date:Date.now()})); }catch(storageError){}
     form = document.createElement("form");
     form.id = "tmc-envoi"; form.method = "POST"; form.action = RELAIS;
-    form.enctype = PJ.length ? "multipart/form-data" : "application/x-www-form-urlencoded"; form.style.display = "none";
+    form.enctype = "multipart/form-data"; form.style.display = "none";
     function champ(nom,valeur){
-      var input = document.createElement("input"); input.type = nom==="email" ? "email" : "hidden";
+      var input = document.createElement("input"); input.type = "hidden";
       input.name = nom; input.value = valeur; form.appendChild(input);
     }
     var lieu = libelleLieu();
