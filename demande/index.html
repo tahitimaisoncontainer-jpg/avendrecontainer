@@ -1548,7 +1548,18 @@ function courrierHtml(interne){
  Object.keys(fiche).forEach(function(k){
    if(!fiche[k] || k==="Contact TMC" || k==="Votre réponse")return;
    if(!interne && ["Profil","Structure","Validation du projet","email","Téléphone","Budget déclaré","Terrain","Financement","Votre message","Budget approximatif du projet"].indexOf(k)>-1)return;
-   lignes.push('<tr><th style="padding:9px;text-align:left;vertical-align:top;border-bottom:1px solid #ddd">'+esc(k==="email"?"Email":k)+'</th><td style="padding:9px;border-bottom:1px solid #ddd">'+esc(fiche[k]).replace(/\n/g,"<br>")+'</td></tr>');
+   if(interne && k==="Aménagement" && S.formule!=="Je choisis mes prestations")return;
+   var valeur=fiche[k];
+   if(interne){
+     if(k==="Plan 2D"){var plan=prixPlan();valeur=plan?fmt(plan[0])+" XPF":"À confirmer";}
+     if(k==="Budget approximatif du projet"){
+       var estimationInterne=estimationProjet();
+       valeur=estimationInterne.haut!==null && estimationInterne.standard && S.modules && S.modules!=="À définir"?fmt(estimationInterne.haut)+" XPF":"À chiffrer";
+     }
+     // Garder l’usage visible même quand la ligne Aménagement est masquée.
+     if(k==="Formule" && S.usage)valeur=S.usage+" — "+valeur;
+   }
+   lignes.push('<tr><th style="padding:9px;text-align:left;vertical-align:top;border-bottom:1px solid #ddd">'+esc(k==="email"?"Email":k)+'</th><td style="padding:9px;border-bottom:1px solid #ddd">'+esc(valeur).replace(/\n/g,"<br>")+'</td></tr>');
  });
  var entete=interne?'<p><b>Nouvelle demande reçue depuis le formulaire TMC.</b></p>':'<p>Ia ora na '+esc(S.nom||"")+',</p><p>Voici le prix indicatif TMC pour votre projet, puis votre récapitulatif et les modalités pour poursuivre.</p>';
  var prix="";
