@@ -685,11 +685,12 @@ function estimationProjet(){
   if(S.implantation && S.implantation!=="Assemblés en un seul bâtiment" && S.implantation!=="Séparés, posés indépendamment") manquants.push("Implantation ou superposition à valider techniquement");
   if(S.profil==="Une administration publique") manquants.push("Conditions du marché et financement à vérifier par TMC");
   var bas=lignes.reduce(function(a,l){return a+l.bas;},0),haut=lignes.reduce(function(a,l){return a+l.haut;},0);
-  return {lignes:lignes,manquants:manquants,bas:lignes.length?arrondiHaut(bas,100000):null,haut:lignes.length?arrondiHaut(haut,100000):null,standard:standard,complet:standard&&manquants.length===0};
+  var coefficient=S.profil==="Une administration publique"?COEF_PUBLIC:1;
+  return {lignes:lignes,manquants:manquants,bas:lignes.length?Math.round(arrondiHaut(bas,100000)*coefficient):null,haut:lignes.length?Math.round(arrondiHaut(haut,100000)*coefficient):null,standard:standard,complet:standard&&manquants.length===0};
 }
 function estimPlancher(){return estimationProjet().bas;}
 function tauxPlancher(){return BAREME.amenagement[0];}
-var COEF_PUBLIC=1; // Compatibilité avec l’ancien topo interne, aucun multiplicateur public.
+var COEF_PUBLIC=1.20;
 function plafondEnveloppe(){
   if(S.enveloppe === "2 à 3 millions XPF") return 3000000;
   if(S.enveloppe === "3 à 5 millions XPF") return 5000000;
@@ -1344,7 +1345,7 @@ function vigilance(){
       m.push("  À obtenir : l'enveloppe budgétaire. C'est l'information qui manque le plus souvent.");
     var cB=coherenceBudget(), pB=estimPlancher();
     var det = S.surface+" m²"+(S.modules&&S.modules!=="À définir"?" ("+libelleMod()+")":"")
-            +", conteneurs et aménagement compris"+(estPublic()?", coefficient marché public x"+COEF_PUBLIC+" inclus":"");
+            +", conteneurs et aménagement compris";
     if(cB==="incompatible")
       m.push("  Enveloppe incompatible : le plancher est de "+fmt(pB)+" XPF pour "+det+". Recadrez avant tout chiffrage.");
     else if(cB==="juste")
@@ -1417,7 +1418,6 @@ function topo(r){
   if(pl){
     var pc = plancherConteneurs();
     ar.push(lg("Plancher estimé",fmt(pl)+" XPF pour l'ensemble du projet"));
-    if(estPublic()) ar.push(lg("",  "coefficient marché public x"+COEF_PUBLIC+" appliqué (délai de règlement et portage de trésorerie)"));
     if(pc) ar.push(lg("",  "base : "+fmt(pc)+" XPF de conteneurs ("+libelleMod()+") + "+fmt(Math.round(pl/(estPublic()?COEF_PUBLIC:1))-pc)+" XPF d'aménagement"));
     else   ar.push(lg("",  "base : surface x taux plancher constaté sur vos devis"));
   }
