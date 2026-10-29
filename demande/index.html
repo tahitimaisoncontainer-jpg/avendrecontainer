@@ -198,7 +198,7 @@ function tarifEtude(){
 var E = {};
 
 E.profil = {k:"Pour commencer", q:"Vous êtes…", ch:"profil", o:[
-  ["Un particulier"],["Une entreprise"],["Une administration ou une commune"],["Une association"]]};
+  ["Un particulier"],["Une entreprise"],["Une administration publique"],["Une association"]]};
 
 E.redirection = {k:"Conteneur brut", q:"Tout est déjà en ligne", redirect:1,
   sub:"Pour un conteneur livré tel quel, le prix de votre commune s'affiche directement sur notre page conteneurs, et vous commandez depuis cette page. Inutile de remplir un questionnaire."};
@@ -281,7 +281,7 @@ E.droitUsage={k:"L’emplacement",q:"L’utilisation de cet emplacement est-elle
  ["L’accord est en cours"],
  ["Je ne sais pas"]]};
 function estStructure(){
- return ["Une entreprise","Une administration ou une commune","Une association"].indexOf(S.profil)>-1;
+ return ["Une entreprise","Une administration publique","Une association"].indexOf(S.profil)>-1;
 }
 function etatTerrain(){
  var equivalents={
@@ -345,7 +345,7 @@ var FINANCEMENTS = {
  ["Prêt en cours d'instruction","",0,"attente"],
  ["Le financement reste à monter","",0,"recherche"],
  ["Je ne sais pas encore","",1,"inconnu"]]},
- "Une administration ou une commune":{q:"Où en est le budget prévu pour ce projet ?",multi:false,sub:"Indiquez la situation actuelle du budget de votre administration ou de votre commune.",o:[
+ "Une administration publique":{q:"Où en est le budget prévu pour ce projet ?",multi:false,sub:"Indiquez la situation actuelle du budget de votre administration publique.",o:[
  ["Budget voté et crédits disponibles","",0,"disponible"],
  ["Budget voté, crédits à mobiliser","",0,"attente"],
  ["Budget en cours de validation","",0,"attente"],
@@ -411,10 +411,12 @@ var DECISIONS = {
   ["Je décide avec un associé ou ma hiérarchie","Validation interne à obtenir"],
   ["Je fais la demande pour quelqu'un d'autre","Je ne suis pas le décideur"]]},
  "Une entreprise":DECISION_STRUCTURE,
- "Une administration ou une commune":DECISION_STRUCTURE,
+ "Une administration publique":DECISION_STRUCTURE,
  "Une association":DECISION_STRUCTURE
 };
 function adapterDecision(){
+ // Compatibilité avec les brouillons créés avant le changement de libellé.
+ if(S.profil==="Une administration ou une commune")S.profil="Une administration publique";
  var config=DECISIONS[S.profil]||DECISIONS["Un particulier"];
  E.decision={k:"Presque fini",q:config.q,ch:"decision",o:config.o};
  if(S.decision && !config.o.some(function(o){return o[0]===S.decision;}))delete S.decision;
@@ -428,7 +430,7 @@ function decisionValidee(){
  return S.decision===config.o[0][0] || (S.profil==="Un particulier" && S.decision===config.o[1][0]);
 }
 function libelleStructure(){
- return S.profil==="Une entreprise"?"Nom de l’entreprise":S.profil==="Une association"?"Nom de l’association":"Nom de l’administration ou de la commune";
+ return S.profil==="Une entreprise"?"Nom de l’entreprise":S.profil==="Une association"?"Nom de l’association":"Nom de l’administration publique";
 }
 adapterDecision();
 
@@ -612,7 +614,7 @@ function parcours(){
    Ce sont des provisions de préqualification, pas les extrema de devis identiques.
    Pas de coefficient automatique selon le profil du client. */
 var BAREME = {version:"2026-10-28", amenagement:[180000,220000], toiture:[6200,6200], plot:32000, assainissement:{petit:1000000,intermediaire:2500000,grand:3000000,surfaceReference:26}};
-function estPublic(){ return S.profil === "Une administration ou une commune"; }
+function estPublic(){ return S.profil === "Une administration publique"; }
 function arrondiHaut(v,pas){ return Math.ceil(v/(pas||10000))*(pas||10000); }
 function nombre(v){ return Number(String(v||"").replace(",",".")); }
 function prestation(v){ return String(S.prestations||"").indexOf(v)>-1; }
@@ -679,7 +681,7 @@ function estimationProjet(){
   if(prestation("Terrasse et accès")) manquants.push("Terrasse, escalier et accès à chiffrer");
   if(prestation("Autres prestations")||prestation("À définir ensemble")) manquants.push("Prestations complémentaires à définir");
   if(S.implantation && S.implantation!=="Assemblés en un seul bâtiment" && S.implantation!=="Séparés, posés indépendamment") manquants.push("Implantation ou superposition à valider techniquement");
-  if(S.profil==="Une administration ou une commune") manquants.push("Conditions du marché et financement à vérifier par TMC");
+  if(S.profil==="Une administration publique") manquants.push("Conditions du marché et financement à vérifier par TMC");
   var bas=lignes.reduce(function(a,l){return a+l.bas;},0),haut=lignes.reduce(function(a,l){return a+l.haut;},0);
   return {lignes:lignes,manquants:manquants,bas:lignes.length?arrondiHaut(bas,100000):null,haut:lignes.length?arrondiHaut(haut,100000):null,standard:standard,complet:standard&&manquants.length===0};
 }
@@ -1361,7 +1363,7 @@ function vigilance(){
     if(S.plan==="Non, rien pour l'instant")
       m.push("  Aucun plan : demandez une photo du terrain et un croquis à main levée.");
   }
-  if(S.profil==="Une administration ou une commune"){
+  if(S.profil==="Une administration publique"){
     m.push("  Commande publique : règlement à 60-90 jours après service fait. Chiffrez le coût de portage, réclamez un acompte au bon de commande et un échéancier par phase.");
     m.push("  Vérifiez le seuil de mise en concurrence et qui signe l'engagement : un accord oral de service ne vaut pas bon de commande.");
   }
