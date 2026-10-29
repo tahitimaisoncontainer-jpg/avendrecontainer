@@ -1619,7 +1619,37 @@ function boutonsReponseEmail(){
   +bouton("non","Non merci","#616975")
   +'<p style="font-size:13px">Chaque bouton ouvre un email prérempli à TMC. Vérifiez votre réponse puis cliquez sur « Envoyer » dans votre messagerie. Pour une question, complétez le message avant l’envoi. Aucun paiement ni travaux ne sont engagés par ce choix.</p></div>';
 }
+function objetEmailTmc(){
+ function propre(v){return String(v||"").replace(/[\r\n]+/g," ").replace(/&/g," et ").replace(/[<>"'\/]/g," ").replace(/\s+/g," ").trim();}
+ return "TMC - Demande aménagement - "+propre(S.nom||"Nouveau client")+" - "+propre(libelleLieu())+" - "+referenceDemande();
+}
+function courrierInterneHtml(){
+ var fiche=ficheEmail(), e=estimationProjet();
+ var calculable=e.haut!==null && e.standard && S.modules && S.modules!=="À définir";
+ var maximum=plafondEnveloppe(),minimum=minimumEnveloppe(),comparaison="Comparaison à confirmer",couleur="#345574";
+ if(calculable && maximum!==null){
+   if(e.haut>maximum){comparaison="Budget déclaré inférieur au prix indicatif TMC";couleur="#a13828";}
+   else if(minimum!==null && e.haut<minimum){comparaison="Prix indicatif inférieur à la tranche de budget déclarée";couleur="#35633e";}
+   else {comparaison="Prix indicatif dans le budget déclaré";couleur="#35633e";}
+ }
+ function ligne(t,v){if(!v)return "";return '<tr><td style="padding:8px 4px;border-bottom:1px solid #e5e7eb;vertical-align:top;width:38%;color:#5d6670">'+esc(t)+'</td><td style="padding:8px 4px;border-bottom:1px solid #e5e7eb;vertical-align:top">'+esc(v).replace(/\n/g,"<br>")+'</td></tr>';}
+ function section(t,contenu){return '<h3 style="font-size:17px;margin:24px 0 7px;color:#d9572a">'+t+'</h3><table style="border-collapse:collapse;width:100%;font-size:14px">'+contenu+'</table>';}
+ var h='<div style="padding:16px;background:#fff2e9;border:1px solid #e56535;border-radius:8px"><div style="font-size:13px;color:#5d6670">Budget déclaré par le client</div><p style="font-size:22px;font-weight:bold;margin:5px 0 15px">'+esc(S.enveloppe||"À préciser")+'</p><div style="font-size:13px;color:#5d6670">Prix approximatif TMC</div><p style="font-size:26px;font-weight:bold;margin:5px 0 14px;color:#b94b21">'+(calculable?fmt(e.haut)+" XPF":"À chiffrer")+'</p><p style="margin:0;color:'+couleur+';font-weight:bold">'+esc(comparaison)+'</p><p style="font-size:12px;margin:8px 0 0">Comparaison indicative, hors étude et plan 2D. Les suppléments et le financement restent à vérifier.</p></div>';
+ h+='<p style="font-size:13px"><b>Référence :</b> '+esc(referenceDemande())+'<br><b>Réponse client :</b> en attente après proposition.</p>';
+ h+=section("Contact",ligne("Nom et prénom",S.nom)+ligne("Profil",S.profil)+ligne("Structure",estStructure()?S.structure:"")+ligne("Téléphone",S.tel)+ligne("Email",S.mail));
+ h+=section("Projet",ligne("Usage",S.usage)+ligne("Conteneurs",fiche["Conteneurs"])+ligne("Surface",fiche["Surface indicative"])+ligne("Formule",fiche["Formule"])+(formulePersonnalisee()?ligne("Aménagement",S.prestations):"")+ligne("Précisions",S.prestationsDetails)+ligne("Lieu",fiche["Commune / quartier"])+ligne("Livraison",fiche["Livraison"])+ligne("Pour quand",fiche["Pour quand"]));
+ h+=section("Terrain et financement",ligne("Emplacement",fiche["Terrain"])+ligne("Autorisation",fiche["Autorisation de l’emplacement"])+ligne("Financement",fiche["Financement"])+ligne("Validation du projet",S.decision));
+ var plan=prixPlan();
+ h+=section("Étude et plan 2D",ligne("Étude",tarifEtude()||"À confirmer")+ligne("Plan 2D",plan?fmt(plan[0])+" XPF":"À confirmer"));
+ if(S.msg)h+=section("Message du client",ligne("Message",S.msg));
+ var clar=pointsAClarifier(),points=Array.from(new Set(clar.client.concat(clar.technique)));
+ if(points.length)h+='<h3 style="font-size:17px;margin:24px 0 7px;color:#d9572a">Points à vérifier</h3><ul style="padding-left:20px;font-size:13px">'+points.map(function(p){return "<li>"+esc(p)+"</li>";}).join("")+"</ul>";
+ h+='<p style="font-size:12px;color:#5d6670">Le client reçoit sa proposition avec trois réponses possibles : poursuivre, poser une question ou refuser. Attendre son email de réponse avant de modifier le dossier.</p><div style="display:none;font-size:1px;line-height:1px;color:#ffffff">TMC-FORMULAIRE-EMAILJS-V1</div>';
+ return h;
+}
+
 function courrierHtml(interne){
+ if(interne)return courrierInterneHtml();
  var fiche=ficheEmail(), lignes=[];
  Object.keys(fiche).forEach(function(k){
    if(!fiche[k] || k==="Contact TMC" || k==="Votre réponse")return;
@@ -1682,8 +1712,7 @@ async function envoyer(){
  try{
    if(!ETAT_ENVOIS.tmc){
      envoiActuel="tmc";b.textContent="Envoi à TMC…";
-     var evaluation=evaluerDemande();
-     await transmettreEmailJS("tahitimaisoncontainer@gmail.com","["+evaluation.score+"/100 · "+evaluation.statut+"] Aménagement — "+referenceDemande()+" — "+(S.nom||"Nouveau client")+" — "+libelleLieu(),courrierHtml(true),S.mail);
+     await transmettreEmailJS("tahitimaisoncontainer@gmail.com",objetEmailTmc(),courrierHtml(true),S.mail);
      ETAT_ENVOIS.tmc=true;conserverEnvois();
      await new Promise(function(resolve){setTimeout(resolve,1200);});
    }
