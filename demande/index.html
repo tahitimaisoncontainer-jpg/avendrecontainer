@@ -646,7 +646,9 @@ function estimationProjet(){
   if(!S.modules || S.modules==="À définir" || totalMod()<1) manquants.push("Nombre de conteneurs à préciser");
   else ajoute("Conteneurs et frais opérationnels (hors livraison)",plancherConteneurs());
   if(totalMod()>0 && m>nMod("n20")*15+nMod("n40")*30) manquants.push("Surface supérieure à celle des modules : extension ou surface à vérifier");
-  var special=S.usage!=="Logement" && S.usage!=="Hébergement ou tourisme" && S.usage!=="Bureau ou activité professionnelle";
+  var sanitaireCleEnMain=S.usage==="Sanitaire ou local spécialisé" && (S.formule==="Clé en main sans assainissement" || S.formule==="Clé en main avec assainissement");
+  var special=S.usage!=="Logement" && S.usage!=="Hébergement ou tourisme" && S.usage!=="Bureau ou activité professionnelle" && !sanitaireCleEnMain;
+  if(sanitaireCleEnMain)manquants.push("Équipements spécifiques et suppléments à confirmer après étude");
   if(special) {standard=false; manquants.push("Usage spécialisé : aménagement sur étude, aucun forfait standard appliqué");}
   var core=prestation("Isolation et habillage intérieur")&&prestation("Électricité et éclairage")&&prestation("Portes, fenêtres et baies vitrées");
   var eau=S.usage==="Logement"||S.usage==="Hébergement ou tourisme"||prestation("Plomberie et sanitaires")||prestation("Cuisine");
@@ -730,6 +732,7 @@ function estimationTexte(){
  if(e.bas===null || !e.standard || !S.modules || S.modules==="À définir")return messageEstimation(e);
  return "À partir de "+fmt(e.haut)+" XPF"
    +"\nConteneurs, aménagement et prestations chiffrées compris."
+   +(S.usage==="Sanitaire ou local spécialisé"?"\nÉquipements spécifiques et suppléments à confirmer après étude.":"")
    +"\nEstimatif non contractuel, hors étude et plan 2D."
    +(e.manquants.length?"\nMontant à compléter : certains travaux ou frais restent à chiffrer lors de l’étude. Le montant indiqué n’est pas un prix final.":"");
 }
@@ -1631,7 +1634,7 @@ function courrierHtml(interne){
  if(!interne){
    var estimation=estimationProjet(),calculable=estimation.haut!==null && estimation.standard && S.modules && S.modules!=="À définir";
    prix='<div style="margin:20px 0;padding:20px;background:#fff2e9;border:1px solid #e56535;border-radius:8px"><h2 style="font-size:18px;margin:0 0 10px;color:#303946">Prix indicatif TMC pour votre projet</h2>'
-    +(calculable?'<p style="font-size:28px;font-weight:bold;color:#b94b21;margin:8px 0">À partir de '+fmt(estimation.haut)+' XPF</p><p style="margin:8px 0">Conteneurs, aménagement et prestations chiffrées compris.</p><p style="font-size:13px">Estimation non contractuelle, hors étude et plan 2D. '+(estimation.manquants.length?'Certains travaux ou frais restent à chiffrer et s’ajouteront au montant indiqué. ':'')+'Le prix précis sera établi après étude.</p>':'<p>'+esc(estimationTexte())+'</p>')
+    +(calculable?'<p style="font-size:28px;font-weight:bold;color:#b94b21;margin:8px 0">À partir de '+fmt(estimation.haut)+' XPF</p><p style="margin:8px 0">Conteneurs, aménagement et prestations chiffrées compris.</p><p style="font-size:13px">'+(S.usage==="Sanitaire ou local spécialisé"?"Équipements spécifiques et suppléments à confirmer après étude. ":"")+'Estimation non contractuelle, hors étude et plan 2D. '+(estimation.manquants.length?'Certains travaux ou frais restent à chiffrer et s’ajouteront au montant indiqué. ':'')+'Le prix précis sera établi après étude.</p>':'<p>'+esc(estimationTexte())+'</p>')
     +(S.enveloppe?'<p style="font-size:13px"><b>Votre budget déclaré :</b> '+esc(S.enveloppe)+'.</p>':"")+'</div>';
  }
  var interneHtml="";
