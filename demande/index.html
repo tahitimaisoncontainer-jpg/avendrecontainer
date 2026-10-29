@@ -639,27 +639,35 @@ function provisionAssainissement(){
  var montant=arrondiHaut(Math.max(BAREME.assainissement.petit,surface*BAREME.assainissement.petit/BAREME.assainissement.surfaceReference),10000);
  return {bas:montant,haut:montant,regle:"calcul automatique selon la surface intérieure du projet, dimensionnement à confirmer pendant l’étude"};
 }
+// Repère atelier global (conteneurs + aménagement, transport local standard, toiture et plots).
+// Hors CFPA : Papara TMC2023160202D (16/02/2023), 28 324 572 / (4*28) ;
+// Afaahiti Bernard Constant (06/09/2022), estimation 11 500 000 / (2*28).
+// Moyenne des deux projets = 229 127,55 XPF/m², arrondie à 230 000.
+// Références historiques, équipements différents, aucune indexation supposée.
+var TARIF_ATELIER_GLOBAL=230000;
+function atelierCleEnMain(){return S.usage==="Atelier ou stockage aménagé" && (S.formule==="Clé en main sans assainissement" || S.formule==="Clé en main avec assainissement");}
 function estimationProjet(){
-  var m=nombre(S.surface), lignes=[], manquants=[], standard=true;
+  var m=nombre(S.surface), lignes=[], manquants=[], standard=true, atelier=atelierCleEnMain();
   function ajoute(n,bas,haut){ lignes.push({poste:n,bas:arrondiHaut(bas),haut:arrondiHaut(haut==null?bas:haut)}); }
   if(!Number.isFinite(m)||m<=0) return {lignes:[],manquants:["Surface à préciser"],bas:null,haut:null,complet:false};
   if(!S.modules || S.modules==="À définir" || totalMod()<1) manquants.push("Nombre de conteneurs à préciser");
-  else ajoute("Conteneurs et frais opérationnels (hors livraison)",plancherConteneurs());
+  else if(!atelier) ajoute("Conteneurs et frais opérationnels (hors livraison)",plancherConteneurs());
   if(totalMod()>0 && m>nMod("n20")*15+nMod("n40")*30) manquants.push("Surface supérieure à celle des modules : extension ou surface à vérifier");
   var sanitaireCleEnMain=S.usage==="Sanitaire ou local spécialisé" && (S.formule==="Clé en main sans assainissement" || S.formule==="Clé en main avec assainissement");
-  var special=S.usage!=="Logement" && S.usage!=="Hébergement ou tourisme" && S.usage!=="Bureau ou activité professionnelle" && !sanitaireCleEnMain;
-  if(sanitaireCleEnMain)manquants.push("Équipements spécifiques et suppléments à confirmer après étude");
+  var special=S.usage!=="Logement" && S.usage!=="Hébergement ou tourisme" && S.usage!=="Bureau ou activité professionnelle" && !sanitaireCleEnMain && !atelier;
+  if(sanitaireCleEnMain || atelier)manquants.push("Équipements spécifiques et suppléments à confirmer après étude");
   if(special) {standard=false; manquants.push("Usage spécialisé : aménagement sur étude, aucun forfait standard appliqué");}
   var core=prestation("Isolation et habillage intérieur")&&prestation("Électricité et éclairage")&&prestation("Portes, fenêtres et baies vitrées");
   var eau=S.usage==="Logement"||S.usage==="Hébergement ou tourisme"||prestation("Plomberie et sanitaires")||prestation("Cuisine");
   if(!special && (!core || (eau&&!prestation("Plomberie et sanitaires")))) {standard=false;manquants.push("Travaux partiels ou à définir : le repère standard doit être adapté");}
-  if(!special) ajoute((standard?"Aménagement standard":"Repère d’aménagement standard, à adapter")+" — "+m+" m² × 180 000 à 220 000 XPF",m*BAREME.amenagement[0],m*BAREME.amenagement[1]);
+  if(atelier)ajoute("Atelier — repère global conteneurs, aménagement, livraison locale standard, toiture et plots — "+m+" m² × "+fmt(TARIF_ATELIER_GLOBAL)+" XPF",m*TARIF_ATELIER_GLOBAL);
+  else if(!special) ajoute((standard?"Aménagement standard":"Repère d’aménagement standard, à adapter")+" — "+m+" m² × 180 000 à 220 000 XPF",m*BAREME.amenagement[0],m*BAREME.amenagement[1]);
   var c=COM.find(function(c){return c[0]===S.commune;});
   if(totalMod()>0 && S.modules!=="À définir" && c && COM.indexOf(c)<=21 && S.livraison==="Jusqu’au terrain, avec déchargement et pose" && S.acces==="Oui, l'accès est dégagé") {
     // Grille Tahiti : supplément HT, TVA transport 13 %, arrondi supérieur par module.
-    ajoute("Transport Tahiti, accès standard",nMod("n20")*arrondiHaut(c[1]*1.13)+nMod("n40")*arrondiHaut(c[2]*1.13));
+    if(!atelier)ajoute("Transport Tahiti, accès standard",nMod("n20")*arrondiHaut(c[1]*1.13)+nMod("n40")*arrondiHaut(c[2]*1.13));
   } else manquants.push(S.livraison==="Au quai uniquement"?"Fret et mise à disposition au quai à chiffrer":"Transport, grutage et livraison finale à chiffrer selon destination et accès");
-  if(prestation("Toiture de protection")) {
+  if(!atelier && prestation("Toiture de protection")) {
     var toit=toitureCalculee();
     if(toit){
       ajoute("Fournitures de toiture — "+toit.surface+" m² calculés automatiquement avec débords de 1 m",toit.surface*BAREME.toiture[0]);
@@ -667,7 +675,7 @@ function estimationProjet(){
       if(totalMod()>1)manquants.push("Géométrie de toiture à vérifier par TMC : "+toit.hypothese);
     }else manquants.push("TMC doit préciser l’implantation au sol pour calculer la toiture, sans demander de métrés au client");
   }
-  if(prestation("Fondations ou plots")) {
+  if(!atelier && prestation("Fondations ou plots")) {
     var plots=nombrePlotsCalcule();
     if(Number.isInteger(plots)&&plots>0) ajoute("Provision pour "+plots+" plots bas — calcul automatique selon les conteneurs",plots*BAREME.plot);
     else manquants.push("Définir les conteneurs pour calculer automatiquement les appuis ; TMC vérifiera leur type sur le terrain");
@@ -689,7 +697,7 @@ function estimationProjet(){
   return {lignes:lignes,manquants:manquants,bas:lignes.length?Math.round(arrondiHaut(bas,100000)*coefficient):null,haut:lignes.length?Math.round(arrondiHaut(haut,100000)*coefficient):null,standard:standard,complet:standard&&manquants.length===0};
 }
 function estimPlancher(){return estimationProjet().bas;}
-function tauxPlancher(){return BAREME.amenagement[0];}
+function tauxPlancher(){return atelierCleEnMain()?TARIF_ATELIER_GLOBAL:BAREME.amenagement[0];}
 var COEF_PUBLIC=1.40;
 function plafondEnveloppe(){
   if(S.enveloppe === "2 à 3 millions XPF") return 3000000;
@@ -733,7 +741,7 @@ function estimationTexte(){
  if(e.bas===null || !e.standard || !S.modules || S.modules==="À définir")return messageEstimation(e);
  return "À partir de "+fmt(e.haut)+" XPF"
    +"\nConteneurs, aménagement et prestations chiffrées compris."
-   +(S.usage==="Sanitaire ou local spécialisé"?"\nÉquipements spécifiques et suppléments à confirmer après étude.":"")
+   +((S.usage==="Sanitaire ou local spécialisé" || atelierCleEnMain())?"\nÉquipements spécifiques et suppléments à confirmer après étude.":"")
    +"\nEstimatif non contractuel, hors étude et plan 2D."
    +(e.manquants.length?"\nMontant à compléter : certains travaux ou frais restent à chiffrer lors de l’étude. Le montant indiqué n’est pas un prix final.":"");
 }
@@ -1634,7 +1642,7 @@ function courrierHtml(interne){
  if(!interne){
    var estimation=estimationProjet(),calculable=estimation.haut!==null && estimation.standard && S.modules && S.modules!=="À définir";
    prix='<div style="margin:20px 0;padding:20px;background:#fff2e9;border:1px solid #e56535;border-radius:8px"><h2 style="font-size:18px;margin:0 0 10px;color:#303946">Prix indicatif TMC pour votre projet</h2>'
-    +(calculable?'<p style="font-size:28px;font-weight:bold;color:#b94b21;margin:8px 0">À partir de '+fmt(estimation.haut)+' XPF</p><p style="margin:8px 0">Conteneurs, aménagement et prestations chiffrées compris.</p><p style="font-size:13px">'+(S.usage==="Sanitaire ou local spécialisé"?"Équipements spécifiques et suppléments à confirmer après étude. ":"")+'Estimation non contractuelle, hors étude et plan 2D. '+(estimation.manquants.length?'Certains travaux ou frais restent à chiffrer et s’ajouteront au montant indiqué. ':'')+'Le prix précis sera établi après étude.</p>':'<p>'+esc(estimationTexte())+'</p>')
+    +(calculable?'<p style="font-size:28px;font-weight:bold;color:#b94b21;margin:8px 0">À partir de '+fmt(estimation.haut)+' XPF</p><p style="margin:8px 0">Conteneurs, aménagement et prestations chiffrées compris.</p><p style="font-size:13px">'+((S.usage==="Sanitaire ou local spécialisé" || atelierCleEnMain())?"Équipements spécifiques et suppléments à confirmer après étude. ":"")+'Estimation non contractuelle, hors étude et plan 2D. '+(estimation.manquants.length?'Certains travaux ou frais restent à chiffrer et s’ajouteront au montant indiqué. ':'')+'Le prix précis sera établi après étude.</p>':'<p>'+esc(estimationTexte())+'</p>')
     +(S.enveloppe?'<p style="font-size:13px"><b>Votre budget déclaré :</b> '+esc(S.enveloppe)+'.</p>':"")+'</div>';
  }
  var interneHtml="";
