@@ -1402,8 +1402,13 @@ function perimetreTechnique(){
  return p.join(" ; ");
 }
 
+function plan2DTexte(){
+ var tarif=prixPlan();
+ return (tarif?fmt(tarif[0])+" XPF si TMC doit réaliser le plan. ":"Tarif à confirmer après définition des conteneurs. ")
+  +"Le plan 2D représente votre projet vu de dessus, avec ses dimensions. Il sert à établir votre devis et de base à la préparation du dossier de demande de permis auprès de la Direction de la construction et de l’aménagement (DCA), si nécessaire. Un plan 2D seul ne constitue pas le dossier complet de permis. Si vous disposez déjà d’un plan exploitable, inutile d’en payer un nouveau. Le plan à réaliser est réglé avant de commencer et facturé séparément de l’étude ; son prix n’est pas déduit des travaux.";
+}
 function suiteEtudeTexte(){
- return "L’étude sert à calculer le prix précis de votre projet et à préparer votre devis personnalisé. Elle est payante et doit être réglée avant de commencer. Si vous faites ensuite les travaux avec TMC, son prix sera déduit de votre commande. Le plan 2D est facturé séparément ; son prix n’est pas déduit des travaux.";
+ return "L’étude sert à calculer le prix précis de votre projet et à préparer votre devis personnalisé. Elle est payante et doit être réglée avant de commencer. Si vous validez ensuite le devis d’aménagement et confiez les travaux à TMC, le montant de l’étude sera déduit de ce devis. Si vous ne donnez pas suite au projet, le montant réglé reste acquis à TMC au titre de l’étude réalisée. Le plan 2D est facturé séparément ; son prix n’est pas déduit des travaux.";
 }
 
 function accuse(){
@@ -1488,7 +1493,7 @@ function ficheEmail(){
    "Financement":S.financement||"À préciser",
    "Budget approximatif du projet":estimationTexte(),
    "Étude pour le devis sur mesure":tarifEtude()||"Tarif à confirmer après définition de la surface",
-   "Plan 2D":plan?fmt(plan[0])+" XPF pour dessiner votre projet vu de dessus, avec ses dimensions. Si vous avez déjà un plan utilisable, inutile d’en payer un nouveau. Le plan à réaliser est réglé avant de commencer.":"Tarif à confirmer après définition des conteneurs",
+   "Plan 2D":plan2DTexte(),
    "Si vous souhaitez poursuivre":suiteEtudeTexte(),
    "Votre réponse":"Choisissez : Oui, poursuivre / J’ai une question / Non merci : https://tahitimaisoncontainer-jpg.github.io/avendrecontainer/demande/reponse.html?ref="+encodeURIComponent(referenceDemande())+" — puis envoyez l’email préparé. Aucun paiement ni travaux ne sont engagés par cette réponse.",
    "Votre message":S.msg||"",
@@ -1519,7 +1524,7 @@ function lienReponseEmail(choix){
  var objet="Aménagement — "+ref+" — ",message;
  if(choix==="oui"){
    objet+="Oui, poursuivre l’étude";
-   message="Bonjour TMC,\n\nOui, je souhaite poursuivre avec l’étude de mon projet — "+ref+".\n\n"+identite.join("\n")+"\n\n"+projet.join("\n")+"\n\nPrix indicatif TMC reçu : "+estimationTexte()+"\nÉtude : "+(tarifEtude()||"Tarif à confirmer")+"\n\nMerci de me préciser les modalités pour la suite. Ce message confirme mon souhait d’avancer ; il ne constitue ni un paiement ni une commande de travaux.";
+   message="Bonjour TMC,\n\nOui, je souhaite poursuivre avec l’étude de mon projet — "+ref+".\n\n"+identite.join("\n")+"\n\n"+projet.join("\n")+"\n\nPrix indicatif TMC reçu : "+estimationTexte()+"\nÉtude : "+(tarifEtude()||"Tarif à confirmer")+"\n\nPlan 2D : "+plan2DTexte()+"\n\nConditions de l’étude : "+suiteEtudeTexte()+"\n\nMerci de me préciser les modalités pour la suite. Ce message confirme mon souhait d’avancer ; il ne constitue ni un paiement ni une commande de travaux.";
  }else if(choix==="non"){
    objet+="Non merci";
    message="Bonjour TMC,\n\nNon merci, je ne souhaite pas poursuivre cette demande — "+ref+". Merci de clore mon dossier sans relance.\n\n"+identite.join("\n")+"\n\n"+projet.join("\n");
