@@ -248,7 +248,7 @@ E.destination = {k:"La livraison",q:"Où souhaitez-vous recevoir vos conteneurs 
  sub:"Au quai ou jusqu’au terrain : choisissez ce qui vous convient."};
 
 E.modules = {k:"Votre projet", q:"Quels conteneurs souhaitez-vous aménager ?", mod:1, gabarit:1, num:"surface",
-  sub:"Indiquez vos conteneurs. La surface indicative est calculée automatiquement pour un logement ; vous retrouvez ensuite votre estimation globale."};
+  sub:"Indiquez vos conteneurs. La surface indicative est calculée automatiquement pour un logement ; vous recevrez ensuite votre estimation globale par email."};
 
 E.implantation = {k:"Votre projet", q:"Comment ces modules seront-ils implantés ?", ch:"implantation",
   sub:"Assembler des conteneurs et en poser plusieurs séparément ne coûtent pas la même chose : jonctions et reprises d'étanchéité d'un côté, équipements et raccordements dupliqués de l'autre.", o:[
@@ -1100,9 +1100,8 @@ function choix(champ, i){
   }
   ordre = parcours();
   rendre();
-  /* sur un ecran qui accepte des pieces jointes on n avance pas tout seul :
-     le client doit avoir le temps de joindre son plan avant de passer a la suite */
-  if(!e.pj) setTimeout(suiv, 180);
+  // Les documents sont envoyés par email : tous les choix uniques peuvent avancer.
+  suiv();
 }
 /* choix multiple : on empile les reponses, l option marquee exclusive chasse les autres */
 var MULTI = {};
