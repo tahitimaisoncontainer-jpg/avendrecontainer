@@ -2,4 +2,4 @@ User-agent: *
 Allow: /
 Disallow: /o/
 
-Sitemap: https://tahitimaisoncontainer-jpg.github.io/avendrecontainer/sitemap.xml
+Sitemap: https://tahitimaisoncontainer.github.io/avendrecontainer/sitemap.xml
