@@ -274,7 +274,7 @@ E.parcelle = {k:"Le terrain", q:"Le numéro de votre parcelle", txt:"parcelle",
   sub:"Il se trouve en quelques secondes sur otia.gov.pf. Facultatif, mais il me fait gagner un aller-retour.", opt:1};
 
 E.plan = {k:"Votre projet", q:"Avez-vous un plan ou un croquis ?", ch:"plan", pj:1,
-  reperes:"Un croquis à main levée photographié me suffit pour démarrer : joignez-le ci-dessous.<br>Si vous n'avez rien, je fais établir le plan. Tarifs en XPF :<div class='grille'><em>Plan 2D coté</em><i>1 conteneur 20 pieds</i><b>35 800</b><i>1 conteneur 40 pieds</i><b>53 700</b><i>Par conteneur 20 pieds en plus</i><b>+ 17 900</b><i>Par conteneur 40 pieds en plus</i><b>+ 29 900</b><em>Visuel 3D &nbsp;·&nbsp; en option</em><i>1 conteneur 20 pieds</i><b>47 800</b><i>1 conteneur 40 pieds</i><b>65 700</b><i>Par conteneur 20 pieds en plus</i><b>+ 23 900</b><i>Par conteneur 40 pieds en plus</i><b>+ 35 800</b></div><b>Le plan 2D</b> me sert à chiffrer votre projet au poste près, et sert de base à l’étude des démarches administratives nécessaires à votre projet.<br><b>Le visuel 3D</b> vous montre le rendu final de votre projet avant que je commence.<br>La réalisation du plan 2D et le visuel 3D sont facturés séparément, avant leur démarrage et après votre accord. Un plan 2D coté exploitable est nécessaire au devis sur mesure.", o:[
+  reperes:"Un croquis à main levée photographié me suffit pour démarrer : envoyez-le en réponse au mail reçu après votre demande.<br>Si vous n'avez rien, je fais établir le plan. Tarifs en XPF :<div class='grille'><em>Plan 2D coté</em><i>1 conteneur 20 pieds</i><b>35 800</b><i>1 conteneur 40 pieds</i><b>53 700</b><i>Par conteneur 20 pieds en plus</i><b>+ 17 900</b><i>Par conteneur 40 pieds en plus</i><b>+ 29 900</b><em>Visuel 3D &nbsp;·&nbsp; en option</em><i>1 conteneur 20 pieds</i><b>47 800</b><i>1 conteneur 40 pieds</i><b>65 700</b><i>Par conteneur 20 pieds en plus</i><b>+ 23 900</b><i>Par conteneur 40 pieds en plus</i><b>+ 35 800</b></div><b>Le plan 2D</b> me sert à chiffrer votre projet au poste près, et sert de base à l’étude des démarches administratives nécessaires à votre projet.<br><b>Le visuel 3D</b> vous montre le rendu final de votre projet avant que je commence.<br>La réalisation du plan 2D et le visuel 3D sont facturés séparément, avant leur démarrage et après votre accord. Un plan 2D coté exploitable est nécessaire au devis sur mesure.", o:[
   ["Oui, un plan coté"],["Un croquis à main levée"],["Non, rien pour l'instant"]]};
 
 E.enveloppe = {k:"Budget", q:"Quel budget avez-vous prévu pour votre projet ?", ch:"enveloppe", etudeNote:1, echelle:1,
@@ -1525,6 +1525,7 @@ function courrierHtml(interne){
  var fiche=ficheEmail(), lignes=[];
  Object.keys(fiche).forEach(function(k){
    if(!fiche[k] || k==="Contact TMC" || k==="Votre réponse")return;
+   if(!interne && ["Profil","Structure","Validation du projet","email","Téléphone","Budget déclaré","Terrain","Financement","Votre message"].indexOf(k)>-1)return;
    lignes.push('<tr><th style="padding:9px;text-align:left;vertical-align:top;border-bottom:1px solid #ddd">'+esc(k==="email"?"Email":k)+'</th><td style="padding:9px;border-bottom:1px solid #ddd">'+esc(fiche[k]).replace(/\n/g,"<br>")+'</td></tr>');
  });
  var lien="https://tahitimaisoncontainer-jpg.github.io/avendrecontainer/demande/reponse.html?ref="+encodeURIComponent(referenceDemande());
