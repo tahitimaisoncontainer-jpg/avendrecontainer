@@ -137,7 +137,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,button:focus-vis
 </div>
 <script>
 /* ============ PARAMETRES A AJUSTER ============ */
-var SITE_ACHAT = "https://tahitimaisoncontainer-jpg.github.io/avendrecontainer/";
+var SITE_ACHAT = "https://tahitimaisoncontainer.github.io/avendrecontainer/";
 // L’envoi est assuré par le modèle EmailJS dédié ci-dessous.
 
 
@@ -1362,7 +1362,7 @@ var REP = {
  4:"Bonjour [P],\n\nMerci pour votre demande. Votre projet est clair et je peux le chiffrer.\n\nJe vous prépare un devis détaillé que vous recevrez sous cinq jours ouvrés. D'ici là, je vous propose un point de quinze minutes pour caler l'implantation et le calendrier : êtes-vous disponible [jour] entre [heure] et [heure] ?\n\nBien cordialement,\nJean-Baptiste HAUATA — Tahiti Maison Container\n87 22 65 55",
  3:"Bonjour [P],\n\nMerci pour les informations transmises : votre projet est clair et je peux travailler dessus.\n\nJe vous prépare une estimation chiffrée sous 48 heures. Elle vous donnera une fourchette précise, ce qu'elle comprend et ce qu'elle ne comprend pas. Je vous appellerai ensuite pour quinze minutes afin de caler les derniers points.\n\nSi vous avez une photo du terrain ou un croquis, envoyez-les-moi en réponse à ce message.\n\nBien cordialement,\nJean-Baptiste HAUATA — Tahiti Maison Container\n87 22 65 55",
  2:"Bonjour [P],\n\nMerci pour votre demande. Votre projet est réalisable, mais avant de vous annoncer un prix il me manque quelques éléments : sans eux je vous donnerais un chiffre au hasard, et ce n'est pas ma façon de travailler.\n\nPouvez-vous me préciser :\n[reprendre les points marqués « à obtenir » dans le topo]\n\nDès réception, je vous envoie une estimation chiffrée sous 48 heures.\n\nBien cordialement,\nJean-Baptiste HAUATA — Tahiti Maison Container\n87 22 65 55",
- 1:"Bonjour [P],\n\nMerci de votre intérêt pour Tahiti Maison Container.\n\nPour vous donner des ordres de grandeur : un conteneur 20 DRY livré et posé revient entre 623 000 et 714 000 XPF selon votre commune, un 40 HC entre 832 000 et 993 000 XPF. Le prix exact de votre commune s'obtient ici : https://tahitimaisoncontainer-jpg.github.io/avendrecontainer/\n\nPour un projet d'aménagement, le chiffrage passe par une étude préalable, déduite de votre commande.\n\nQuand votre projet se précisera — usage, terrain, date — recontactez-moi.\n\nBien cordialement,\nJean-Baptiste HAUATA — Tahiti Maison Container\n87 22 65 55"
+ 1:"Bonjour [P],\n\nMerci de votre intérêt pour Tahiti Maison Container.\n\nPour vous donner des ordres de grandeur : un conteneur 20 DRY livré et posé revient entre 623 000 et 714 000 XPF selon votre commune, un 40 HC entre 832 000 et 993 000 XPF. Le prix exact de votre commune s'obtient ici : https://tahitimaisoncontainer.github.io/avendrecontainer/\n\nPour un projet d'aménagement, le chiffrage passe par une étude préalable, déduite de votre commande.\n\nQuand votre projet se précisera — usage, terrain, date — recontactez-moi.\n\nBien cordialement,\nJean-Baptiste HAUATA — Tahiti Maison Container\n87 22 65 55"
 };
 
 function tir(n){ var s=""; for(var i=0;i<n;i++) s+="-"; return s; }
@@ -1602,7 +1602,7 @@ function ficheEmail(){
    "Étude pour le devis sur mesure":tarifEtude()||"Tarif à confirmer après définition de la surface",
    "Plan 2D":plan2DTexte(),
    "Si vous souhaitez poursuivre":suiteEtudeTexte(),
-   "Votre réponse":"Choisissez : Oui, poursuivre / J’ai une question / Non merci : https://tahitimaisoncontainer-jpg.github.io/avendrecontainer/demande/reponse.html?ref="+encodeURIComponent(referenceDemande())+" — puis envoyez l’email préparé. Aucun paiement ni travaux ne sont engagés par cette réponse.",
+   "Votre réponse":"Choisissez : Oui, poursuivre / J’ai une question / Non merci : https://tahitimaisoncontainer.github.io/avendrecontainer/demande/reponse.html?ref="+encodeURIComponent(referenceDemande())+" — puis envoyez l’email préparé. Aucun paiement ni travaux ne sont engagés par cette réponse.",
    "Votre message":S.msg||"",
    "Contact TMC":"Jean-Baptiste HAUATA — 87 22 65 55 — tahitimaisoncontainer@gmail.com"
  };
