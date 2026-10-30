@@ -474,7 +474,21 @@
 
 
 @media(max-width:700px){.project-intro h1{font-size:clamp(2rem,10.5vw,2.65rem);overflow-wrap:normal}.nav-right{flex-wrap:nowrap!important;width:100%;justify-content:center}.nav-right .btn{font-size:.72rem!important;padding:.6rem .7rem!important;white-space:nowrap}.project-choice h2{overflow-wrap:break-word}}
-@media(max-width:700px){html,body{overflow-x:clip}.nav-right .btn{flex:1;min-width:0;font-size:11px!important;padding:12px 8px!important}.nav-inner{width:calc(100% - 32px)}.hero-grid>*{min-width:0}.hero-title{font-size:2.4rem!important;overflow-wrap:anywhere}.section-head{display:block}.section-head>*{min-width:0;max-width:100%}.section-head h2{overflow-wrap:anywhere}.project-intro{padding-top:38px}}</style>
+@media(max-width:700px){html,body{overflow-x:clip}.nav-right .btn{flex:1;min-width:0;font-size:11px!important;padding:12px 8px!important}.nav-inner{width:calc(100% - 32px)}.hero-grid>*{min-width:0}.hero-title{font-size:2.4rem!important;overflow-wrap:anywhere}.section-head{display:block}.section-head>*{min-width:0;max-width:100%}.section-head h2{overflow-wrap:anywhere}.project-intro{padding-top:38px}}
+/* Keep the project panel within narrow viewports, including enlarged text. */
+.am-panel{grid-template-columns:minmax(0,1.15fr) minmax(0,1fr)}
+.am-panel>*{min-width:0}
+.am-panel p,.am-panel strong{overflow-wrap:anywhere}
+.am-panel .btn{max-width:100%;white-space:normal;text-align:center;overflow-wrap:anywhere}
+.am-step{grid-template-columns:34px minmax(0,1fr)}
+.am-step>div{min-width:0}
+@media(max-width:700px){
+  .am-panel{grid-template-columns:minmax(0,1fr);padding:22px 18px}
+  .am-panel .btn{display:flex;width:100%;padding:14px 16px;font-size:.9rem;line-height:1.4}
+  .am-tags{max-width:100%}
+  .am-tags span{max-width:100%;overflow-wrap:anywhere}
+}
+</style>
 <!-- Google tag (gtag.js) --><script async src="https://www.googletagmanager.com/gtag/js?id=G-HZBRXYJB9B"></script><script>window.dataLayer = window.dataLayer || [];function gtag(){dataLayer.push(arguments);}gtag('js', new Date());gtag('config', 'G-HZBRXYJB9B');</script></head>
 <body>
 
